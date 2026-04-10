@@ -1,0 +1,15 @@
+node_modules/
+docs/open-agent-sdk-typescript/
+docs/roundtable-advisor/
+sessions/
+.*
+**/.*
+!.gitignore
+.DS_Store
+.claude/
+.agents/
+.qoder/
+.trae/
+*.env
+.env*
+dist/

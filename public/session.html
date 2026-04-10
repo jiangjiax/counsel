@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>参谋 · Counsel AI</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- 风格切换: 古典水墨用 theme-a，霓虹赛博用 theme-b（或不写class） -->
+<link rel="stylesheet" href="/persona-colors.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,'PingFang SC',sans-serif;color:#f0f0f0}
+:root{--muted:#4a4a4a;--bg:#000}
+
+/* ══ LAYOUT ═══════════════════════════════ */
+#main{display:flex;width:100%;height:100%}
+#scene-pane{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 50% 42%,rgba(255,255,255,.025) 0%,#000 65%)}
+#scene-pane::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:40px 40px;opacity:.4}
+
+#text-pane{width:320px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.1);background:rgba(6,6,6,.97);backdrop-filter:blur(16px);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── RING LAYOUT ─────────────────────────── */
+#ring-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ring-wrap{position:relative;width:540px;height:540px}
+.orb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,255,255,.22)}
+.orb-1{width:424px;height:424px}
+.orb-2{width:480px;height:480px;border-color:rgba(255,255,255,.08)}
+.orb-3{width:368px;height:368px;border-color:rgba(255,255,255,.06)}
+.ring-center-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.06) 0%,transparent 70%)}
+.ring-host{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;z-index:20}
+.ring-host-av{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(14,14,14,.95);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 28px rgba(255,255,255,.1),0 0 60px rgba(255,255,255,.04);transition:all .3s}
+.ring-host-label{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:2px}
+.rn{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:15;transform:translate(-50%,-50%);transition:transform .25s}
+.rn-av{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,10,.95);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all .3s;backdrop-filter:blur(4px)}
+.rn-label{font-size:7.5px;color:rgba(255,255,255,.2);white-space:nowrap;transition:color .3s;text-align:center}
+.rn.dim .rn-av{opacity:.15}
+.rn.lit .rn-av{border-color:rgba(255,255,255,.38);box-shadow:0 0 12px rgba(255,255,255,.14)}
+.rn.lit .rn-label{color:rgba(255,255,255,.55)}
+@keyframes wSpeak{0%,100%{box-shadow:0 0 18px rgba(255,255,255,.5),0 0 40px rgba(255,255,255,.15)}50%{box-shadow:0 0 32px rgba(255,255,255,.9),0 0 70px rgba(255,255,255,.28)}}
+@keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.8);opacity:0}}
+.rn.speaking .rn-av{border-color:#fff;animation:wSpeak 1.6s ease-in-out infinite}
+.rn.speaking .rn-av::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,255,255,.3);animation:ripple 1.6s ease-out infinite}
+.rn.speaking .rn-label{color:#fff}
+.rn.done .rn-av{border-color:rgba(255,255,255,.25);opacity:.6}
+.rn.done .rn-label{color:rgba(255,255,255,.35)}
+.rn.waiting .rn-av{opacity:.1}
+
+/* 网格头像位置（theme-a 水墨风格用） */
+.rn-av.av-grid{background-image:url('/portrait-grid.png');background-size:500% 500%;filter:brightness(1.1) contrast(1.25) grayscale(.08) sepia(.06);font-size:0;color:transparent}
+.rn-av.av-grid>*{display:none}
+/* 12 幕僚的网格位置 */
+.rn-av.p-mao{background-position:0% 0%}
+.rn-av.p-jobs{background-position:25% 0%}
+.rn-av.p-musk{background-position:50% 0%}
+.rn-av.p-munger{background-position:75% 0%}
+.rn-av.p-qian{background-position:100% 0%}
+.rn-av.p-zhang{background-position:0% 25%}
+.rn-av.p-pg{background-position:25% 25%}
+.rn-av.p-karpathy{background-position:50% 25%}
+.rn-av.p-ilya{background-position:75% 25%}
+.rn-av.p-mrbeast{background-position:100% 25%}
+.rn-av.p-naval{background-position:0% 50%}
+.rn-av.p-feynman{background-position:25% 50%}
+.rn-av.p-taleb{background-position:50% 50%}
+.rn-av.p-laozi{background-position:75% 50%}
+.rn-av.p-suntzu{background-position:100% 50%}
+.rn-av.p-brucelee{background-position:0% 75%}
+.rn-av.p-plato{background-position:25% 75%}
+.rn-av.p-drucker{background-position:50% 75%}
+.rn-av.p-buffett{background-position:75% 75%}
+.rn-av.p-bezos{background-position:100% 75%}
+.rn-av.p-oppie{background-position:0% 100%}
+.rn-av.p-davinci{background-position:25% 100%}
+.rn-av.p-churchill{background-position:50% 100%}
+.rn-av.p-asmith{background-position:75% 100%}
+.rn-av.p-socrates{background-position:100% 100%}
+/* Trump 特朗普 - 额外位置 */
+.rn-av.p-trump{background-position:0% 75%}
+
+/* ══ TEXT PANE STRUCTURE ════════════════════ */
+#pane-header{padding:10px 13px 8px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.pane-brand{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.pstrip{display:flex;align-items:center;gap:2px}
+.pnode{display:flex;align-items:center;gap:2px;font-size:7.5px;color:rgba(255,255,255,.18);cursor:pointer;white-space:nowrap;transition:color .2s}
+.pnode.done{color:rgba(255,255,255,.45)}
+.pnode.now{color:#fff}
+.pdot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.1);flex-shrink:0}
+.pnode.done .pdot{background:rgba(255,255,255,.6)}
+.pnode.now .pdot{background:#fff;box-shadow:0 0 5px rgba(255,255,255,.5)}
+.pline{flex:1;height:1px;background:rgba(255,255,255,.06);min-width:3px}
+
+#mode-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 13px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;min-height:28px}
+#mode-label{font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:.5px}
+
+.panel-view{flex:1;overflow-y:auto;padding:12px}
+.panel-view::-webkit-scrollbar{width:2px}
+.panel-view::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
+
+#pane-footer{padding:9px 12px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;display:flex;gap:6px;align-items:center}
+
+/* ══ STEP CONTENT ═══════════════════════════ */
+.step-content{display:none}
+.sh{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.snum{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:8.5px;color:rgba(255,255,255,.7);flex-shrink:0}
+.stitle{font-size:12px;font-weight:600;color:#fff}
+.ssub{font-size:9.5px;color:var(--muted);margin-top:1px}
+
+.ginput{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:9px 11px;color:#f0f0f0;font-size:12px;line-height:1.6;resize:none;outline:none;font-family:inherit;transition:border-color .2s}
+.ginput:focus{border-color:rgba(255,255,255,.28)}
+.ginput-sm{height:32px;padding:5px 10px;resize:none}
+
+.btn{padding:6px 12px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:all .15s;font-family:inherit}
+.btn-w{background:#fff;color:#000}
+.btn-w:hover{background:#e8e8e8}
+.btn-w:disabled{background:rgba(255,255,255,.2);color:rgba(0,0,0,.4);cursor:not-allowed}
+.btn-o{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7)}
+.btn-o:hover{border-color:rgba(255,255,255,.45);color:#fff}
+.btn-g{background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.btn-g:hover{border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.7)}
+
+/* ── Chat bubbles ── */
+.cmsg{display:flex;gap:7px;margin-bottom:8px;align-items:flex-start}
+.cmsg.u{flex-direction:row-reverse}
+.cbub{padding:7px 10px;border-radius:7px;font-size:11px;line-height:1.55;max-width:86%}
+.cbub.f{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.65)}
+.cbub.u{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.65)}
+.cav{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:#0a0a0a}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cur::after{content:'▋';animation:blink .85s infinite;color:#fff}
+
+/* ── S2 锁定建议 ── */
+.lock-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:10px 11px;margin:9px 0}
+.lock-box-t{font-size:8px;color:rgba(255,255,255,.4);letter-spacing:2px;margin-bottom:7px;text-transform:uppercase}
+.lock-item{font-size:10.5px;color:rgba(255,255,255,.5);line-height:1.6;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.lock-item:last-child{border-bottom:none}
+
+/* ── S3 facts ── */
+.s3-status{font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:1px;margin-bottom:10px}
+.persona-q-block{padding:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:8px;margin-bottom:8px}
+.persona-q-hdr{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.persona-q-av{width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 12px rgba(255,255,255,.15);flex-shrink:0}
+.persona-q-name{font-size:11px;font-weight:600;color:#fff}
+.persona-q-badge{font-size:8px;color:rgba(255,255,255,.3);letter-spacing:.5px}
+.persona-q-text{font-size:11px;color:rgba(255,255,255,.6);line-height:1.7;white-space:pre-wrap}
+
+/* ── Markdown rendered output ── */
+.md-body{font-size:11px;color:rgba(255,255,255,.6);line-height:1.75}
+.md-body p{margin-bottom:6px}
+.md-body p:last-child{margin-bottom:0}
+.md-body h1,.md-body h2,.md-body h3{font-weight:600;color:rgba(255,255,255,.82);margin:10px 0 4px}
+.md-body h1{font-size:13px}
+.md-body h2{font-size:12px}
+.md-body h3{font-size:11.5px}
+.md-body ul,.md-body ol{padding-left:14px;margin-bottom:6px}
+.md-body li{margin-bottom:3px}
+.md-body strong{color:rgba(255,255,255,.88);font-weight:600}
+.md-body em{color:rgba(255,255,255,.55);font-style:italic}
+.md-body blockquote{padding:6px 10px;border-left:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.03);border-radius:0 4px 4px 0;margin:6px 0;color:rgba(255,255,255,.45);font-style:italic}
+.md-body code{font-family:monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;color:rgba(255,255,255,.7)}
+.md-body pre{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:8px 10px;overflow-x:auto;margin-bottom:6px}
+.md-body pre code{background:none;padding:0;font-size:10px}
+.persona-q-loading{font-size:10px;color:rgba(255,255,255,.3);font-style:italic}
+.s3-answer-area{margin-top:12px;border-top:1px solid rgba(255,255,255,.07);padding-top:12px}
+.s3-answer-label{font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:1.5px;margin-bottom:6px;text-transform:uppercase}
+
+/* ── Loading states ── */
+.loading-dot{display:inline-block;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);margin:0 2px;animation:dotPulse 1.4s infinite}
+.loading-dot:nth-child(2){animation-delay:.2s}
+.loading-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+.error-msg{font-size:10px;color:rgba(255,80,80,.7);padding:8px 10px;background:rgba(255,0,0,.05);border:1px solid rgba(255,0,0,.1);border-radius:5px;margin:6px 0}
+
+/* ══ LAYOUT TOGGLE ════════════════════════════════ */
+#lt{position:absolute;top:13px;left:14px;z-index:60;display:flex;gap:3px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px;backdrop-filter:blur(10px)}
+.lt-btn{padding:4px 12px;border-radius:4px;border:none;font-size:10px;cursor:pointer;font-family:inherit;background:transparent;color:rgba(255,255,255,.35);transition:all .2s}
+.lt-btn.on{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.lt-btn:hover{color:rgba(255,255,255,.75)}
+
+/* ══ TABLE LAYOUT — 42° Isometric Perspective ══ */
+:root{--tbl-w:560px;--tbl-h:420px;--tbl-cx:280px;--tbl-cy:210px}
+#table-scene{
+  position:absolute;inset:0;
+  display:none;align-items:center;justify-content:center;
+}
+#table-scene.on{display:flex}
+#ring-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.tbl-wrap{position:relative;width:var(--tbl-w);height:var(--tbl-h)}
+/* 桌面椭圆 */
+.tbl-surface{
+  position:absolute;
+  width:340px;height:188px;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%) rotateX(42deg);
+  border-radius:50%;
+  background:radial-gradient(ellipse at 45% 38%,#161616 0%,#0d0d0d 55%,#080808 100%);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06),
+    0 0 70px rgba(255,255,255,.08),
+    0 36px 90px rgba(0,0,0,.98),
+    inset 0 0 40px rgba(255,255,255,.03),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+/* 桌面氛围光 */
+.tbl-surface::after{
+  content:'';
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:200px;height:80px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.03) 0%,transparent 70%);
+}
+/* 轨道环 */
+.tbl-ring{position:absolute;width:382px;height:208px;left:50%;top:50%;transform:translate(-50%,-50%) rotateX(42deg);border-radius:50%;border:1px solid rgba(255,255,255,.1)}
+.tbl-ring2{position:absolute;width:310px;height:168px;left:50%;top:50%;transform:translate(-50%,-50%) rotateX(42deg);border-radius:50%;border:1px solid rgba(255,255,255,.06)}
+/* 桌面议题文字 */
+.tbl-topic{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);text-align:center;z-index:15;pointer-events:none}
+.tbl-topic-l{font-size:7.5px;color:rgba(255,255,255,.22);letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.tbl-topic-t{font-size:12px;color:rgba(255,255,255,.4);max-width:160px;line-height:1.4}
+/* 座位节点 */
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;z-index:20;transform:translate(-50%,-50%);transition:transform .25s}
+.seat:hover{transform:translate(-50%,-50%) scale(1.1)!important}
+.seat-av{border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,10,.95);display:flex;align-items:center;justify-content:center;position:relative;transition:all .3s;backdrop-filter:blur(4px)}
+.seat-host .seat-av{width:56px;height:56px;font-size:22px;border-color:rgba(255,255,255,.3);box-shadow:0 0 20px rgba(255,255,255,.08)}
+.seat-host .seat-label{font-size:8.5px;color:rgba(255,255,255,.4);letter-spacing:1px}
+.seat-adv .seat-av{width:38px;height:38px;font-size:16px}
+/* seat states */
+.seat.dim .seat-av{opacity:.15}
+.seat.lit .seat-av{border-color:rgba(255,255,255,.38);box-shadow:0 0 12px rgba(255,255,255,.14)}
+.seat.lit .seat-label{color:rgba(255,255,255,.55)}
+.seat.speaking .seat-av{border-color:#fff;animation:tSpeak 1.6s ease-in-out infinite}
+.seat.speaking .seat-av::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(255,255,255,.28);animation:ripple 1.6s ease-out infinite}
+.seat.speaking .seat-label{color:#fff}
+.seat.done .seat-av{border-color:rgba(255,255,255,.22);opacity:.6}
+.seat.done .seat-label{color:rgba(255,255,255,.32)}
+.seat.waiting .seat-av{opacity:.08}
+.seat.waiting .seat-label{opacity:.2}
+
+/* ── 发言气泡 · Speech Bubble ── */
+.rn-bubble{
+  position:absolute;bottom:calc(100%+10px);left:50%;
+  transform:translateX(-50%);
+  background:rgba(8,8,8,.97);border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;padding:8px 12px;max-width:200px;min-width:100px;
+  cursor:pointer;z-index:200;backdrop-filter:blur(16px);
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  pointer-events:auto;
+}
+.rn-bubble::after{
+  content:'';position:absolute;top:100%;left:50%;
+  transform:translateX(-50%);
+  border:7px solid transparent;
+  border-top-color:rgba(255,255,255,.18);
+}
+.rn-bubble:hover{
+  border-color:var(--pc,rgba(255,255,255,.4));
+  box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 16px var(--pc-glow,rgba(255,255,255,.12));
+  transform:translateX(-50%) translateY(-3px);
+}
+.rn-bubble.active{
+  border-color:var(--pc,rgba(255,255,255,.5));
+  box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 20px var(--pc-glow,rgba(255,255,255,.18));
+}
+.rn-bubble-tag{
+  display:inline-block;font-size:7px;padding:1px 6px;border-radius:3px;
+  background:var(--pc,#fff);color:#000;margin-bottom:5px;font-weight:600;letter-spacing:.5px;
+}
+.rn-bubble-text{
+  font-size:10px;color:rgba(255,255,255,.88);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  white-space:pre-wrap;word-break:break-all;
+}
+.rn-bubble-hint{
+  font-size:8px;color:rgba(255,255,255,.35);margin-top:5px;text-align:center;
+  transition:color .2s;
+}
+.rn-bubble.active .rn-bubble-hint{color:var(--pc,rgba(255,255,255,.7))}
+@keyframes bubbleRise{
+  from{opacity:0;transform:translateX(-50%) scale(.85) translateY(6px)}
+  to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}
+}
+.rn-bubble{animation:bubbleRise .28s ease-out}
+
+#view-speech{transition:opacity .3s,transform .3s}
+#view-speech.slide-in{animation:slideIn .3s ease-out}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(24px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* 网格头像位置（theme-a 水墨风格用） */
+.seat-av.av-grid{background-image:url('/portrait-grid.png');background-size:500% 500%;filter:brightness(1.1) contrast(1.25) grayscale(.08) sepia(.06);font-size:0;color:transparent}
+.seat-av.av-grid>*{display:none}
+@keyframes tSpeak{0%,100%{box-shadow:0 0 18px rgba(255,255,255,.5),0 0 40px rgba(255,255,255,.15)}50%{box-shadow:0 0 32px rgba(255,255,255,.9),0 0 70px rgba(255,255,255,.28)}}
+
+/* ── S4 幕僚发言卡片 ── */
+.ocard{padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:border-color .2s,background .2s}
+.ocard:hover{border-color:rgba(255,255,255,.18)}
+.ocard.on{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.03)}
+.ocard-n{font-size:8px;color:rgba(255,255,255,.38);letter-spacing:.8px;margin-bottom:3px}
+.ocard-t{font-size:10.5px;color:rgba(255,255,255,.5);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ocard.on .ocard-t{color:rgba(255,255,255,.65)}
+
+/* ── S4 全文展开面板 ── */
+#view-speech{display:none;flex:1;overflow-y:auto;padding:12px}
+#view-speech::-webkit-scrollbar{width:2px}
+#view-speech::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
+.speech-hdr{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.speech-hdr-av{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.speech-hdr-name{font-size:12px;font-weight:600;color:#fff}
+.speech-hdr-meta{font-size:8.5px;color:rgba(255,255,255,.35);margin-top:2px}
+.speech-body{font-size:11px;color:rgba(255,255,255,.6);line-height:1.75}
+
+/* ── S5 维度卡片 ── */
+.dcard{padding:10px 11px;border:1px solid rgba(255,255,255,.1);border-radius:7px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:9px}
+.dcard:hover{border-color:rgba(255,255,255,.28)}
+.dcard.sel{border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.04)}
+.dcard-check{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.25);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s}
+.dcard.sel .dcard-check{background:#fff;border-color:#fff;color:#000}
+.dcard-body{flex:1}
+.dcard-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:3px}
+.dcard-desc{font-size:10px;color:rgba(255,255,255,.4);line-height:1.55}
+
+/* ── S6 辩论 ── */
+.dbmsg{padding:8px 10px;border-radius:6px;margin-bottom:6px;border:1px solid rgba(255,255,255,.07)}
+.dbmsg-hdr{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.dbmsg-av{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.dbmsg-name{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.5px}
+.dbmsg-text{font-size:10.5px;color:rgba(255,255,255,.55);line-height:1.6}
+.dbmsg.streaming .dbmsg-text::after{content:'▋';animation:blink .85s infinite;color:#fff}
+.db-facilitator{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.02)}
+.db-facilitator .dbmsg-name{color:rgba(255,255,255,.7)}
+.db-facilitator .dbmsg-text{color:rgba(255,255,255,.65)}
+.db-dim-header{padding:8px 10px 4px;font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);margin-top:8px}
+.db-dim-wrap{display:none}
+.db-dim-wrap.active{display:block}
+
+/* ── S7 汇总 ── */
+.scard{padding:10px 11px;border:1px solid rgba(255,255,255,.1);border-radius:7px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.scard:hover{border-color:rgba(255,255,255,.25)}
+.scard-label{font-size:8px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.scard-text{font-size:10.5px;color:rgba(255,255,255,.55);line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ── S8 行动清单 ── */
+.aitem{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.aitem:hover{border-color:rgba(255,255,255,.18)}
+.aitem.checked{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.03)}
+.aitem-check{width:15px;height:15px;border-radius:50%;border:1px solid rgba(255,255,255,.25);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s}
+.aitem.checked .aitem-check{background:#fff;border-color:#fff;color:#000}
+.aitem-body{flex:1}
+.aitem-text{font-size:11px;color:rgba(255,255,255,.7);line-height:1.55;margin-bottom:3px}
+.aitem.checked .aitem-text{color:rgba(255,255,255,.35);text-decoration:line-through}
+.aitem-meta{font-size:8.5px;color:rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+
+<div id="main">
+  <!-- LEFT: SCENE PANE -->
+  <div id="scene-pane">
+    <!-- 布局切换按钮 -->
+    <div id="lt">
+      <button class="lt-btn on" id="lt-A" onclick="setLayout('A')">⬤ 星环</button>
+      <button class="lt-btn" id="lt-B" onclick="setLayout('B')">⬡ 圆桌</button>
+    </div>
+
+    <!-- Layout A: 星环 -->
+    <div id="ring-scene">
+      <div class="ring-wrap" id="rw">
+        <div class="orb orb-3"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="ring-center-glow"></div>
+        <div class="ring-host" id="rh">
+          <div class="ring-host-av" id="rh-av">🎙️</div>
+          <div class="ring-host-label">主持人</div>
+        </div>
+        <!-- 幕僚节点由 JS 动态生成 -->
+      </div>
+    </div>
+
+    <!-- Layout B: 3D透视圆桌 -->
+    <div id="table-scene">
+      <div class="tbl-wrap" id="tw">
+        <div class="tbl-ring"></div>
+        <div class="tbl-ring2"></div>
+        <div class="tbl-surface"></div>
+        <div class="tbl-topic">
+          <div class="tbl-topic-l">议题</div>
+          <div class="tbl-topic-t" id="tbl-topic-t">—</div>
+        </div>
+        <div class="seat seat-host dim" id="th-host">
+          <div class="seat-av">🎙️</div>
+          <div class="seat-label">主持人</div>
+        </div>
+        <!-- 幕僚座位由 JS 动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: TEXT PANE -->
+  <div id="text-pane">
+    <div id="pane-header">
+      <div class="pane-brand">参谋</div>
+      <div class="pstrip" id="pstrip"></div>
+    </div>
+    <div id="mode-bar">
+      <span id="mode-label">加载中…</span>
+    </div>
+
+    <div id="view-step" class="panel-view">
+
+      <!-- S1: 输入困境 -->
+      <div class="step-content" id="s1">
+        <div class="sh">
+          <div class="snum">1</div>
+          <div><div class="stitle">说出你的困境</div><div class="ssub">越真实越好，不用完美</div></div>
+        </div>
+        <textarea class="ginput" id="s1-input" rows="10" placeholder="描述你现在面临的困境、困惑或者难以决策的问题。可以包括背景、已知条件、你的顾虑…"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:9.5px;color:var(--muted)" id="s1-count">0字</span>
+          <button class="btn btn-w" id="s1-submit" onclick="submitS1()">提交，开始分析 →</button>
+        </div>
+        <div id="s1-error"></div>
+      </div>
+
+      <!-- S2: 主持人对话 -->
+      <div class="step-content" id="s2">
+        <div class="sh">
+          <div class="snum">2</div>
+          <div><div class="stitle">主持人定义问题</div><div class="ssub">问题清晰，幕僚才能击中要害</div></div>
+        </div>
+        <div id="s2-chat"></div>
+        <div id="s2-input-area" style="display:none">
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <textarea class="ginput ginput-sm" id="s2-input" placeholder="回复主持人…" rows="1" style="flex:1;height:auto;min-height:32px" onkeydown="s2KeyDown(event)"></textarea>
+            <button class="btn btn-w" onclick="sendS2()">发送</button>
+          </div>
+        </div>
+        <div id="s2-lock-area" style="display:none;margin-top:10px">
+          <div class="lock-box" id="s2-lock-preview">
+            <div class="lock-box-t">✦ 锁定问题框架</div>
+            <div id="s2-lock-items"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:6px">
+            <button class="btn btn-g" onclick="continueChat()">继续对话</button>
+            <button class="btn btn-w" onclick="lockS2()">锁定，开始挖事实 →</button>
+          </div>
+        </div>
+        <div id="s2-error"></div>
+      </div>
+
+      <!-- S4: 幕僚并行发言 -->
+      <div class="step-content" id="s4">
+        <div class="sh">
+          <div class="snum">4</div>
+          <div><div class="stitle">幕僚在发言</div><div class="ssub" id="s4-sub">正在召集幕僚…</div></div>
+        </div>
+        <div id="s4-cards"></div>
+        <div id="s4-error"></div>
+      </div>
+
+      <!-- S5: 提炼冲突维度 -->
+      <div class="step-content" id="s5">
+        <div class="sh">
+          <div class="snum">5</div>
+          <div><div class="stitle">选择辩论维度</div><div class="ssub" id="s5-sub">主持人正在提炼冲突…</div></div>
+        </div>
+        <div id="s5-dims"></div>
+        <div id="s5-loading" style="display:none;padding:12px 0;text-align:center">
+          <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+        </div>
+        <div id="s5-raw" class="md-body" style="margin-bottom:10px"></div>
+        <div id="s5-action" style="display:none">
+          <div style="font-size:9.5px;color:rgba(255,255,255,.35);margin-bottom:8px">选择 1-3 个维度进入辩论</div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn btn-w" onclick="startDebate()">开始辩论 →</button>
+          </div>
+        </div>
+        <div id="s5-error"></div>
+      </div>
+
+      <!-- S6: 辩论 -->
+      <div class="step-content" id="s6">
+        <div class="sh">
+          <div class="snum">6</div>
+          <div><div class="stitle">辩论</div><div class="ssub" id="s6-sub">幕僚们正在交锋…</div></div>
+        </div>
+        <!-- 右上角：维度导航 -->
+        <div id="s6-dim-nav" style="display:none;margin-bottom:10px"></div>
+        <div id="s6-msgs"></div>
+        <div id="s6-next-action" style="display:none;margin-top:10px">
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn btn-w" onclick="showStep('s7');initS7()">生成汇总洞察 →</button>
+          </div>
+        </div>
+        <div id="s6-error"></div>
+      </div>
+
+      <!-- S7: 汇总洞察 -->
+      <div class="step-content" id="s7">
+        <div class="sh">
+          <div class="snum">7</div>
+          <div><div class="stitle">汇总洞察</div><div class="ssub" id="s7-sub">记录员正在整理…</div></div>
+        </div>
+        <div id="s7-loading" style="display:none;padding:12px 0;text-align:center">
+          <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+        </div>
+        <div id="s7-content"></div>
+        <div id="s7-error"></div>
+      </div>
+
+      <!-- S8: 摘果子 -->
+      <div class="step-content" id="s8">
+        <div class="sh">
+          <div class="snum">8</div>
+          <div><div class="stitle">摘果子</div><div class="ssub" id="s8-sub">幕僚正在评价你…</div></div>
+        </div>
+        <!-- 幕僚评价区 -->
+        <div id="s8-evals" style="margin-bottom:10px"></div>
+        <!-- 秘书整理的 To-Do + 洞见 -->
+        <div id="s8-raw" class="md-body" style="margin-bottom:10px"></div>
+        <!-- To-Do 勾选列表 -->
+        <div id="s8-items"></div>
+        <!-- 案主心得 -->
+        <div id="s8-reflection-area" style="display:none;margin-bottom:10px">
+          <div style="font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase">✦ 你的心得体会</div>
+          <textarea class="ginput" id="s8-reflection" rows="3" placeholder="这次讨论你最大的收获是什么？有什么行动计划？…"></textarea>
+        </div>
+        <!-- 完成按钮 -->
+        <div id="s8-complete-area" style="display:none;margin-top:10px">
+          <button class="btn btn-w" style="width:100%" id="s8-complete-btn" onclick="completeS8()">完成，存档到 User Wiki →</button>
+        </div>
+        <!-- 结束状态 -->
+        <div id="s8-done" style="display:none;padding:16px 0;text-align:center;border-top:1px solid rgba(255,255,255,.07);margin-top:12px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px">本次参谋结束</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.25)">行动清单和心得已归档到 User Wiki</div>
+        </div>
+        <div id="s8-error"></div>
+      </div>
+
+      <!-- S3: 挖事实 -->
+      <div class="step-content" id="s3">
+        <div class="sh">
+          <div class="snum">3</div>
+          <div><div class="stitle">幕僚在问你</div><div class="ssub" id="s3-sub">正在生成问题…</div></div>
+        </div>
+        <!-- 逐一问答区 -->
+        <div id="s3-qa-area">
+          <!-- 历史问答记录 -->
+          <div id="s3-history"></div>
+          <!-- 当前幕僚提问 -->
+          <div id="s3-current-q" style="display:none">
+            <div class="persona-q-block" id="s3-current-block"></div>
+            <div class="s3-answer-area" style="margin-top:10px">
+              <div class="s3-answer-label">你的回答</div>
+              <textarea class="ginput" id="s3-answer" rows="4" placeholder="回答这个问题，或者留空跳过…"></textarea>
+              <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px">
+                <button class="btn btn-g" id="s3-skip" onclick="skipS3()">跳过</button>
+                <button class="btn btn-w" id="s3-next" onclick="answerS3()">回答，下一位 →</button>
+              </div>
+            </div>
+          </div>
+          <!-- 加载中 -->
+          <div id="s3-loading" style="display:none;padding:12px 0;text-align:center">
+            <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+          </div>
+        </div>
+        <div id="s3-error"></div>
+      </div>
+
+    </div><!-- /view-step -->
+
+    <!-- S4 全文展开面板 -->
+    <div id="view-speech">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+        <button class="btn btn-g" style="font-size:9px;padding:4px 8px" onclick="closeSpeech()">← 返回</button>
+        <span style="font-size:8.5px;color:rgba(255,255,255,.3)" id="speech-back-label"></span>
+      </div>
+      <div class="speech-hdr" id="speech-hdr"></div>
+      <div class="speech-body md-body" id="speech-body"></div>
+    </div>
+
+    <div id="pane-footer">
+      <div style="flex:1;display:flex;gap:5px">
+        <button class="btn btn-g" style="flex:1" id="btn-prev" onclick="prevStep()">← 上一步</button>
+        <button class="btn btn-w" style="flex:1" id="btn-next" style="display:none" onclick="onNextStep()">下一步 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── URL PARAMS ──────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+let projectId = params.get('projectId');
+let sessionId = params.get('sessionId');
+
+const STEPS = [
+  {id:'s1', label:'输入'},
+  {id:'s2', label:'定义'},
+  {id:'s3', label:'挖事实'},
+  {id:'s4', label:'发言'},
+  {id:'s5', label:'维度'},
+  {id:'s6', label:'辩论'},
+  {id:'s7', label:'洞察'},
+  {id:'s8', label:'行动'},
+];
+
+// 幕僚列表：从后端动态加载
+let PERSONAS = [];
+
+async function loadPersonas() {
+  const res = await fetch('/api/personas');
+  PERSONAS = await res.json();
+  buildRingNodes();
+  buildTableNodes();
+}
+
+function buildRingNodes() {
+  const rw = document.getElementById('rw');
+  rw.querySelectorAll('.rn').forEach(n => n.remove());
+
+  const r = 210, cx = 270, cy = 270;
+  PERSONAS.forEach((p, i) => {
+    const rad = i * (360 / PERSONAS.length) * Math.PI / 180;
+    const x = cx + r * Math.sin(rad);
+    const y = cy - r * Math.cos(rad);
+    const div = document.createElement('div');
+    div.className = 'rn dim';
+    div.id = 'rn-' + i;
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    // 头像：theme-a 用网格图，theme-b 用 emoji
+    const isThemeA = document.body.classList.contains('theme-a');
+    const avClass = isThemeA ? `rn-av av-grid p-${p.id}` : 'rn-av';
+    const avContent = isThemeA ? '' : p.emoji;
+    div.innerHTML = `<div class="${avClass}" data-p="${p.id}" data-name="${p.name}">${avContent}</div><div class="rn-label">${p.name}</div>`;
+    rw.appendChild(div);
+  });
+}
+
+/* ── TABLE LAYOUT: 42° isometric ellipse ───────────── */
+function buildTableNodes() {
+  const tw = document.getElementById('tw');
+  tw.querySelectorAll('.seat-adv').forEach(n => n.remove());
+
+  // 椭圆参数：560×420 container，椭圆在中间
+  const EW = 560, EH = 420, ECX = EW/2, ECY = EH/2;
+  // 轨道尺寸：比 v7 小一些（vh自适应）
+  const a = 258, b = 148; // 椭圆半长轴/短轴
+
+  const isThemeA = document.body.classList.contains('theme-a');
+  PERSONAS.forEach((p, i) => {
+    const rad = i * (360 / PERSONAS.length) * Math.PI / 180;
+    const x = ECX + a * Math.sin(rad);
+    const y = ECY - b * Math.cos(rad);
+
+    const div = document.createElement('div');
+    div.className = 'seat seat-adv dim';
+    div.id = 'th-' + i;
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    const avClass = isThemeA ? `seat-av av-grid p-${p.id}` : 'seat-av';
+    const avContent = isThemeA ? '' : p.emoji;
+    div.innerHTML = `<div class="${avClass}" data-p="${p.id}" data-name="${p.name}">${avContent}</div><div class="seat-label">${p.name}</div>`;
+    tw.appendChild(div);
+  });
+}
+
+/* ── LAYOUT SWITCH ─────────────────────────────────── */
+function setLayout(layout) {
+  const ring = document.getElementById('ring-scene');
+  const tbl  = document.getElementById('table-scene');
+  document.getElementById('lt-A').classList.toggle('on', layout === 'A');
+  document.getElementById('lt-B').classList.toggle('on', layout === 'B');
+  if (layout === 'A') {
+    ring.style.display = 'flex';
+    tbl.classList.remove('on');
+  } else {
+    ring.style.display = 'none';
+    tbl.classList.add('on');
+  }
+}
+
+let curStep = 's1';
+// s2 state
+let s2Messages = []; // {role: 'facilitator'|'user', text: ''}
+let s2Streaming = false;
+let s2LockContent = '';
+
+// ── SPEECH BUBBLE STATE ───────────────────────────────
+let bubbleActive = null; // {personaId, text, fullText}
+let bubbleExpanded = false; // 右侧面板是否展开
+
+function getBubbleText(fullText, maxChars = 40) {
+  if (!fullText) return '';
+  if (fullText.length <= maxChars) return fullText;
+  return fullText.slice(0, maxChars) + '…';
+}
+
+function showBubble(personaIdx, personaId, text) {
+  // 清除之前的 bubble
+  hideBubble();
+  const rn = document.getElementById('rn-' + personaIdx);
+  if (!rn) return;
+  const p = PERSONAS[personaIdx];
+  const bubble = document.createElement('div');
+  bubble.className = 'rn-bubble';
+  bubble.id = 'rn-bubble-' + personaIdx;
+  bubble.innerHTML = `
+    <div class="rn-bubble-tag">${p?.name || ''}</div>
+    <div class="rn-bubble-text">${escHtml(getBubbleText(text))}</div>
+    <div class="rn-bubble-hint">点击查看详情</div>
+  `;
+  bubble.onclick = (e) => {
+    e.stopPropagation();
+    toggleBubbleDetail(personaIdx, personaId, text);
+  };
+  rn.appendChild(bubble);
+  bubbleActive = { personaIdx, personaId, text };
+  bubbleExpanded = false;
+}
+
+function updateBubbleText(personaIdx, text) {
+  const bubble = document.getElementById('rn-bubble-' + personaIdx);
+  if (!bubble) return;
+  const textEl = bubble.querySelector('.rn-bubble-text');
+  if (textEl) textEl.textContent = getBubbleText(text);
+  bubbleActive.text = text;
+}
+
+function hideBubble() {
+  document.querySelectorAll('.rn-bubble').forEach(b => b.remove());
+  bubbleActive = null;
+  bubbleExpanded = false;
+}
+
+function toggleBubbleDetail(personaIdx, personaId, fullText) {
+  if (!fullText) return;
+  const p = PERSONAS.find(per => per.id === personaId);
+  const name = p?.name || personaId;
+  const tagline = p?.tagline || '';
+
+  if (!bubbleExpanded) {
+    // 显示详情到右侧面板
+    document.getElementById('view-step').style.display = 'none';
+    const viewSpeech = document.getElementById('view-speech');
+    viewSpeech.style.display = 'flex';
+    viewSpeech.style.flexDirection = 'column';
+    viewSpeech.classList.add('slide-in');
+    setTimeout(() => viewSpeech.classList.remove('slide-in'), 300);
+    document.getElementById('speech-back-label').textContent = '发言中';
+    document.getElementById('speech-hdr').innerHTML = `
+      <div class="speech-hdr-av" data-p="${personaId}">${p?.emoji || '🎙️'}</div>
+      <div>
+        <div class="speech-hdr-name">${name}</div>
+        <div class="speech-hdr-meta">${tagline} · 发言</div>
+      </div>`;
+    document.getElementById('speech-body').innerHTML = `<div class="md-body">${md(fullText)}</div>`;
+
+    // 更新 bubble 状态
+    const bubble = document.getElementById('rn-bubble-' + personaIdx);
+    if (bubble) {
+      bubble.classList.add('active');
+      const hint = bubble.querySelector('.rn-bubble-hint');
+      if (hint) hint.textContent = '点击收起';
+    }
+    bubbleExpanded = true;
+  } else {
+    // 收起详情
+    closeSpeech();
+    const bubble = document.getElementById('rn-bubble-' + personaIdx);
+    if (bubble) {
+      bubble.classList.remove('active');
+      const hint = bubble.querySelector('.rn-bubble-hint');
+      if (hint) hint.textContent = '点击查看详情';
+    }
+    bubbleExpanded = false;
+  }
+}
+
+// ── STRIP ───────────────────────────────────────────────
+function buildStrip() {
+  const el = document.getElementById('pstrip');
+  const idx = STEPS.findIndex(s => s.id === curStep);
+  el.innerHTML = STEPS.map((s, i) => {
+    const cls = i < idx ? 'pnode done' : i === idx ? 'pnode now' : 'pnode';
+    return `<span class="${cls}"><div class="pdot"></div>${s.label}</span>${i < STEPS.length - 1 ? '<div class="pline"></div>' : ''}`;
+  }).join('');
+}
+
+function showStep(id) {
+  document.querySelectorAll('.step-content').forEach(e => e.style.display = 'none');
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'block';
+  curStep = id;
+  buildStrip();
+  document.getElementById('btn-next').style.display = 'none';
+  const idx = STEPS.findIndex(s => s.id === id);
+  document.getElementById('mode-label').textContent = '第' + (idx + 1) + '步：' + STEPS[idx].label;
+  document.getElementById('btn-prev').style.opacity = idx === 0 ? '.3' : '1';
+  updateRingForStep(id);
+  hideBubble(); // 切换步骤时清除气泡
+}
+
+function prevStep() {
+  const i = STEPS.findIndex(s => s.id === curStep);
+  if (i <= 0) return;
+  const prev = STEPS[i - 1].id;
+  showStep(prev);
+  if (prev === 's2') { s2Messages = []; initS2(); }
+  else if (prev === 's3') initS3();
+  else if (prev === 's4') initS4();
+  else if (prev === 's5') initS5();
+  else if (prev === 's6') initS6([]);
+  else if (prev === 's7') initS7();
+  else if (prev === 's8') initS8();
+}
+
+function onNextStep() {
+  if (curStep === 's4') {
+    showStep('s5');
+    initS5();
+  } else if (curStep === 's5') {
+    showStep('s7');
+    initS7();
+  }
+}
+
+// ── RING + TABLE STATES ─────────────────────────────────
+function setRingAll(state) {
+  for (let i = 0; i < 12; i++) {
+    const rn = document.getElementById('rn-' + i);
+    if (rn) rn.className = 'rn ' + state;
+    const th = document.getElementById('th-' + i);
+    if (th) th.className = 'seat seat-adv ' + state;
+  }
+}
+
+function setRingOne(idx, state) {
+  const rn = document.getElementById('rn-' + idx);
+  if (rn) rn.className = 'rn ' + state;
+  const th = document.getElementById('th-' + idx);
+  if (th) th.className = 'seat seat-adv ' + state;
+}
+
+function setHostState(state) {
+  const av = document.getElementById('rh-av');
+  const host = document.getElementById('rh');
+  const thHost = document.getElementById('th-host');
+  if (!av) return;
+  av.className = 'ring-host-av';
+  if (host) host.className = 'ring-host';
+  if (state === 'speaking') {
+    if (host) host.classList.add('host-speaking');
+  }
+  // 同步 table host
+  if (thHost) {
+    thHost.className = 'seat seat-host ' + state;
+  }
+}
+
+function updateRingForStep(step) {
+  if (step === 's1') {
+    setHostState('dim'); setRingAll('dim');
+  } else if (step === 's2') {
+    setHostState('speaking'); setRingAll('active');
+  } else if (step === 's3') {
+    setHostState('active'); setRingAll('dim');
+  } else if (step === 's4') {
+    setHostState('active'); setRingAll('waiting');
+  } else if (step === 's5') {
+    setHostState('speaking'); setRingAll('done');
+  } else if (step === 's6') {
+    setHostState('active'); setRingAll('active');
+  } else if (step === 's7') {
+    setHostState('speaking'); setRingAll('dim');
+  } else if (step === 's8') {
+    setHostState('done'); setRingAll('dim');
+  }
+}
+
+// ── S1: 输入困境 ────────────────────────────────────────
+document.getElementById('s1-input').addEventListener('input', function() {
+  document.getElementById('s1-count').textContent = this.value.length + '字';
+});
+
+async function submitS1() {
+  const input = document.getElementById('s1-input').value.trim();
+  if (!input) {
+    showError('s1-error', '请先写下你的困境');
+    return;
+  }
+  const btn = document.getElementById('s1-submit');
+  btn.disabled = true;
+  btn.textContent = '提交中…';
+
+  try {
+    // 创建新 session，写入 raw input
+    const resp = await fetch(`/api/projects/${projectId}/sessions`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({input})
+    });
+    const session = await resp.json();
+    sessionId = session.id;
+    // 用困境内容更新项目名（截取前30字）
+    const projectName = input.length > 30 ? input.slice(0, 30) + '…' : input;
+    fetch(`/api/projects/${projectId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: projectName})
+    }).catch(() => {});
+    // 更新 URL，不刷新页面
+    history.replaceState({}, '', `?projectId=${projectId}&sessionId=${sessionId}`);
+    // 更新圆桌议题文字
+    document.getElementById('tbl-topic-t').textContent = projectName;
+    showStep('s2');
+    initS2();
+  } catch(e) {
+    showError('s1-error', '提交失败：' + e.message);
+    btn.disabled = false;
+    btn.textContent = '提交，开始分析 →';
+  }
+}
+
+// ── S2: Facilitator 对话 ────────────────────────────────
+function renderChat() {
+  const chat = document.getElementById('s2-chat');
+  chat.innerHTML = s2Messages.map(m => {
+    if (m.role === 'facilitator') {
+      return `<div class="cmsg"><div class="cav">🎙️</div><div class="cbub f${m.streaming ? ' cur' : ''}">${renderText(m.text, m.streaming)}</div></div>`;
+    } else {
+      return `<div class="cmsg u"><div class="cav" style="background:rgba(255,255,255,.06)">我</div><div class="cbub u">${escHtml(m.text)}</div></div>`;
+    }
+  }).join('');
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addFacilitatorMsg(text, streaming) {
+  // 如果最后一条是 facilitator 且 streaming，就更新它
+  const last = s2Messages[s2Messages.length - 1];
+  if (last && last.role === 'facilitator' && last.streaming) {
+    last.text = text;
+    last.streaming = streaming;
+  } else {
+    s2Messages.push({role: 'facilitator', text, streaming});
+  }
+  renderChat();
+}
+
+async function initS2() {
+  // 先检查是否有已锁定的对话缓存
+  if (sessionId) {
+    try {
+      const r = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/files/01-defined.md`);
+      if (r.ok) {
+        const { content } = await r.json();
+        // 解析 [FACILITATOR] / [USER] 块还原对话
+        const blocks = content.split(/\n\n(?=\[(?:FACILITATOR|USER)\]\n)/);
+        s2Messages = blocks.map(block => {
+          const m = block.match(/^\[(FACILITATOR|USER)\]\n([\s\S]*)$/);
+          if (!m) return null;
+          return { role: m[1] === 'FACILITATOR' ? 'facilitator' : 'user', text: m[2].trim(), streaming: false };
+        }).filter(Boolean);
+        if (s2Messages.length > 0) {
+          renderChat();
+          document.getElementById('s2-input-area').style.display = 'none';
+          document.getElementById('s2-lock-area').style.display = 'none';
+          setHostState('active');
+          return;
+        }
+      }
+    } catch {}
+  }
+
+  s2Streaming = true;
+  setHostState('speaking');
+  document.getElementById('s2-input-area').style.display = 'none';
+  document.getElementById('s2-lock-area').style.display = 'none';
+
+  let accumulated = '';
+  addFacilitatorMsg('', true);
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/define`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: ''})
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'facilitator_chunk') {
+            accumulated += ev.chunk;
+            addFacilitatorMsg(accumulated, true);
+          } else if (ev.type === 'step_done') {
+            addFacilitatorMsg(accumulated, false);
+            s2Streaming = false;
+            document.getElementById('s2-input-area').style.display = 'block';
+            // 检查是否有锁定建议（多行内容意味着框架已生成）
+            checkS2LockSuggestion(accumulated);
+          } else if (ev.type === 'error') {
+            showError('s2-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s2-error', '连接失败：' + e.message);
+  }
+  s2Streaming = false;
+  document.getElementById('s2-input-area').style.display = 'block';
+}
+
+function checkS2LockSuggestion(text) {
+  // 如果主持人回复里有"框架"/"议题"/"锁定"等字样，显示锁定按钮
+  const keywords = ['框架', '锁定', '核心问题', '议题', '总结'];
+  const hasKeyword = keywords.some(k => text.includes(k));
+  if (hasKeyword && s2Messages.filter(m => m.role === 'facilitator').length >= 2) {
+    s2LockContent = text;
+    // 显示锁定区域
+    const lockItems = document.getElementById('s2-lock-items');
+    lockItems.innerHTML = `<div class="lock-item md-body">${md(text)}</div>`;
+    document.getElementById('s2-lock-area').style.display = 'block';
+  }
+}
+
+function continueChat() {
+  document.getElementById('s2-lock-area').style.display = 'none';
+}
+
+async function sendS2() {
+  if (s2Streaming) return;
+  const input = document.getElementById('s2-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  s2Messages.push({role: 'user', text});
+  renderChat();
+
+  s2Streaming = true;
+  setHostState('speaking');
+  document.getElementById('s2-input-area').style.display = 'none';
+
+  let accumulated = '';
+  addFacilitatorMsg('', true);
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/define`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'facilitator_chunk') {
+            accumulated += ev.chunk;
+            addFacilitatorMsg(accumulated, true);
+          } else if (ev.type === 'step_done') {
+            addFacilitatorMsg(accumulated, false);
+            s2Streaming = false;
+            setHostState('active');
+            document.getElementById('s2-input-area').style.display = 'block';
+            checkS2LockSuggestion(accumulated);
+          } else if (ev.type === 'error') {
+            showError('s2-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s2-error', '发送失败：' + e.message);
+  }
+  s2Streaming = false;
+  setHostState('active');
+  document.getElementById('s2-input-area').style.display = 'block';
+}
+
+function s2KeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendS2();
+  }
+}
+
+async function lockS2() {
+  // 存完整对话（带角色标识），供回显使用
+  const fullConversation = s2Messages
+    .map(m => `[${m.role === 'facilitator' ? 'FACILITATOR' : 'USER'}]\n${m.text}`)
+    .join('\n\n');
+  // 锁定内容取最后一条主持人消息（传给后端用于后续步骤的 context）
+  const facilitatorMsgs = s2Messages.filter(m => m.role === 'facilitator').map(m => m.text).join('\n\n');
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/define`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({lock: true, message: facilitatorMsgs, conversation: fullConversation})
+    });
+
+    // 等待SSE结束
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'step_done') {
+            showStep('s3');
+            initS3();
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s2-error', '锁定失败：' + e.message);
+  }
+}
+
+// ── S3: 挖事实（逐一问答）──────────────────────────────
+let s3CurrentIndex = 0;
+let s3QAHistory = []; // [{persona, question, answer}]
+let s3CurrentQuestion = '';
+let s3CurrentPersona = null;
+let s3CurrentAbort = null; // {skipped: bool}，用于中断当前流
+
+async function initS3() {
+  s3CurrentIndex = 0;
+  s3QAHistory = [];
+  s3CurrentQuestion = '';
+  s3CurrentPersona = null;
+  document.getElementById('s3-history').innerHTML = '';
+  document.getElementById('s3-current-q').style.display = 'none';
+  document.getElementById('s3-loading').style.display = 'none';
+  document.getElementById('s3-sub').textContent = '幕僚们正在思考问题…';
+  setRingAll('waiting');
+  await askNextPersona();
+}
+
+async function askNextPersona() {
+  // 跳过没有问题的幕僚，找到下一个有问题的
+  if (s3CurrentIndex >= PERSONAS.length) {
+    // 所有幕僚都问完了，提交汇总答案
+    await submitS3Answers();
+    return;
+  }
+
+  const persona = PERSONAS[s3CurrentIndex];
+  s3CurrentPersona = persona;
+  const idx = s3CurrentIndex;
+  s3CurrentQuestion = ''; // 清空，防止跳过时用到上一个幕僚的问题
+
+  document.getElementById('s3-loading').style.display = 'block';
+  document.getElementById('s3-current-q').style.display = 'none';
+  document.getElementById('s3-sub').textContent = `${persona.name} 正在思考…`;
+  setRingOne(idx, 'speaking');
+
+  // 构建历史问答字符串
+  const previousQA = s3QAHistory
+    .filter(qa => qa.answer)
+    .map(qa => `【${qa.persona}】问：${qa.question}\n案主答：${qa.answer}`)
+    .join('\n\n');
+
+  let questionText = '';
+  let skipped = false; // 用户提前跳过时置为 true，忽略后续流事件
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/facts`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ personaIndex: idx, previousQA })
+    });
+
+    // 把 abort 能力挂到全局，供 skipS3 使用
+    const controller = { skipped: false };
+    s3CurrentAbort = controller;
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      if (controller.skipped) { reader.cancel(); break; }
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        if (controller.skipped) break;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'persona_start') {
+            document.getElementById('s3-loading').style.display = 'none';
+            // 显示当前问题区
+            const block = document.getElementById('s3-current-block');
+            block.innerHTML = `<div class="persona-q-hdr">
+              <div class="persona-q-av" data-p="${persona.id}">${persona.emoji}</div>
+              <div><div class="persona-q-name">${persona.name}</div><div class="persona-q-badge">发问中…</div></div>
+            </div>
+            <div id="s3-q-text" class="persona-q-text cur"></div>`;
+            document.getElementById('s3-current-q').style.display = 'block';
+            document.getElementById('s3-answer').value = '';
+          } else if (ev.type === 'persona_chunk') {
+            questionText += ev.chunk;
+            const el = document.getElementById('s3-q-text');
+            if (el) el.textContent = questionText;
+          } else if (ev.type === 'persona_done') {
+            setRingOne(idx, 'active');
+            const el = document.getElementById('s3-q-text');
+            if (el) {
+              el.className = 'persona-q-text';
+              el.innerHTML = md(questionText);
+            }
+            const block = document.getElementById('s3-current-block');
+            const badge = block.querySelector('.persona-q-badge');
+            if (badge) badge.textContent = '等待你的回答';
+            s3CurrentQuestion = questionText;
+
+            // 如果幕僚明确说无需追问，自动跳过
+            const isSkip = questionText.includes('无需追问') && !questionText.includes('？') && !questionText.includes('?');
+            if (isSkip) {
+              s3CurrentIndex++;
+              setRingOne(idx, 'done');
+              await askNextPersona();
+            } else {
+              document.getElementById('s3-sub').textContent = `${persona.name} 在问你`;
+            }
+          } else if (ev.type === 'step_done') {
+            // 单个幕僚问完
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s3-error', '生成失败：' + e.message);
+    document.getElementById('s3-loading').style.display = 'none';
+  }
+}
+
+async function answerS3() {
+  const answer = document.getElementById('s3-answer').value.trim();
+  if (!answer) { skipS3(); return; }
+  if (s3CurrentAbort) { s3CurrentAbort = null; } // 流已自然结束，清掉引用
+
+  // 记录问答
+  s3QAHistory.push({
+    persona: s3CurrentPersona?.name ?? '',
+    question: s3CurrentQuestion,
+    answer
+  });
+
+  // 加入历史展示
+  appendS3History(s3CurrentPersona, s3CurrentQuestion, answer);
+
+  const idx = s3CurrentIndex;
+  setRingOne(idx, 'done');
+  s3CurrentIndex++;
+  document.getElementById('s3-current-q').style.display = 'none';
+  await askNextPersona();
+}
+
+function skipS3() {
+  // 中断当前流
+  if (s3CurrentAbort) { s3CurrentAbort.skipped = true; s3CurrentAbort = null; }
+  // 跳过，不记录答案
+  s3QAHistory.push({
+    persona: s3CurrentPersona?.name ?? '',
+    question: s3CurrentQuestion,
+    answer: ''
+  });
+  appendS3History(s3CurrentPersona, s3CurrentQuestion, null);
+  const idx = s3CurrentIndex;
+  setRingOne(idx, 'done');
+  s3CurrentIndex++;
+  document.getElementById('s3-current-q').style.display = 'none';
+  askNextPersona();
+}
+
+function appendS3History(persona, question, answer) {
+  if (!question || question.includes('无需追问')) return;
+  const container = document.getElementById('s3-history');
+  const div = document.createElement('div');
+  div.className = 'persona-q-block';
+  div.style.marginBottom = '8px';
+  div.style.opacity = '0.6';
+  div.innerHTML = `<div class="persona-q-hdr">
+    <div class="persona-q-av" data-p="${persona?.id ?? ''}">${persona?.emoji ?? '🎙️'}</div>
+    <div><div class="persona-q-name">${persona?.name ?? ''}</div><div class="persona-q-badge">${answer ? '已回答' : '已跳过'}</div></div>
+  </div>
+  <div class="md-body" style="margin-bottom:6px">${md(question)}</div>
+  ${answer ? `<div style="font-size:10px;color:rgba(255,255,255,.4);padding:5px 8px;background:rgba(255,255,255,.03);border-radius:4px;border-left:2px solid rgba(255,255,255,.15)">${escHtml(answer)}</div>` : ''}`;
+  container.appendChild(div);
+}
+
+async function submitS3Answers() {
+  document.getElementById('s3-sub').textContent = '提交中…';
+  setRingAll('done');
+
+  // 汇总所有有效回答
+  const answersText = s3QAHistory
+    .filter(qa => qa.answer)
+    .map(qa => `【${qa.persona}】问：${qa.question}\n答：${qa.answer}`)
+    .join('\n\n');
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/facts`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ answers: answersText || '（案主未提供补充信息）' })
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'step_done') {
+            document.getElementById('s3-sub').textContent = '问答完成';
+            showStep('s4');
+            initS4();
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s3-error', '提交失败：' + e.message);
+  }
+}
+
+// ── S4: 幕僚并行发言 ────────────────────────────────────
+let s4Opinions = {}; // {personaId: {text, done}}
+
+async function initS4() {
+  s4Opinions = {};
+  document.getElementById('s4-sub').textContent = '幕僚们正在发言…';
+  document.getElementById('s4-cards').innerHTML = '';
+
+  // 初始化所有幕僚卡片为 loading
+  const container = document.getElementById('s4-cards');
+  PERSONAS.forEach((p, i) => {
+    s4Opinions[p.id] = {text: '', done: false};
+    const card = document.createElement('div');
+    card.className = 'ocard';
+    card.id = 's4-card-' + p.id;
+    card.onclick = () => openSpeech(p.id);
+    card.innerHTML = `<div class="ocard-n">${p.emoji} ${p.name} · 等待发言</div>
+      <div class="ocard-t"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>`;
+    container.appendChild(card);
+    setRingOne(i, 'waiting');
+  });
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/opinions`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({})
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let personaTexts = {};
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'persona_start') {
+            const idx = PERSONAS.findIndex(p => p.name === ev.name || p.id === ev.name);
+            const pItem = PERSONAS[idx];
+            if (idx >= 0) {
+              setRingOne(idx, 'speaking');
+              showBubble(idx, pItem.id, '');
+            }
+            personaTexts[ev.name] = '';
+            updateS4Card(ev.name, '', false);
+          } else if (ev.type === 'persona_chunk') {
+            if (!personaTexts[ev.name]) personaTexts[ev.name] = '';
+            personaTexts[ev.name] += ev.chunk;
+            const idx = PERSONAS.findIndex(p => p.name === ev.name || p.id === ev.name);
+            if (idx >= 0) updateBubbleText(idx, personaTexts[ev.name]);
+            updateS4Card(ev.name, personaTexts[ev.name], false);
+          } else if (ev.type === 'persona_done') {
+            const idx = PERSONAS.findIndex(p => p.name === ev.name || p.id === ev.name);
+            const pItem = PERSONAS[idx];
+            if (idx >= 0) {
+              setRingOne(idx, 'done');
+              // 更新 bubble 显示最终文本
+              updateBubbleText(idx, personaTexts[ev.name] || '');
+              // 把最终文本保存到 bubbleActive 以便点击查看
+              if (pItem) {
+                bubbleActive = { personaIdx: idx, personaId: pItem.id, text: personaTexts[ev.name] || '' };
+              }
+            }
+            const p = PERSONAS[idx];
+            if (p) s4Opinions[p.id] = {text: personaTexts[ev.name] || '', done: true};
+            updateS4Card(ev.name, personaTexts[ev.name] || '', true);
+          } else if (ev.type === 'step_done') {
+            document.getElementById('s4-sub').textContent = '点击卡片查看完整发言';
+            setRingAll('done');
+            document.getElementById('btn-next').style.display = 'block';
+            hideBubble(); // 所有发言结束后隐藏气泡
+          } else if (ev.type === 'error') {
+            showError('s4-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    showError('s4-error', '生成失败：' + e.message);
+  }
+}
+
+function updateS4Card(nameOrId, text, isDone) {
+  const p = PERSONAS.find(p => p.name === nameOrId || p.id === nameOrId);
+  if (!p) return;
+  const card = document.getElementById('s4-card-' + p.id);
+  if (!card) return;
+
+  const statusLabel = isDone ? '发言完毕 ↗' : (text ? '发言中…' : '等待发言');
+  let preview;
+  if (!text) {
+    preview = `<div class="ocard-t"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>`;
+  } else if (isDone) {
+    // 完成后渲染 markdown，但限制高度
+    preview = `<div class="ocard-t md-body" style="-webkit-line-clamp:3;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">${md(text)}</div>`;
+  } else {
+    preview = `<div class="ocard-t cur">${escHtml(text)}</div>`;
+  }
+
+  card.className = 'ocard' + (isDone ? ' on' : '');
+  card.innerHTML = `<div class="ocard-n">${p.emoji} ${p.name} · ${statusLabel}</div>${preview}`;
+  if (isDone) card.onclick = () => openSpeech(p.id);
+}
+
+function openSpeech(personaId) {
+  const p = PERSONAS.find(p => p.id === personaId);
+  const opinion = s4Opinions[personaId];
+  if (!p || !opinion || !opinion.text) return;
+
+  document.getElementById('view-step').style.display = 'none';
+  document.getElementById('view-speech').style.display = 'flex';
+  document.getElementById('view-speech').style.flexDirection = 'column';
+  document.getElementById('speech-back-label').textContent = '完整发言';
+  document.getElementById('speech-hdr').innerHTML = `
+    <div class="speech-hdr-av" data-p="${p.id}">${p.emoji}</div>
+    <div>
+      <div class="speech-hdr-name">${p.name}</div>
+      <div class="speech-hdr-meta">${p.tagline || ''} · S4 发言</div>
+    </div>`;
+  document.getElementById('speech-body').innerHTML = md(opinion.text);
+}
+
+function closeSpeech() {
+  document.getElementById('view-speech').style.display = 'none';
+  document.getElementById('view-step').style.display = 'flex';
+  // 恢复所有 bubble 的收起状态
+  document.querySelectorAll('.rn-bubble').forEach(b => {
+    b.classList.remove('active');
+    const hint = b.querySelector('.rn-bubble-hint');
+    if (hint) hint.textContent = '点击查看详情';
+  });
+  bubbleExpanded = false;
+}
+
+// ── S5: 提炼冲突维度 ─────────────────────────────────────
+let s5RawText = '';
+let s5SelectedDims = new Set();
+
+async function initS5() {
+  s5RawText = '';
+  s5SelectedDims.clear();
+  document.getElementById('s5-sub').textContent = '主持人正在提炼冲突…';
+  document.getElementById('s5-dims').innerHTML = '';
+  document.getElementById('s5-raw').innerHTML = '';
+  document.getElementById('s5-loading').style.display = 'block';
+  document.getElementById('s5-action').style.display = 'none';
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/dimensions`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({})
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'facilitator_chunk') {
+            s5RawText += ev.chunk;
+            document.getElementById('s5-loading').style.display = 'none';
+            document.getElementById('s5-raw').innerHTML = md(s5RawText);
+          } else if (ev.type === 'facilitator_done') {
+            // 解析维度
+            renderS5Dims(s5RawText);
+          } else if (ev.type === 'step_done') {
+            document.getElementById('s5-raw').innerHTML = '';
+            const isConsensus = s5RawText.includes('一边倒结论');
+            document.getElementById('s5-sub').textContent = isConsensus ? '幕僚意见一致，无需辩论' : '选择要深入辩论的维度';
+            if (isConsensus) {
+              document.getElementById('btn-next').style.display = 'block';
+            } else {
+              document.getElementById('s5-action').style.display = 'block';
+            }
+          } else if (ev.type === 'error') {
+            showError('s5-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) { showError('s5-error', '生成失败：' + e.message); }
+}
+
+function renderS5Dims(text) {
+  const container = document.getElementById('s5-dims');
+  container.innerHTML = '';
+
+  // 检测一边倒结论
+  const consensusMatch = text.match(/##\s*一边倒结论\s*\n([\s\S]*)/);
+  if (consensusMatch) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:7px;font-size:11px;color:rgba(255,255,255,.7);line-height:1.75';
+    div.innerHTML = `<div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.5px;margin-bottom:8px">一边倒结论</div>` +
+      `<div class="md-body">${md(consensusMatch[1].trim())}</div>`;
+    container.appendChild(div);
+    return;
+  }
+
+  // 匹配 ## 维度标题
+  const h2Matches = [...text.matchAll(/##\s+(.+)\n([\s\S]*?)(?=\n##|$)/g)];
+  const dims = [];
+  if (h2Matches.length >= 1) {
+    h2Matches.forEach(m => {
+      dims.push({title: m[1].trim(), desc: m[2].trim()});
+    });
+  } else {
+    // fallback: 按段落分割
+    const paras = text.split(/\n\n+/).filter(p => p.trim().length > 10).slice(0, 4);
+    paras.forEach((p, i) => {
+      const lines = p.trim().split('\n');
+      const title = lines[0].replace(/^[#*\-\d.]+\s*/, '').trim();
+      const desc = lines.slice(1).join('\n').trim();
+      dims.push({title: title || `维度 ${i+1}`, desc});
+    });
+  }
+
+  if (dims.length === 0) {
+    document.getElementById('s5-raw').innerHTML = md(text);
+    return;
+  }
+
+  dims.forEach((d) => {
+    const card = document.createElement('div');
+    card.className = 'dcard';
+    card.dataset.dim = d.title;
+    card.innerHTML = `<div class="dcard-check"></div>
+      <div class="dcard-body">
+        <div class="dcard-title">${escHtml(d.title)}</div>
+        ${d.desc ? `<div class="dcard-desc md-body">${md(d.desc)}</div>` : ''}
+      </div>`;
+    card.onclick = () => toggleDim(card, d.title);
+    container.appendChild(card);
+  });
+}
+
+function toggleDim(card, title) {
+  if (s5SelectedDims.has(title)) {
+    s5SelectedDims.delete(title);
+    card.classList.remove('sel');
+    card.querySelector('.dcard-check').textContent = '';
+  } else {
+    if (s5SelectedDims.size >= 3) return;
+    s5SelectedDims.add(title);
+    card.classList.add('sel');
+    card.querySelector('.dcard-check').textContent = '✓';
+  }
+}
+
+function startDebate() {
+  // 按卡片在 DOM 中的顺序排列选中的维度
+  const allCards = [...document.querySelectorAll('#s5-dims .dcard')];
+  const dims = allCards
+    .filter(c => s5SelectedDims.has(c.dataset.dim))
+    .map(c => c.dataset.dim);
+  showStep('s6');
+  initS6(dims);
+}
+
+// ── S6: 辩论 ─────────────────────────────────────────────
+// 每个维度的状态
+let s6DimState = {};       // dimName -> {wrapEl, facilitatorText, done}
+let s6CurrentDim = null;    // 当前活跃维度名
+let s6Dims = [];           // 选中的所有维度
+let s6DimIndex = 0;        // 当前处理到第几个
+let s6PersonaTexts = {};   // name -> text（当前维度内）
+let s6FacilitatorText = '';
+let s6DimNavShown = false;
+
+async function initS6(dims) {
+  s6Dims = dims;
+  s6DimIndex = 0;
+  s6CurrentDim = null;
+  s6DimState = {};
+  s6PersonaTexts = {};
+  s6FacilitatorText = '';
+  s6DimNavShown = false;
+
+  document.getElementById('s6-msgs').innerHTML = '';
+  document.getElementById('s6-dim-nav').innerHTML = '';
+  document.getElementById('s6-dim-nav').style.display = 'none';
+  document.getElementById('s6-next-action').style.display = 'none';
+  document.getElementById('s6-sub').textContent = '幕僚们正在交锋…';
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/debate`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({dimensions: dims.length ? dims : undefined})
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'step_start' && ev.data?.dimension) {
+            // 新维度开始
+            const dim = ev.data.dimension;
+            if (!s6DimNavShown) {
+              // 首次：渲染维度导航（右上角）
+              renderS6DimNav();
+              s6DimNavShown = true;
+            }
+            // 切换到新维度
+            switchToDim(dim);
+            s6DimIndex++;
+            setRingAll('waiting');
+          } else if (ev.type === 'persona_start') {
+            s6PersonaTexts[ev.name] = '';
+            const p = PERSONAS.find(p => p.name === ev.name || p.id === ev.name);
+            const idx = PERSONAS.indexOf(p);
+            if (idx >= 0) {
+              setRingOne(idx, 'speaking');
+              showBubble(idx, p.id, '');
+            }
+            appendDebateMsg(ev.name, '', true);
+          } else if (ev.type === 'persona_chunk') {
+            s6PersonaTexts[ev.name] = (s6PersonaTexts[ev.name] || '') + ev.chunk;
+            const p = PERSONAS.find(p => p.name === ev.name || p.id === ev.name);
+            const idx = PERSONAS.indexOf(p);
+            if (idx >= 0) updateBubbleText(idx, s6PersonaTexts[ev.name]);
+            updateDebateMsg(ev.name, s6PersonaTexts[ev.name], true);
+          } else if (ev.type === 'persona_done') {
+            const p = PERSONAS.find(p => p.name === ev.name || p.id === ev.name);
+            const idx = PERSONAS.indexOf(p);
+            if (idx >= 0) {
+              setRingOne(idx, 'done');
+              updateBubbleText(idx, s6PersonaTexts[ev.name] || '');
+              if (p) {
+                bubbleActive = { personaIdx: idx, personaId: p.id, text: s6PersonaTexts[ev.name] || '' };
+              }
+            }
+            updateDebateMsg(ev.name, s6PersonaTexts[ev.name] || '', false);
+          } else if (ev.type === 'facilitator_chunk') {
+            s6FacilitatorText += ev.chunk;
+            updateFacilitatorMsg(s6FacilitatorText, true);
+          } else if (ev.type === 'facilitator_done') {
+            updateFacilitatorMsg(s6FacilitatorText, false);
+            // 标记当前维度完成
+            if (s6CurrentDim && s6DimState[s6CurrentDim]) {
+              s6DimState[s6CurrentDim].done = true;
+              updateS6DimNavState();
+            }
+          } else if (ev.type === 'step_done') {
+            document.getElementById('s6-sub').textContent = '辩论完成';
+            setHostState('speaking');
+            document.getElementById('s6-next-action').style.display = 'block';
+            hideBubble();
+          } else if (ev.type === 'error') {
+            showError('s6-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) { showError('s6-error', '生成失败：' + e.message); }
+}
+
+function renderS6DimNav() {
+  const nav = document.getElementById('s6-dim-nav');
+  nav.innerHTML = '';
+  s6Dims.forEach((dim, i) => {
+    s6DimState[dim] = { wrapEl: null, facilitatorText: '', done: false };
+    const chip = document.createElement('div');
+    chip.id = 's6-dim-chip-' + i;
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.15);font-size:9.5px;color:rgba(255,255,255,.4);margin-right:5px;cursor:default;transition:all .2s';
+    chip.innerHTML = `<span>${escHtml(dim)}</span><span id="s6-dim-dot-${i}" style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.25)"></span>`;
+    nav.appendChild(chip);
+  });
+  nav.style.display = 'block';
+}
+
+function updateS6DimNavState() {
+  s6Dims.forEach((dim, i) => {
+    const chip = document.getElementById('s6-dim-chip-' + i);
+    const dot = document.getElementById('s6-dim-dot-' + i);
+    if (!chip || !dot) return;
+    const state = s6DimState[dim];
+    if (i < s6DimIndex || (i === s6DimIndex && state?.done)) {
+      // 已完成：变亮
+      chip.style.color = 'rgba(255,255,255,.8)';
+      chip.style.borderColor = 'rgba(255,255,255,.4)';
+      dot.style.background = 'rgba(255,255,255,.6)';
+    } else if (i === s6DimIndex) {
+      // 当前：高亮
+      chip.style.color = '#fff';
+      chip.style.borderColor = 'rgba(255,255,255,.6)';
+      dot.style.background = '#fff';
+    } else {
+      // 未开始：暗淡
+      chip.style.color = 'rgba(255,255,255,.3)';
+      chip.style.borderColor = 'rgba(255,255,255,.1)';
+      dot.style.background = 'rgba(255,255,255,.15)';
+    }
+  });
+}
+
+function switchToDim(dim) {
+  // 隐藏当前维度
+  if (s6CurrentDim && s6DimState[s6CurrentDim]?.wrapEl) {
+    s6DimState[s6CurrentDim].wrapEl.style.display = 'none';
+  }
+  // 创建新的维度 wrapper
+  const container = document.getElementById('s6-msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'db-dim-wrap active';
+  wrap.id = 's6-dim-wrap-' + dim;
+
+  const header = document.createElement('div');
+  header.className = 'db-dim-header';
+  header.textContent = '▌ ' + dim;
+  wrap.appendChild(header);
+  container.appendChild(wrap);
+
+  s6CurrentDim = dim;
+  s6FacilitatorText = '';
+  s6PersonaTexts = {};
+  s6DimState[dim].wrapEl = wrap;
+  updateS6DimNavState();
+}
+
+function appendDebateMsg(nameOrId, text, streaming) {
+  const p = PERSONAS.find(p => p.name === nameOrId || p.id === nameOrId);
+  const emoji = p ? p.emoji : '🎙️';
+  const name = p ? p.name : nameOrId;
+  const wrap = s6CurrentDim ? (s6DimState[s6CurrentDim]?.wrapEl || document.getElementById('s6-msgs')) : document.getElementById('s6-msgs');
+  const div = document.createElement('div');
+  div.className = 'dbmsg' + (streaming ? ' streaming' : '');
+  div.id = 's6-msg-' + (p ? p.id : nameOrId) + '-' + s6DimIndex;
+  div.innerHTML = `<div class="dbmsg-hdr"><div class="dbmsg-av" data-p="${p ? p.id : ''}">${emoji}</div><div class="dbmsg-name">${escHtml(name)}</div></div>
+    <div class="dbmsg-text">${escHtml(text)}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function updateDebateMsg(nameOrId, text, streaming) {
+  const p = PERSONAS.find(p => p.name === nameOrId || p.id === nameOrId);
+  const id = 's6-msg-' + (p ? p.id : nameOrId) + '-' + s6DimIndex;
+  const div = document.getElementById(id);
+  if (!div) { appendDebateMsg(nameOrId, text, streaming); return; }
+  div.className = 'dbmsg' + (streaming ? ' streaming' : '');
+  const textEl = div.querySelector('.dbmsg-text');
+  if (streaming) {
+    textEl.textContent = text;
+  } else {
+    textEl.innerHTML = `<div class="md-body">${md(text)}</div>`;
+  }
+  div.parentElement.scrollTop = div.parentElement.scrollHeight;
+}
+
+function updateFacilitatorMsg(text, streaming) {
+  const wrap = s6CurrentDim ? (s6DimState[s6CurrentDim]?.wrapEl || document.getElementById('s6-msgs')) : document.getElementById('s6-msgs');
+  let div = document.getElementById('s6-facilitator-' + s6DimIndex);
+  if (!div) {
+    div = document.createElement('div');
+    div.id = 's6-facilitator-' + s6DimIndex;
+    div.className = 'dbmsg db-facilitator' + (streaming ? ' streaming' : '');
+    div.innerHTML = `<div class="dbmsg-hdr"><div class="dbmsg-av">🎙️</div><div class="dbmsg-name">主持人 · 综合</div></div>
+      <div class="dbmsg-text"></div>`;
+    wrap.appendChild(div);
+  }
+  div.className = 'dbmsg db-facilitator' + (streaming ? ' streaming' : '');
+  div.querySelector('.dbmsg-text').innerHTML = md(text);
+  div.parentElement.scrollTop = div.parentElement.scrollHeight;
+}
+
+// ── S7: 汇总洞察 ─────────────────────────────────────────
+let s7FullText = '';
+
+async function initS7() {
+  s7FullText = '';
+  document.getElementById('s7-sub').textContent = '记录员正在整理…';
+  document.getElementById('s7-content').innerHTML = '';
+  document.getElementById('s7-loading').style.display = 'block';
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/summary`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({})
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'facilitator_chunk') {
+            s7FullText += ev.chunk;
+            document.getElementById('s7-loading').style.display = 'none';
+            document.getElementById('s7-content').innerHTML = `<div class="md-body cur">${md(s7FullText)}</div>`;
+          } else if (ev.type === 'facilitator_done') {
+            document.getElementById('s7-content').innerHTML = `<div class="md-body">${md(s7FullText)}</div>
+              <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                <button class="btn btn-w" onclick="showStep('s8');initS8()">摘果子 →</button>
+              </div>`;
+          } else if (ev.type === 'step_done') {
+            document.getElementById('s7-sub').textContent = '洞察已生成';
+          } else if (ev.type === 'error') {
+            showError('s7-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) { showError('s7-error', '生成失败：' + e.message); }
+}
+
+// ── S8: 摘果子 ───────────────────────────────────────────
+let s8FullText = '';
+let s8Done = false; // 是否已完成过（写入了 user-wiki）
+
+async function initS8() {
+  s8FullText = '';
+  s8Done = false;
+  document.getElementById('s8-sub').textContent = '幕僚正在评价你…';
+  document.getElementById('s8-evals').innerHTML = '';
+  document.getElementById('s8-items').innerHTML = '';
+  document.getElementById('s8-raw').innerHTML = '';
+  document.getElementById('s8-reflection-area').style.display = 'none';
+  document.getElementById('s8-complete-area').style.display = 'none';
+  document.getElementById('s8-done').style.display = 'none';
+
+  const personaTexts = {};
+
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/harvest`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({})
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const ev = JSON.parse(line.slice(6));
+          if (ev.type === 'persona_start') {
+            personaTexts[ev.name] = '';
+            appendEvalCard(ev.name, '', true);
+          } else if (ev.type === 'persona_chunk') {
+            personaTexts[ev.name] = (personaTexts[ev.name] || '') + ev.chunk;
+            updateEvalCard(ev.name, personaTexts[ev.name], true);
+          } else if (ev.type === 'persona_done') {
+            updateEvalCard(ev.name, personaTexts[ev.name] || '', false);
+          } else if (ev.type === 'facilitator_chunk') {
+            s8FullText += ev.chunk;
+            document.getElementById('s8-raw').innerHTML = `<div class="md-body cur">${md(s8FullText)}</div>`;
+          } else if (ev.type === 'facilitator_done') {
+            document.getElementById('s8-sub').textContent = '勾选要执行的行动，写下你的心得';
+            // 渲染 todo 列表
+            renderS8Items(s8FullText);
+            // 显示案主心得输入区和完成按钮
+            document.getElementById('s8-reflection-area').style.display = 'block';
+            document.getElementById('s8-complete-area').style.display = 'block';
+            document.getElementById('s8-raw').innerHTML = '';
+          } else if (ev.type === 'step_done') {
+            // 不再在这里显示 s8-done，等用户点完成
+          } else if (ev.type === 'error') {
+            showError('s8-error', ev.message);
+          }
+        } catch {}
+      }
+    }
+  } catch(e) { showError('s8-error', '生成失败：' + e.message); }
+}
+
+function appendEvalCard(nameOrId, text, streaming) {
+  const p = PERSONAS.find(p => p.name === nameOrId || p.id === nameOrId);
+  const emoji = p ? p.emoji : '🎙️';
+  const name = p ? p.name : nameOrId;
+  const id = 's8-eval-' + (p ? p.id : nameOrId);
+  const container = document.getElementById('s8-evals');
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'dbmsg' + (streaming ? ' streaming' : '');
+  div.innerHTML = `<div class="dbmsg-hdr"><div class="dbmsg-av" data-p="${p ? p.id : ''}">${emoji}</div><div class="dbmsg-name">${escHtml(name)} · 对你的评价</div></div>
+    <div class="dbmsg-text">${streaming ? '' : (text ? `<div class="md-body">${md(text)}</div>` : '')}</div>`;
+  container.appendChild(div);
+}
+
+function updateEvalCard(nameOrId, text, streaming) {
+  const p = PERSONAS.find(p => p.name === nameOrId || p.id === nameOrId);
+  const id = 's8-eval-' + (p ? p.id : nameOrId);
+  const div = document.getElementById(id);
+  if (!div) { appendEvalCard(nameOrId, text, streaming); return; }
+  div.className = 'dbmsg' + (streaming ? ' streaming' : '');
+  const textEl = div.querySelector('.dbmsg-text');
+  if (streaming) {
+    textEl.textContent = text;
+  } else {
+    textEl.innerHTML = `<div class="md-body">${md(text)}</div>`;
+  }
+}
+
+function renderS8Items(text) {
+  const container = document.getElementById('s8-items');
+  container.innerHTML = '';
+  const lines = text.split('\n');
+  const items = [];
+  for (const line of lines) {
+    const listMatch = line.match(/^[-*]\s+(.+)/) || line.match(/^\d+\.\s+(.+)/);
+    if (listMatch) {
+      items.push({ text: listMatch[1].trim(), meta: '' });
+    }
+  }
+
+  if (items.length === 0) return;
+
+  items.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'aitem';
+    div.innerHTML = `<div class="aitem-check"></div>
+      <div class="aitem-body">
+        <div class="aitem-text">${escHtml(item.text)}</div>
+        ${item.meta ? `<div class="aitem-meta">${escHtml(item.meta)}</div>` : ''}
+      </div>`;
+    div.onclick = () => {
+      div.classList.toggle('checked');
+      div.querySelector('.aitem-check').textContent = div.classList.contains('checked') ? '✓' : '';
+    };
+    container.appendChild(div);
+  });
+}
+
+async function completeS8() {
+  if (s8Done) return;
+  const btn = document.getElementById('s8-complete-btn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = '存档中…';
+
+  const reflection = document.getElementById('s8-reflection')?.value.trim() ?? '';
+  const checkedTodos = [...document.querySelectorAll('#s8-items .aitem.checked')]
+    .map(el => el.querySelector('.aitem-text')?.textContent?.trim() ?? '');
+
+  try {
+    await fetch(`/api/projects/${projectId}/sessions/${sessionId}/steps/complete`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ reflection, checkedTodos })
+    });
+
+    s8Done = true;
+    document.getElementById('s8-reflection-area').style.display = 'none';
+    document.getElementById('s8-complete-area').style.display = 'none';
+    document.getElementById('s8-done').style.display = 'block';
+    setHostState('done');
+  } catch(e) {
+    showError('s8-error', '存档失败：' + e.message);
+    btn.disabled = false;
+    btn.textContent = '完成，存档到 User Wiki →';
+  }
+}
+
+// ── HELPERS ─────────────────────────────────────────────
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function md(text) {
+  if (!text) return '';
+  return marked.parse(text);
+}
+
+// streaming 时用 escHtml（避免 markdown 残缺标签闪烁），完成后用 md
+function renderText(text, streaming) {
+  if (streaming) {
+    return `<span style="white-space:pre-wrap">${escHtml(text)}</span>`;
+  }
+  return `<div class="md-body">${md(text)}</div>`;
+}
+
+function showError(elId, msg) {
+  const el = document.getElementById(elId);
+  if (el) el.innerHTML = `<div class="error-msg">${escHtml(msg)}</div>`;
+}
+
+// ── INIT ─────────────────────────────────────────────────
+if (!projectId) {
+  location.href = '/';
+} else {
+  loadPersonas().then(() => {
+    if (!sessionId) {
+      showStep('s1');
+    } else {
+      fetch(`/api/projects/${projectId}/sessions/${sessionId}`)
+        .then(r => r.json())
+        .then(session => {
+          const step = session.currentStep || 0;
+          if (step <= 0) {
+            showStep('s1');
+          } else if (step === 1) {
+            showStep('s2');
+            initS2();
+          } else if (step === 2) {
+            showStep('s3');
+            initS3();
+          } else if (step === 3) {
+            showStep('s4');
+            initS4();
+          } else if (step === 4) {
+            showStep('s5');
+            initS5();
+          } else if (step === 5) {
+            showStep('s6');
+            initS6([]);
+          } else if (step === 6) {
+            showStep('s7');
+            initS7();
+          } else if (step >= 7) {
+            showStep('s8');
+            initS8();
+          } else {
+            showStep('s1');
+          }
+        })
+        .catch(() => showStep('s1'));
+    }
+  });
+}
+</script>
+</body>
+</html>

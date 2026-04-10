@@ -1,0 +1,388 @@
+/**
+ * Counsel AI · 头像颜色系统
+ * 风格A: 古典水墨（暗色背景 + 彩色光晕）
+ * 风格B: 霓虹赛博（默认，暗色 + emoji头像）
+ *
+ * 默认: 风格B（霓虹赛博）
+ * 如需切换到风格A古典水墨：<body class="theme-a">
+ */
+
+/* ════════════════════════════════════════════════════════
+   25 幕僚专属色 · 完整调色板
+   ════════════════════════════════════════════════════════ */
+
+/* Row 1 — 战略与愿景 */
+[data-p="mao"]     {--pc:#FF3B3B;--pc-glow:rgba(255,59,59,.5);--pc-glow2:rgba(255,59,59,.15)}
+[data-p="jobs"]    {--pc:#B0B0FF;--pc-glow:rgba(176,176,255,.5);--pc-glow2:rgba(176,176,255,.15)}
+[data-p="musk"]    {--pc:#00D4FF;--pc-glow:rgba(0,212,255,.5);--pc-glow2:rgba(0,212,255,.15)}
+[data-p="munger"]  {--pc:#FFB347;--pc-glow:rgba(255,179,71,.5);--pc-glow2:rgba(255,179,71,.15)}
+[data-p="qian"]    {--pc:#FF6E6E;--pc-glow:rgba(255,110,110,.5);--pc-glow2:rgba(255,110,110,.15)}
+
+/* Row 2 — 科技与组织 */
+[data-p="zhang"]   {--pc:#4ECDC4;--pc-glow:rgba(78,205,196,.5);--pc-glow2:rgba(78,205,196,.15)}
+[data-p="pg"]      {--pc:#FF8C42;--pc-glow:rgba(255,140,66,.5);--pc-glow2:rgba(255,140,66,.15)}
+[data-p="karpathy"]{--pc:#7C6FFF;--pc-glow:rgba(124,111,255,.5);--pc-glow2:rgba(124,111,255,.15)}
+[data-p="ilya"]    {--pc:#FF6BAD;--pc-glow:rgba(255,107,173,.5);--pc-glow2:rgba(255,107,173,.15)}
+[data-p="mrbeast"] {--pc:#FFE434;--pc-glow:rgba(255,228,52,.5);--pc-glow2:rgba(255,228,52,.15)}
+
+/* Row 3 — 哲学与风险 */
+[data-p="naval"]   {--pc:#8FE3CF;--pc-glow:rgba(143,227,207,.5);--pc-glow2:rgba(143,227,207,.15)}
+[data-p="feynman"] {--pc:#FF8F94;--pc-glow:rgba(255,143,148,.5);--pc-glow2:rgba(255,143,148,.15)}
+[data-p="taleb"]   {--pc:#B39DDB;--pc-glow:rgba(179,157,219,.5);--pc-glow2:rgba(179,157,219,.15)}
+[data-p="laozi"]   {--pc:#69D99A;--pc-glow:rgba(105,217,154,.5);--pc-glow2:rgba(105,217,154,.15)}
+[data-p="suntzu"]  {--pc:#E53935;--pc-glow:rgba(229,57,53,.5);--pc-glow2:rgba(229,57,53,.15)}
+
+/* Row 4 — 执行与价值 */
+[data-p="brucelee"]{--pc:#FFE066;--pc-glow:rgba(255,224,102,.5);--pc-glow2:rgba(255,224,102,.15)}
+[data-p="plato"]   {--pc:#80DEEA;--pc-glow:rgba(128,222,234,.5);--pc-glow2:rgba(128,222,234,.15)}
+[data-p="drucker"] {--pc:#BCAAA4;--pc-glow:rgba(188,170,164,.5);--pc-glow2:rgba(188,170,164,.15)}
+[data-p="buffett"] {--pc:#AED581;--pc-glow:rgba(174,213,129,.5);--pc-glow2:rgba(174,213,129,.15)}
+[data-p="bezos"]   {--pc:#FF8A65;--pc-glow:rgba(255,138,101,.5);--pc-glow2:rgba(255,138,101,.15)}
+
+/* Row 5 — 历史与科学 */
+[data-p="oppie"]   {--pc:#78909C;--pc-glow:rgba(120,144,156,.5);--pc-glow2:rgba(120,144,156,.15)}
+[data-p="davinci"] {--pc:#9575CD;--pc-glow:rgba(149,117,205,.5);--pc-glow2:rgba(149,117,205,.15)}
+[data-p="churchill"]{--pc:#C6A700;--pc-glow:rgba(198,167,0,.5);--pc-glow2:rgba(198,167,0,.15)}
+[data-p="asmith"]  {--pc:#4DB6AC;--pc-glow:rgba(77,182,172,.5);--pc-glow2:rgba(77,182,172,.15)}
+[data-p="socrates"]{--pc:#EF9A9A;--pc-glow:rgba(239,154,154,.5);--pc-glow2:rgba(239,154,154,.15)}
+
+/* 当前12个幕僚（保持兼容） */
+[data-p="trump"]   {--pc:#FFD700;--pc-glow:rgba(255,215,0,.5);--pc-glow2:rgba(255,215,0,.18)}
+
+/* ════════════════════════════════════════════════════════
+   风格A: 古典水墨（暗色 + 彩色光晕）
+   ════════════════════════════════════════════════════════ */
+body.theme-a {
+  --bg:#080808;
+}
+body.theme-a #scene-pane {
+  background: radial-gradient(ellipse 70% 60% at 50% 42%,rgba(255,255,255,.012) 0%,#080808 65%);
+}
+body.theme-a #text-pane {
+  background: rgba(4,4,4,.97);
+}
+body.theme-a html, body {
+  background: #080808;
+}
+
+/* 水墨风格头像：网格裁剪 + 墨色滤镜 */
+body.theme-a .rn-av {
+  background-image: url('/portrait-grid.png');
+  background-size: 500% 500%;
+  filter: brightness(1.1) contrast(1.25) grayscale(0.08) sepia(0.06);
+  /* 去掉 emoji，用 CSS 显示 */
+  font-size: 0;
+  color: transparent;
+}
+body.theme-a .rn-av::after {
+  content: none;
+}
+body.theme-a .rn-av > * {
+  display: none;
+}
+
+/* 水墨色环：默认极淡 */
+body.theme-a .rn-av {
+  border-color: rgba(255,255,255,.05);
+  box-shadow: none;
+}
+/* 水墨激活：专属色 + 柔和光晕 */
+body.theme-a .rn.lit .rn-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 14px var(--pc-glow), 0 0 4px var(--pc-glow2);
+  animation: inkPulse 2.4s ease-in-out infinite;
+}
+body.theme-a .rn.lit .rn-label {
+  color: var(--pc);
+  opacity: .8;
+}
+/* 水墨发言中：色环 + 涟漪扩散 */
+body.theme-a .rn.speaking .rn-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 20px var(--pc-glow), 0 0 50px var(--pc-glow2);
+  animation: inkSpeak 2s ease-in-out infinite;
+}
+body.theme-a .rn.speaking .rn-av::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pc);
+  opacity: .5;
+  animation: inkRipple 2s ease-out infinite;
+}
+body.theme-a .rn.speaking .rn-label {
+  color: var(--pc);
+  opacity: 1;
+}
+/* 水墨暗淡 */
+body.theme-a .rn.dim .rn-av {
+  filter: brightness(.25) contrast(.8) grayscale(1) !important;
+  opacity: .3;
+}
+body.theme-a .rn.done .rn-av {
+  filter: brightness(.45) contrast(.9) grayscale(.6);
+  opacity: .55;
+  border-color: rgba(255,255,255,.12);
+  animation: none;
+  box-shadow: none;
+}
+body.theme-a .rn.done .rn-label {
+  color: rgba(255,255,255,.25);
+  opacity: .5;
+}
+/* 水墨等待中 */
+body.theme-a .rn.waiting .rn-av {
+  filter: brightness(.12) contrast(.6) grayscale(1) !important;
+  opacity: .15;
+}
+
+/* 水墨主持人 */
+body.theme-a .ring-host-av {
+  background: rgba(8,8,8,.95);
+  border-color: rgba(255,255,255,.15);
+  box-shadow: 0 0 20px rgba(255,255,255,.06);
+}
+body.theme-a .ring-host {
+  --pc:#fff;--pc-glow:rgba(255,255,255,.2);--pc-glow2:rgba(255,255,255,.08);
+}
+body.theme-a #rh.host-speaking {
+  border-color: rgba(255,255,255,.8) !important;
+  box-shadow: 0 0 36px rgba(255,255,255,.5), 0 0 70px rgba(255,255,255,.2) !important;
+}
+
+/* 水墨动画 */
+@keyframes inkPulse {
+  0%,100% { box-shadow: 0 0 10px var(--pc-glow), 0 0 3px var(--pc-glow2); }
+  50%      { box-shadow: 0 0 20px var(--pc-glow), 0 0 10px var(--pc-glow2); }
+}
+@keyframes inkSpeak {
+  0%,100% { box-shadow: 0 0 16px var(--pc-glow), 0 0 40px var(--pc-glow2); }
+  50%      { box-shadow: 0 0 32px var(--pc), 0 0 70px var(--pc-glow), 0 0 100px var(--pc-glow2); }
+}
+@keyframes inkRipple {
+  0%  { transform: scale(1);   opacity: .5; }
+  100%{ transform: scale(2.2);  opacity: 0; }
+}
+
+/* 水墨幕僚头像（问答区） */
+body.theme-a .persona-q-av {
+  background-image: url('/portrait-grid.png');
+  background-size: 500% 500%;
+  filter: brightness(1.1) contrast(1.25) grayscale(.08) sepia(.06);
+  border-color: var(--pc);
+  box-shadow: 0 0 14px var(--pc-glow);
+}
+body.theme-a .persona-q-av > * { display: none; }
+body.theme-a .persona-q-av::after {
+  content: attr(data-name);
+  font-size: 7px;
+  color: var(--pc);
+  opacity: .7;
+  display: block;
+  text-align: center;
+  line-height: 1;
+  margin-top: -2px;
+}
+body.theme-a .speech-hdr-av {
+  background-image: url('/portrait-grid.png');
+  background-size: 500% 500%;
+  filter: brightness(1.1) contrast(1.25) grayscale(.08) sepia(.06);
+  border-color: var(--pc);
+  box-shadow: 0 0 16px var(--pc-glow);
+}
+body.theme-a .speech-hdr-av > * { display: none; }
+
+/* 水墨聊天区头像 */
+body.theme-a .cav {
+  background: rgba(8,8,8,.9);
+  border-color: rgba(255,255,255,.08);
+}
+body.theme-a .dbmsg-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 8px var(--pc-glow);
+}
+
+/* ════════════════════════════════════════════════════════
+   风格B: 霓虹赛博（默认暗色 + emoji头像）
+   ════════════════════════════════════════════════════════ */
+body, body.theme-b {
+  /* 默认白色主题保持不变，只加 persona 色 */
+}
+
+/* 霓虹发言中：专属色边框 + 脉冲 + 涟漪 */
+body.theme-b .rn.speaking .rn-av,
+body:not(.theme-a) .rn.speaking .rn-av {
+  border-color: var(--pc) !important;
+  box-shadow: 0 0 20px var(--pc-glow), 0 0 50px var(--pc-glow2), inset 0 0 8px rgba(0,0,0,.5);
+  animation: neonSpeak 1.8s ease-in-out infinite;
+}
+body.theme-b .rn.speaking .rn-av::after,
+body:not(.theme-a) .rn.speaking .rn-av::after {
+  border-color: var(--pc);
+  opacity: .6;
+}
+body.theme-b .rn.speaking .rn-label,
+body:not(.theme-a) .rn.speaking .rn-label {
+  color: var(--pc);
+  opacity: 1;
+}
+
+/* 霓虹激活态（lit = 激活但未发言） */
+body.theme-b .rn.lit .rn-av,
+body:not(.theme-a) .rn.lit .rn-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 14px var(--pc-glow), 0 0 4px var(--pc-glow2);
+}
+body.theme-b .rn.lit .rn-label,
+body:not(.theme-a) .rn.lit .rn-label {
+  color: var(--pc);
+  opacity: .75;
+}
+
+/* 霓虹暗淡 */
+body.theme-b .rn.dim .rn-av,
+body:not(.theme-a) .rn.dim .rn-av {
+  opacity: .08;
+}
+body.theme-b .rn.done .rn-av,
+body:not(.theme-a) .rn.done .rn-av {
+  border-color: rgba(255,255,255,.15);
+  opacity: .4;
+  animation: none;
+  box-shadow: none;
+}
+body.theme-b .rn.done .rn-label,
+body:not(.theme-a) .rn.done .rn-label {
+  color: rgba(255,255,255,.25);
+}
+body.theme-b .rn.waiting .rn-av,
+body:not(.theme-a) .rn.waiting .rn-av {
+  opacity: .06;
+}
+
+/* 霓虹问答头像 */
+body.theme-b .persona-q-av,
+body:not(.theme-a) .persona-q-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 14px var(--pc-glow);
+}
+
+/* 霓虹辩论头像 */
+body.theme-b .dbmsg-av,
+body:not(.theme-a) .dbmsg-av {
+  border-color: var(--pc);
+  box-shadow: 0 0 8px var(--pc-glow);
+}
+
+/* 霓虹动画 */
+@keyframes neonSpeak {
+  0%,100% { box-shadow: 0 0 18px var(--pc-glow), 0 0 40px var(--pc-glow2); }
+  50%      { box-shadow: 0 0 32px var(--pc), 0 0 70px var(--pc-glow), 0 0 100px var(--pc-glow2); }
+}
+
+/* ════════════════════════════════════════════════════════
+   主持人色（跟随当前激活幕僚）
+   ════════════════════════════════════════════════════════ */
+#rh.host-speaking {
+  --pc:#fff;--pc-glow:rgba(255,255,255,.4);--pc-glow2:rgba(255,255,255,.15);
+}
+#rh.host-speaking .ring-host-av {
+  border-color: rgba(255,255,255,.75) !important;
+  box-shadow: 0 0 32px rgba(255,255,255,.45), 0 0 65px rgba(255,255,255,.18) !important;
+}
+
+/* ════════════════════════════════════════════════════════
+   发言气泡 · Speech Bubble
+   出现在发言中的幕僚头像旁
+   ════════════════════════════════════════════════════════ */
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 10, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  max-width: 180px;
+  min-width: 80px;
+  cursor: pointer;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+.speech-bubble:hover {
+  border-color: var(--pc, rgba(255, 255, 255, 0.35));
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 12px var(--pc-glow, rgba(255, 255, 255, 0.1));
+  transform: translateX(-50%) translateY(-2px);
+}
+.speech-bubble-text {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.speech-bubble-hint {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+  text-align: center;
+}
+.speech-bubble.active {
+  border-color: var(--pc, rgba(255, 255, 255, 0.4));
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 16px var(--pc-glow, rgba(255, 255, 255, 0.15));
+}
+.speech-bubble.active .speech-bubble-hint {
+  color: var(--pc, rgba(255, 255, 255, 0.6));
+}
+
+/* 气泡动画 */
+@keyframes bubbleAppear {
+  from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+.speech-bubble {
+  animation: bubbleAppear 0.25s ease-out;
+}
+
+/* 右侧面板中的发言气泡展开状态 */
+#view-speech {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#view-speech.slide-in {
+  animation: slideInFromRight 0.3s ease-out;
+}
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 气泡标签：带颜色的身份标签 */
+.bubble-tag {
+  display: inline-block;
+  font-size: 7px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--pc);
+  color: #000;
+  margin-bottom: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
