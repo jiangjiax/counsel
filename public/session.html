@@ -953,25 +953,31 @@ function addFacilitatorMsg(text, streaming) {
 }
 
 async function initS2() {
-  // 先检查是否有已锁定的对话缓存
+  // 先检查 define 步骤是否已完成，再尝试加载对话缓存
   if (sessionId) {
     try {
-      const r = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/files/01-defined.md`);
-      if (r.ok) {
-        const { content } = await r.json();
-        // 解析 [FACILITATOR] / [USER] 块还原对话
-        const blocks = content.split(/\n\n(?=\[(?:FACILITATOR|USER)\]\n)/);
-        s2Messages = blocks.map(block => {
-          const m = block.match(/^\[(FACILITATOR|USER)\]\n([\s\S]*)$/);
-          if (!m) return null;
-          return { role: m[1] === 'FACILITATOR' ? 'facilitator' : 'user', text: m[2].trim(), streaming: false };
-        }).filter(Boolean);
-        if (s2Messages.length > 0) {
-          renderChat();
-          document.getElementById('s2-input-area').style.display = 'none';
-          document.getElementById('s2-lock-area').style.display = 'none';
-          setHostState('active');
-          return;
+      // currentStep >= 2 意味着 define 步骤已完成，文件存在
+      const sr = await fetch(`/api/projects/${projectId}/sessions/${sessionId}`);
+      if (sr.ok) {
+        const session = await sr.json();
+        if ((session.currentStep || 0) >= 2 && session.steps[1] === 'done') {
+          const r = await fetch(`/api/projects/${projectId}/sessions/${sessionId}/files/01-defined.md`);
+          if (r.ok) {
+            const { content } = await r.json();
+            const blocks = content.split(/\n\n(?=\[(?:FACILITATOR|USER)\]\n)/);
+            s2Messages = blocks.map(block => {
+              const m = block.match(/^\[(FACILITATOR|USER)\]\n([\s\S]*)$/);
+              if (!m) return null;
+              return { role: m[1] === 'FACILITATOR' ? 'facilitator' : 'user', text: m[2].trim(), streaming: false };
+            }).filter(Boolean);
+            if (s2Messages.length > 0) {
+              renderChat();
+              document.getElementById('s2-input-area').style.display = 'none';
+              document.getElementById('s2-lock-area').style.display = 'none';
+              setHostState('active');
+              return;
+            }
+          }
         }
       }
     } catch {}
