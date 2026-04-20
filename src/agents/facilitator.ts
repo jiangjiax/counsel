@@ -69,7 +69,7 @@ export async function runFacilitator(
   res: ServerResponse
 ): Promise<string> {
   const agent = createAgent({
-    model: "claude-sonnet-4-6",
+    model: getModel(),
     systemPrompt: FACILITATOR_SYSTEM_PROMPT,
     maxTurns: 3,
     allowedTools: [],
@@ -110,6 +110,9 @@ export async function chatWithFacilitator(
 
   for await (const event of agent.query(userMessage)) {
     const e = event as any;
+    if (e.type === "result" && e.subtype === "error") {
+      console.error('[facilitator] ERROR:', e.error ?? e.message ?? JSON.stringify(e));
+    }
     if (e.type === "assistant") {
       const text = e.message?.content
         ?.filter((b: any) => b.type === "text")

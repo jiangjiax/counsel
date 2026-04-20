@@ -12,4 +12,5 @@ sessions/
 .trae/
 *.env
 .env*
+!.env.example
 dist/
