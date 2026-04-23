@@ -1,0 +1,379 @@
+/* ════════════════════════════════════════════════════════
+   HOME - Package → Project → Round
+════════════════════════════════════════════════════════ */
+#home {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+/* Header */
+.hheader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.hlogo {
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  margin-bottom: 10px;
+}
+
+.hsub {
+  font-size: 15px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+
+/* Packages */
+.packages-container {
+  width: 100%;
+  max-width: 900px;
+}
+
+.package-section {
+  margin-bottom: 30px;
+}
+
+.package-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.package-icon {
+  font-size: 20px;
+}
+
+.package-name {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.package-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* Projects Grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.project-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.project-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.project-card.active {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.project-card.new {
+  border-style: dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.35);
+  min-height: 100px;
+}
+
+.project-card.new:hover {
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.project-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.project-meta {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.project-rounds {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.round-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.round-dot.completed {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.round-dot.active {
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.round-dot:hover::after {
+  content: attr(data-round);
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.project-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.project-status.active {
+  background: rgba(100, 200, 100, 0.15);
+  color: rgba(100, 220, 100, 0.9);
+}
+
+/* Enter Button */
+.enter-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  display: flex;
+  justify-content: center;
+}
+
+.enter-btn {
+  padding: 12px 50px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.enter-btn.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.enter-btn.active:hover {
+  transform: scale(1.02);
+  background: #f0f0f0;
+}
+
+/* ════════════════════════════════════════════════════════
+   MODALS
+════════════════════════════════════════════════════════ */
+.round-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.round-modal.show {
+  display: flex;
+}
+
+.round-modal-box {
+  background: rgba(15, 15, 15, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90%;
+}
+
+.round-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.round-modal-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.rounds-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.round-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 6px;
+}
+
+.round-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.round-item.active {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.round-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.round-item.active .round-num {
+  background: #fff;
+  color: #000;
+}
+
+.round-info {
+  flex: 1;
+}
+
+.round-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.round-status {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.round-status.ongoing {
+  background: rgba(100, 200, 100, 0.15);
+  color: rgba(100, 220, 100, 0.9);
+}
+
+.round-status.completed {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.round-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.round-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-continue {
+  background: #fff;
+  color: #000;
+  font-weight: 500;
+}
+
+.btn-continue:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* New Project Modal */
+.new-project-modal .form-group {
+  margin-bottom: 16px;
+}
+
+.new-project-modal label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.new-project-modal input,
+.new-project-modal select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+.new-project-modal input:focus,
+.new-project-modal select:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+}

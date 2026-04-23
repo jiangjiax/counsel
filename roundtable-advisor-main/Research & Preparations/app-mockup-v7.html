@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · Roundtable v7</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,'PingFang SC',sans-serif;color:#f0f0f0}
+:root{--muted:#4a4a4a}
+
+/* ══ LAYOUT ═══════════════════════════════ */
+#main{display:flex;width:100%;height:100%}
+#scene-pane{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 50% 42%,rgba(255,255,255,.025) 0%,#000 65%)}
+#scene-pane::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:40px 40px;opacity:.4}
+#text-pane{width:280px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.1);background:rgba(6,6,6,.97);backdrop-filter:blur(16px);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── CORNER STAFF ─────────────────────────── */
+#corner-staff{position:absolute;bottom:22px;left:18px;z-index:25;display:flex;gap:14px;align-items:flex-end}
+.staff-fig{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.5;transition:opacity .25s;cursor:pointer}
+.staff-fig:hover{opacity:.85}
+.staff-av{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(10,10,10,.9);display:flex;align-items:center;justify-content:center;font-size:14px}
+.staff-label{font-size:7px;color:rgba(255,255,255,.3);white-space:nowrap;letter-spacing:.5px}
+
+/* ── DIM TRACKER ─────────────────────────── */
+#dim-tracker{position:absolute;top:13px;right:13px;z-index:50;background:rgba(0,0,0,.88);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 11px;backdrop-filter:blur(10px);min-width:136px;display:none}
+.dt-title{font-size:7px;color:rgba(255,255,255,.28);letter-spacing:2px;margin-bottom:7px;text-transform:uppercase}
+.dt-bub{font-size:9px;color:rgba(255,255,255,.35);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:6px}
+.dt-bub:first-of-type{border-top:none}
+.dt-bub.sel{color:#fff}
+.dt-bub.done{color:rgba(255,255,255,.55)}
+.dt-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0}
+.dt-bub.sel .dt-dot{background:#fff;box-shadow:0 0 5px rgba(255,255,255,.6)}
+.dt-bub.done .dt-dot{background:rgba(255,255,255,.5)}
+
+/* ── LAYOUT TOGGLE ───────────────────────── */
+#lt{position:absolute;top:13px;left:14px;z-index:60;display:flex;gap:3px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px;backdrop-filter:blur(10px)}
+.lt-btn{padding:4px 12px;border-radius:4px;border:none;font-size:10px;cursor:pointer;font-family:inherit;background:transparent;color:rgba(255,255,255,.35);transition:all .2s}
+.lt-btn.on{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3)}
+
+/* ══ RING LAYOUT ═══════════════════════════ */
+#ring-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ring-wrap{position:relative;width:540px;height:540px}
+.orb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,255,255,.22)}
+.orb-1{width:424px;height:424px}
+.orb-2{width:480px;height:480px;border-color:rgba(255,255,255,.08)}
+.orb-3{width:368px;height:368px;border-color:rgba(255,255,255,.06)}
+.ring-center-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.06) 0%,transparent 70%)}
+.ring-host{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;z-index:20}
+.ring-host-av{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(14,14,14,.95);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 28px rgba(255,255,255,.1),0 0 60px rgba(255,255,255,.04);transition:all .3s}
+.ring-host:hover .ring-host-av{box-shadow:0 0 40px rgba(255,255,255,.22);transform:scale(1.05)}
+.ring-host-label{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:2px}
+.rn{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;z-index:15;transform:translate(-50%,-50%);transition:transform .25s}
+.rn:hover{transform:translate(-50%,-50%) scale(1.12)}
+.rn-av{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,10,.95);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all .3s;backdrop-filter:blur(4px)}
+.rn-label{font-size:7.5px;color:rgba(255,255,255,.2);white-space:nowrap;transition:color .3s;text-align:center}
+.rn.dim .rn-av{opacity:.15}
+.rn.active .rn-av{border-color:rgba(255,255,255,.38);box-shadow:0 0 12px rgba(255,255,255,.14)}
+.rn.active .rn-label{color:rgba(255,255,255,.55)}
+@keyframes wSpeak{0%,100%{box-shadow:0 0 18px rgba(255,255,255,.5),0 0 40px rgba(255,255,255,.15)}50%{box-shadow:0 0 32px rgba(255,255,255,.9),0 0 70px rgba(255,255,255,.28)}}
+@keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.8);opacity:0}}
+.rn.speaking .rn-av{border-color:#fff;animation:wSpeak 1.6s ease-in-out infinite}
+.rn.speaking .rn-av::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,255,255,.3);animation:ripple 1.6s ease-out infinite}
+.rn.speaking .rn-label{color:#fff}
+.rn.done .rn-av{border-color:rgba(255,255,255,.25);opacity:.6}
+.rn.done .rn-label{color:rgba(255,255,255,.35)}
+.rn.waiting .rn-av{opacity:.08}
+.rn.waiting .rn-label{opacity:.2}
+.rn.pro .rn-av{border-color:rgba(255,255,255,.8)!important;box-shadow:0 0 24px rgba(255,255,255,.45),0 0 50px rgba(255,255,255,.18)!important;opacity:1!important}
+.rn.pro .rn-label{color:#fff!important}
+.rn.con .rn-av{border-color:rgba(255,255,255,.25)!important;box-shadow:0 0 10px rgba(255,255,255,.12)!important;opacity:.7!important}
+.rn.con .rn-label{color:rgba(255,255,255,.5)!important}
+
+/* ══ TABLE LAYOUT — steeper isometric 42° ══ */
+#table-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.tbl-area{position:relative;width:560px;height:420px;perspective:1100px}
+.tbl-surface{position:absolute;top:46%;left:50%;transform:translate(-50%,-46%) rotateX(42deg);width:340px;height:185px;border-radius:50%;background:radial-gradient(ellipse at 45% 38%,#161616 0%,#0d0d0d 50%,#080808 100%);border:1px solid rgba(255,255,255,.28);box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 70px rgba(255,255,255,.08),0 36px 90px rgba(0,0,0,.98),inset 0 0 40px rgba(255,255,255,.03),inset 0 1px 0 rgba(255,255,255,.12)}
+.tbl-ring{position:absolute;top:46%;left:50%;transform:translate(-50%,-46%) rotateX(42deg);width:382px;height:208px;border-radius:50%;border:1px solid rgba(255,255,255,.1)}
+.tbl-ring2{position:absolute;top:46%;left:50%;transform:translate(-50%,-46%) rotateX(42deg);width:310px;height:168px;border-radius:50%;border:1px solid rgba(255,255,255,.06)}
+.tbl-topic{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:15}
+.tbl-topic-l{font-size:7.5px;color:rgba(255,255,255,.22);letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.tbl-topic-t{font-size:12px;color:rgba(255,255,255,.4);font-weight:400;max-width:160px;line-height:1.4}
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;z-index:20;transform:translate(-50%,-50%);transition:transform .25s}
+.seat:hover{transform:translate(-50%,-50%) scale(1.1)!important}
+.seat-av{border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,10,.95);display:flex;align-items:center;justify-content:center;position:relative;transition:all .3s;backdrop-filter:blur(4px)}
+.seat-label{font-size:7px;color:rgba(255,255,255,.2);white-space:nowrap;transition:color .3s;text-align:center}
+.seat-host .seat-av{width:54px;height:54px;font-size:22px;border-color:rgba(255,255,255,.3);box-shadow:0 0 20px rgba(255,255,255,.08)}
+.seat-host .seat-label{font-size:8.5px;color:rgba(255,255,255,.4);letter-spacing:1px}
+.seat-host:hover{transform:translate(-50%,-50%) scale(1.06)!important}
+.seat-adv .seat-av{width:38px;height:38px;font-size:16px}
+.seat.dim .seat-av{opacity:.15}
+.seat.active .seat-av{border-color:rgba(255,255,255,.38);box-shadow:0 0 12px rgba(255,255,255,.14)}
+.seat.active .seat-label{color:rgba(255,255,255,.55)}
+.seat.speaking .seat-av{border-color:#fff;animation:wSpeak 1.6s ease-in-out infinite}
+.seat.speaking .seat-av::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(255,255,255,.28);animation:ripple 1.6s ease-out infinite}
+.seat.speaking .seat-label{color:#fff}
+.seat.done .seat-av{border-color:rgba(255,255,255,.22);opacity:.6}
+.seat.done .seat-label{color:rgba(255,255,255,.32)}
+.seat.waiting .seat-av{opacity:.08}
+.seat.waiting .seat-label{opacity:.2}
+.seat.pro .seat-av{border-color:rgba(255,255,255,.8)!important;box-shadow:0 0 24px rgba(255,255,255,.45),0 0 50px rgba(255,255,255,.18)!important;opacity:1!important}
+.seat.pro .seat-label{color:#fff!important}
+.seat.con .seat-av{border-color:rgba(255,255,255,.25)!important;box-shadow:0 0 10px rgba(255,255,255,.12)!important;opacity:.7!important}
+.seat.con .seat-label{color:rgba(255,255,255,.5)!important}
+
+/* ══ SPEECH BUBBLES ════════════════════════ */
+.sbub{position:absolute;z-index:30;pointer-events:none;padding:6px 9px;border-radius:6px;font-size:10px;line-height:1.55;color:rgba(255,255,255,.65);max-width:165px;border:1px solid rgba(255,255,255,.18);background:rgba(8,8,8,.9);backdrop-filter:blur(6px);animation:bIn .3s ease-out}
+.sbub.clickable{pointer-events:auto;cursor:pointer;transition:border-color .15s}
+.sbub.clickable:hover{border-color:rgba(255,255,255,.5);color:#fff}
+@keyframes bIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.sbub-name{font-size:7.5px;font-weight:700;margin-bottom:2px;color:rgba(255,255,255,.45);letter-spacing:.5px}
+.sbub-hint{font-size:7px;color:rgba(255,255,255,.25);margin-top:3px}
+
+/* ══ TEXT PANE ══════════════════════════════ */
+#pane-header{padding:10px 13px 8px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.pane-brand{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.pstrip{display:flex;align-items:center;gap:2px}
+.pnode{display:flex;align-items:center;gap:2px;font-size:7.5px;color:rgba(255,255,255,.18);cursor:pointer;white-space:nowrap;transition:color .2s}
+.pnode.done{color:rgba(255,255,255,.45)}
+.pnode.now{color:#fff}
+.pdot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.1);flex-shrink:0}
+.pnode.done .pdot{background:rgba(255,255,255,.6)}
+.pnode.now .pdot{background:#fff;box-shadow:0 0 5px rgba(255,255,255,.5)}
+.pline{flex:1;height:1px;background:rgba(255,255,255,.06);min-width:3px}
+#mode-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 13px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;min-height:28px}
+#mode-label{font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:.5px}
+#mode-back{font-size:8.5px;background:none;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4);padding:2px 8px;border-radius:4px;cursor:pointer;font-family:inherit;display:none}
+#mode-back:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.panel-view{flex:1;overflow-y:auto;padding:12px}
+.panel-view::-webkit-scrollbar{width:2px}
+.panel-view::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
+#pane-footer{padding:9px 12px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;display:flex;gap:6px;align-items:center}
+
+/* ══ LOBBY VIEW ═════════════════════════════ */
+.lobby-hero{padding:18px 0 14px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:14px;text-align:center}
+.lobby-logo{font-size:22px;font-weight:700;color:#fff;letter-spacing:5px;margin-bottom:4px}
+.lobby-tagline{font-size:8px;color:rgba(255,255,255,.25);letter-spacing:2px}
+.lobby-sec{margin-bottom:16px}
+.lobby-sec-hdr{font-size:7.5px;color:rgba(255,255,255,.28);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lobby-sec-hdr::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+.session-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:all .2s}
+.session-item:hover{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.03)}
+.session-item.active-sess{border-color:rgba(255,255,255,.18)}
+.sess-bullet{font-size:8px;color:rgba(255,255,255,.2);flex-shrink:0;transition:color .2s}
+.session-item:hover .sess-bullet{color:rgba(255,255,255,.7)}
+.sess-title{font-size:10.5px;color:rgba(255,255,255,.75);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px}
+.sess-meta{font-size:8px;color:rgba(255,255,255,.28);letter-spacing:.3px}
+.sess-bar{width:34px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden;flex-shrink:0}
+.sess-bar-fill{height:100%;background:rgba(255,255,255,.45);border-radius:1px}
+.persona-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.persona-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px;border:1px solid rgba(255,255,255,.07);border-radius:6px;cursor:pointer;transition:all .15s}
+.persona-chip:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.04)}
+.persona-chip-av{font-size:17px}
+.persona-chip-name{font-size:6.5px;color:rgba(255,255,255,.38);text-align:center;line-height:1.3}
+.lobby-btn{width:100%;padding:9px 11px;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:10.5px;font-family:inherit;cursor:pointer;border-radius:6px;text-align:left;display:flex;align-items:center;gap:8px;margin-bottom:6px;transition:all .15s}
+.lobby-btn:hover{border-color:rgba(255,255,255,.35);color:#fff;background:rgba(255,255,255,.04)}
+.lobby-btn.primary{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.28);color:#fff;font-weight:500}
+.lobby-btn.primary:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5)}
+.lobby-btn-icon{font-size:13px;flex-shrink:0}
+.lobby-btn-sub{font-size:8px;color:rgba(255,255,255,.3);margin-left:auto}
+
+/* ══ STEP CONTENT ═══════════════════════════ */
+.step-content{display:none}
+.sh{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.snum{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:8.5px;color:rgba(255,255,255,.7);flex-shrink:0}
+.stitle{font-size:12px;font-weight:600;color:#fff}
+.ssub{font-size:9.5px;color:var(--muted);margin-top:1px}
+.ginput{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:9px 11px;color:#f0f0f0;font-size:12px;line-height:1.6;resize:none;outline:none;font-family:inherit;transition:border-color .2s}
+.ginput:focus{border-color:rgba(255,255,255,.28)}
+.ginput-sm{height:32px;padding:5px 10px;resize:none}
+.btn{padding:6px 12px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:all .15s;font-family:inherit}
+.btn-w{background:#fff;color:#000}
+.btn-w:hover{background:#e8e8e8}
+.btn-g{background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.btn-g:hover{border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.7)}
+.mic{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex-shrink:0}
+.cmsg{display:flex;gap:7px;margin-bottom:8px;align-items:flex-start}
+.cmsg.u{flex-direction:row-reverse}
+.cbub{padding:7px 10px;border-radius:7px;font-size:11px;line-height:1.55;max-width:86%}
+.cbub.f{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.65)}
+.cbub.u{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.65)}
+.cav{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:#0a0a0a}
+.sug{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:10px 11px;margin:9px 0}
+.sug-t{font-size:8px;color:rgba(255,255,255,.5);letter-spacing:2px;margin-bottom:6px}
+.p-check{display:flex;align-items:flex-start;gap:8px;padding:7px 0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.p-check:last-child{border-bottom:none}
+.pck-box{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;transition:all .15s}
+.p-check.sel .pck-box{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.45)}
+.pck-text{font-size:10.5px;color:rgba(255,255,255,.45);line-height:1.5}
+.p-check.sel .pck-text{color:rgba(255,255,255,.78)}
+/* s3 sequential */
+.s3-q-block{padding:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:8px;margin-bottom:10px}
+.s3-adv-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.s3-adv-av{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(255,255,255,.2);flex-shrink:0}
+.s3-adv-name{font-size:12px;font-weight:600;color:#fff}
+.s3-adv-badge{font-size:8px;color:rgba(255,255,255,.3);letter-spacing:.5px}
+.s3-question{font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:10px}
+.s3-btns{display:flex;gap:6px;margin-top:8px}
+.s3-done-item{padding:7px 10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:6px;margin-bottom:5px}
+.s3-done-hdr{font-size:8px;color:rgba(255,255,255,.28);margin-bottom:3px}
+.s3-done-ans{font-size:10px;color:rgba(255,255,255,.4);line-height:1.5}
+.s3-done-ans.skip{color:rgba(255,255,255,.18);font-style:italic}
+.s3-silent{padding:7px 10px;border:1px solid rgba(255,255,255,.04);border-radius:6px;margin-bottom:5px;display:flex;align-items:center;gap:7px;opacity:.5}
+.s3-silent-av{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+/* s4 */
+.ocard{padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.ocard.on{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.03)}
+.ocard-n{font-size:8px;margin-bottom:4px;color:rgba(255,255,255,.38);letter-spacing:.8px}
+.ocard-t{font-size:10.5px;color:rgba(255,255,255,.5);line-height:1.55}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cur::after{content:'▋';animation:blink .85s infinite;color:#fff}
+/* s5 */
+.dcard{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.dcard:hover{border-color:rgba(255,255,255,.22)}
+.dcard.sel{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.04)}
+.dicon{width:17px;height:17px;border-radius:3px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:2px}
+.dcard.sel .dicon{background:rgba(255,255,255,.15)}
+.dlabel{font-size:10px;font-weight:600;color:rgba(255,255,255,.65);margin-bottom:2px}
+.dtext{font-size:10px;color:rgba(255,255,255,.38);line-height:1.5}
+/* s6 debate */
+.dbmsg{padding:8px 10px;border-radius:6px;margin-bottom:6px}
+.dbmsg-n{font-size:8px;margin-bottom:3px;color:rgba(255,255,255,.4);letter-spacing:.5px}
+.dbmsg-t{font-size:10.5px;color:rgba(255,255,255,.6);line-height:1.55}
+.dbmsg.h{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+.dbmsg.j{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.18)}
+.dbmsg.pg{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);opacity:.5}
+/* s7 */
+.scard{padding:9px 10px;border-left:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.03);border-radius:0 6px 6px 0;margin-bottom:7px}
+.scard.c{border-left-color:rgba(255,255,255,.12);opacity:.75}
+.st{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.72);margin-bottom:3px}
+.sb{font-size:10px;color:rgba(255,255,255,.35);line-height:1.5}
+/* s8 */
+.aitem{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.aitem:hover{border-color:rgba(255,255,255,.22)}
+.aitem.ck{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.04)}
+.achk{width:15px;height:15px;border-radius:3px;border:1px solid rgba(255,255,255,.15);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s}
+.aitem.ck .achk{background:#fff;color:#000;border-color:#fff}
+.at{font-size:10.5px;color:rgba(255,255,255,.55);line-height:1.5}
+.am{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* ══ PROFILE VIEW ════════════════════════ */
+.prof-av{width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:24px;margin:16px auto 8px;background:rgba(255,255,255,.04);box-shadow:0 0 20px rgba(255,255,255,.1)}
+.prof-name{text-align:center;font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+.prof-role{text-align:center;font-size:9px;color:rgba(255,255,255,.4);margin-bottom:12px;letter-spacing:1px}
+.prof-sec{font-size:7.5px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:2px;margin:12px 0 5px}
+.prof-txt{font-size:10.5px;color:rgba(255,255,255,.44);line-height:1.6}
+.prof-q{border-left:2px solid rgba(255,255,255,.18);padding-left:8px;font-size:10.5px;color:rgba(255,255,255,.34);line-height:1.6;font-style:italic;margin:5px 0}
+.prof-said{padding:7px 9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:5px;font-size:10.5px;color:rgba(255,255,255,.44);line-height:1.5;margin-bottom:5px}
+.prof-tag{display:inline-block;padding:3px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:9px;color:rgba(255,255,255,.55);cursor:pointer;margin:3px 3px 3px 0}
+.prof-tag:hover{background:rgba(255,255,255,.1);color:#fff}
+.prof-pill{display:inline-block;padding:2px 7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;font-size:9px;color:rgba(255,255,255,.38);margin:2px 2px 2px 0}
+
+/* ══ SPEECH VIEW ════════════════════════ */
+.speech-hdr{display:flex;align-items:center;gap:10px;padding:14px 0 12px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:12px}
+.speech-av{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.03);flex-shrink:0}
+.speech-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px}
+.speech-meta{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.5px}
+.speech-body{font-size:11px;color:rgba(255,255,255,.55);line-height:1.8}
+.speech-body h3{font-size:11px;font-weight:600;color:rgba(255,255,255,.7);margin:12px 0 5px}
+.speech-body strong{color:rgba(255,255,255,.82);font-weight:600}
+.speech-body p{margin-bottom:8px}
+.speech-body ul{padding-left:14px}
+.speech-body li{margin-bottom:4px}
+.speech-body blockquote{padding:7px 10px;background:rgba(255,255,255,.04);border-left:2px solid rgba(255,255,255,.2);border-radius:0 5px 5px 0;margin:8px 0;font-size:11px;color:rgba(255,255,255,.5);font-style:italic}
+
+/* ══ WIKI & STATUS ══════════════════════ */
+.view-title{font-size:11px;font-weight:600;color:#fff;margin-bottom:3px}
+.view-sub{font-size:9px;color:rgba(255,255,255,.3);margin-bottom:14px;letter-spacing:.5px}
+.wiki-entry{padding:8px 10px;border-left:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.02);border-radius:0 5px 5px 0;margin-bottom:8px}
+.wiki-step{font-size:7.5px;color:rgba(255,255,255,.28);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase}
+.wiki-text{font-size:10.5px;color:rgba(255,255,255,.5);line-height:1.6}
+.wiki-text ul{padding-left:13px}
+.wiki-text li{margin-bottom:3px}
+.status-adv-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.status-adv-row:last-child{border-bottom:none}
+.status-adv-name{font-size:9.5px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:5px}
+.status-temp{height:2px;width:60px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
+.status-temp-fill{height:100%;border-radius:1px;background:rgba(255,255,255,.35)}
+.status-note{padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:10.5px;color:rgba(255,255,255,.4);line-height:1.6;margin-top:10px}
+.status-note strong{color:rgba(255,255,255,.65)}
+
+/* ══ NAV ════════════════════════════════ */
+#nav-zone{position:fixed;top:0;left:0;right:280px;height:8px;z-index:90}
+#nav{position:fixed;top:0;left:0;right:280px;height:40px;background:rgba(0,0,0,.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;padding:0 14px;gap:4px;z-index:100;opacity:0;transform:translateY(-100%);transition:opacity .25s,transform .25s;pointer-events:none}
+#nav-zone:hover~#nav,#nav:hover{opacity:1!important;transform:translateY(0)!important;pointer-events:all!important}
+.nbrand{color:#fff;font-weight:700;font-size:13px;margin-right:8px;letter-spacing:1px}
+.nbtn{padding:3px 8px;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);font-size:9px;border-radius:4px;cursor:pointer;transition:all .15s;font-family:inherit}
+.nbtn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+.nbtn.on{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#fff}
+.nav-info{margin-left:auto;font-size:9px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="main">
+  <div id="scene-pane">
+
+    <div id="dim-tracker">
+      <div class="dt-title">维度追踪</div>
+      <div class="dt-bub done"><div class="dt-dot"></div>✓ 动机真实性</div>
+      <div class="dt-bub sel"><div class="dt-dot"></div>⚡ 时机 vs 准备度</div>
+      <div class="dt-bub"><div class="dt-dot"></div>🏠 家庭 vs 梦想</div>
+    </div>
+
+    <div id="corner-staff">
+      <div class="staff-fig" onclick="setMode('wiki')" title="点击查看记录">
+        <div class="staff-av">📝</div>
+        <div class="staff-label">记录员</div>
+      </div>
+      <div class="staff-fig" onclick="setMode('status')" title="点击查看当前状态">
+        <div class="staff-av">⚖️</div>
+        <div class="staff-label">调解员</div>
+      </div>
+    </div>
+
+    <div id="lt">
+      <button class="lt-btn on" id="lt-A" onclick="setLayout('A')">⬤ 星环</button>
+      <button class="lt-btn" id="lt-B" onclick="setLayout('B')">⬡ 圆桌</button>
+    </div>
+
+    <!-- RING -->
+    <div id="ring-scene">
+      <div class="ring-wrap" id="rw">
+        <div class="orb orb-3"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="ring-center-glow"></div>
+        <div class="ring-host" id="rh" onclick="setMode('profile','host')">
+          <div class="ring-host-av">🎙️</div>
+          <div class="ring-host-label">主持人</div>
+        </div>
+        <div class="rn dim" id="rn-0" onclick="setMode('profile','bruce')"><div class="rn-av">🥋</div><div class="rn-label">Bruce Lee</div></div>
+        <div class="rn dim" id="rn-1" onclick="setMode('profile','mao')"><div class="rn-av">⚔️</div><div class="rn-label">毛泽东</div></div>
+        <div class="rn dim" id="rn-2" onclick="setMode('profile','laozi')"><div class="rn-av">🌊</div><div class="rn-label">老子</div></div>
+        <div class="rn dim" id="rn-3" onclick="setMode('profile','huineng')"><div class="rn-av">🪷</div><div class="rn-label">六祖慧能</div></div>
+        <div class="rn dim" id="rn-4" onclick="setMode('profile','qian')"><div class="rn-av">🚀</div><div class="rn-label">钱学森</div></div>
+        <div class="rn dim" id="rn-5" onclick="setMode('profile','einstein')"><div class="rn-av">🔬</div><div class="rn-label">爱因斯坦</div></div>
+        <div class="rn dim" id="rn-6" onclick="setMode('profile','jobs')"><div class="rn-av">💼</div><div class="rn-label">乔布斯</div></div>
+        <div class="rn dim" id="rn-7" onclick="setMode('profile','kk')"><div class="rn-av">🔮</div><div class="rn-label">Kevin Kelly</div></div>
+        <div class="rn dim" id="rn-8" onclick="setMode('profile','pg')"><div class="rn-av">🧪</div><div class="rn-label">Paul Graham</div></div>
+        <div class="rn dim" id="rn-9" onclick="setMode('profile','bezos')"><div class="rn-av">☁️</div><div class="rn-label">Jeff Bezos</div></div>
+        <div class="rn dim" id="rn-10" onclick="setMode('profile','musk')"><div class="rn-av">⚡</div><div class="rn-label">Elon Musk</div></div>
+        <div class="rn dim" id="rn-11" onclick="setMode('profile','a16z')"><div class="rn-av">🌐</div><div class="rn-label">a16z</div></div>
+      </div>
+    </div>
+
+    <!-- TABLE — 42° -->
+    <div id="table-scene" style="display:none">
+      <div class="tbl-area" id="ta">
+        <div class="tbl-ring"></div>
+        <div class="tbl-ring2"></div>
+        <div class="tbl-surface"></div>
+        <div class="tbl-topic">
+          <div class="tbl-topic-l">议题</div>
+          <div class="tbl-topic-t">要不要全职创业？</div>
+        </div>
+        <div class="seat seat-host dim" id="th-host" style="top:90%;left:50%" onclick="setMode('profile','host')"><div class="seat-av">🎙️</div><div class="seat-label">主持人</div></div>
+        <div class="seat seat-adv dim" id="th-0" style="top:10%;left:38%" onclick="setMode('profile','bruce')"><div class="seat-av">🥋</div><div class="seat-label">Bruce Lee</div></div>
+        <div class="seat seat-adv dim" id="th-1" style="top:5%;left:50%" onclick="setMode('profile','mao')"><div class="seat-av">⚔️</div><div class="seat-label">毛泽东</div></div>
+        <div class="seat seat-adv dim" id="th-2" style="top:10%;left:62%" onclick="setMode('profile','laozi')"><div class="seat-av">🌊</div><div class="seat-label">老子</div></div>
+        <div class="seat seat-adv dim" id="th-3" style="top:26%;left:85%" onclick="setMode('profile','huineng')"><div class="seat-av">🪷</div><div class="seat-label">六祖慧能</div></div>
+        <div class="seat seat-adv dim" id="th-4" style="top:46%;left:90%" onclick="setMode('profile','qian')"><div class="seat-av">🚀</div><div class="seat-label">钱学森</div></div>
+        <div class="seat seat-adv dim" id="th-5" style="top:65%;left:82%" onclick="setMode('profile','einstein')"><div class="seat-av">🔬</div><div class="seat-label">爱因斯坦</div></div>
+        <div class="seat seat-adv dim" id="th-6" style="top:78%;left:66%" onclick="setMode('profile','jobs')"><div class="seat-av">💼</div><div class="seat-label">乔布斯</div></div>
+        <div class="seat seat-adv dim" id="th-7" style="top:78%;left:34%" onclick="setMode('profile','kk')"><div class="seat-av">🔮</div><div class="seat-label">Kevin Kelly</div></div>
+        <div class="seat seat-adv dim" id="th-8" style="top:65%;left:18%" onclick="setMode('profile','pg')"><div class="seat-av">🧪</div><div class="seat-label">Paul Graham</div></div>
+        <div class="seat seat-adv dim" id="th-9" style="top:46%;left:10%" onclick="setMode('profile','bezos')"><div class="seat-av">☁️</div><div class="seat-label">Jeff Bezos</div></div>
+        <div class="seat seat-adv dim" id="th-10" style="top:26%;left:15%" onclick="setMode('profile','musk')"><div class="seat-av">⚡</div><div class="seat-label">Elon Musk</div></div>
+        <div class="seat seat-adv dim" id="th-11" style="top:26%;left:50%" onclick="setMode('profile','a16z')"><div class="seat-av">🌐</div><div class="seat-label">a16z</div></div>
+      </div>
+    </div>
+
+  </div><!-- /scene-pane -->
+
+  <!-- RIGHT PANEL -->
+  <div id="text-pane">
+    <div id="pane-header">
+      <div class="pane-brand">参谋</div>
+      <div class="pstrip" id="pstrip"></div>
+    </div>
+    <div id="mode-bar">
+      <span id="mode-label">大厅</span>
+      <button id="mode-back" onclick="backToStep()">← 返回</button>
+    </div>
+
+    <!-- VIEW: LOBBY -->
+    <div id="view-lobby" class="panel-view">
+      <div class="lobby-hero">
+        <div class="lobby-logo">参谋</div>
+        <div class="lobby-tagline">十二位智者 · 照亮你的盲区</div>
+      </div>
+
+      <div class="lobby-sec">
+        <button class="lobby-btn primary" onclick="newSession()">
+          <span class="lobby-btn-icon">＋</span>
+          开启新会议
+          <span class="lobby-btn-sub">新建 Session</span>
+        </button>
+      </div>
+
+      <div class="lobby-sec">
+        <div class="lobby-sec-hdr">历史 Session</div>
+        <div class="session-item active-sess" onclick="resumeSession()">
+          <div class="sess-bullet">▶</div>
+          <div style="flex:1;min-width:0">
+            <div class="sess-title">要不要全职创业？</div>
+            <div class="sess-meta">S-003 · 2026-04-09 · 进行中</div>
+          </div>
+          <div class="sess-bar"><div class="sess-bar-fill" style="width:48%"></div></div>
+        </div>
+        <div class="session-item" onclick="resumeSession()">
+          <div class="sess-bullet">○</div>
+          <div style="flex:1;min-width:0">
+            <div class="sess-title">和张总的合作，深入还是保持？</div>
+            <div class="sess-meta">S-002 · 2026-03-28 · 已完成</div>
+          </div>
+          <div class="sess-bar"><div class="sess-bar-fill" style="width:88%;opacity:.4"></div></div>
+        </div>
+        <div class="session-item" onclick="resumeSession()">
+          <div class="sess-bullet">○</div>
+          <div style="flex:1;min-width:0">
+            <div class="sess-title">如何面对压力型投资人？</div>
+            <div class="sess-meta">S-001 · 2026-03-15 · 已完成</div>
+          </div>
+          <div class="sess-bar"><div class="sess-bar-fill" style="width:100%;opacity:.3"></div></div>
+        </div>
+      </div>
+
+      <div class="lobby-sec">
+        <div class="lobby-sec-hdr">幕僚档案库</div>
+        <div class="persona-grid" id="persona-grid"></div>
+      </div>
+
+      <div class="lobby-sec">
+        <div class="lobby-sec-hdr">工具</div>
+        <button class="lobby-btn" onclick="setMode('wiki')">
+          <span class="lobby-btn-icon">📝</span>
+          我的 Wiki
+          <span class="lobby-btn-sub">Session 记录</span>
+        </button>
+        <button class="lobby-btn" onclick="setMode('status')">
+          <span class="lobby-btn-icon">⚖️</span>
+          调解员
+          <span class="lobby-btn-sub">当前局势</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW: STEP -->
+    <div id="view-step" class="panel-view" style="display:none">
+
+      <div class="step-content" id="s1">
+        <div class="sh"><div class="snum">1</div><div><div class="stitle">说出你的困境</div><div class="ssub">越真实越好，不用完美</div></div></div>
+        <textarea class="ginput" rows="8">我在现在的公司做了3年了，手上有一个想做的产品方向，最近有朋友愿意一起创业。但我不知道现在时机对不对——市场竞争很激烈，而且我家里刚买了房，经济压力不小。我老婆支持但也担心。我自己内心是想做的，但我怕自己只是在逃避公司里的一些问题，而不是真正想创业。</textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:9.5px;color:var(--muted)">238字</span>
+          <button class="btn btn-w" onclick="show('s2')">提交 →</button>
+        </div>
+      </div>
+
+      <div class="step-content" id="s2">
+        <div class="sh"><div class="snum">2</div><div><div class="stitle">主持人定义问题</div><div class="ssub">问题清晰，幕僚才能击中要害</div></div></div>
+        <div class="cmsg"><div class="cav">🎙️</div><div class="cbub f">如果把公司问题全部解决了，你还会想创业吗？</div></div>
+        <div class="cmsg u"><div class="cav" style="background:rgba(255,255,255,.06)">M</div><div class="cbub u">即使公司一切都好，我依然想做自己的产品。但紧迫感确实被公司环境催化了。</div></div>
+        <div class="cmsg"><div class="cav">🎙️</div><div class="cbub f">你担心的是市场时机，还是个人准备程度？</div></div>
+        <div class="cmsg u"><div class="cav" style="background:rgba(255,255,255,.06)">M</div><div class="cbub u">主要是个人准备程度。市场我觉得OK，但不确定自己能扛住压力，尤其是有家庭了。</div></div>
+        <div class="sug">
+          <div class="sug-t">✦ 锁定问题框架（可多选）</div>
+          <div class="p-check sel" onclick="togglePCheck(this)"><div class="pck-box">✓</div><div class="pck-text">个人准备程度是否足够？风险如何评估？</div></div>
+          <div class="p-check sel" onclick="togglePCheck(this)"><div class="pck-box">✓</div><div class="pck-text">创业动机是真实渴望还是对现状的逃避？</div></div>
+          <div class="p-check" onclick="togglePCheck(this)"><div class="pck-box"></div><div class="pck-text">如何在家庭压力和个人追求之间找到平衡？</div></div>
+          <div class="p-check" onclick="togglePCheck(this)"><div class="pck-box"></div><div class="pck-text">合伙人能力是否真正互补？</div></div>
+        </div>
+        <input class="ginput ginput-sm" placeholder="+ 补充自定义问题..." style="margin-bottom:8px">
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-w" onclick="show('s3')">确认框架 →</button>
+        </div>
+      </div>
+
+      <div class="step-content" id="s3">
+        <div class="sh"><div class="snum">3</div><div><div class="stitle">幕僚在问你</div><div class="ssub" id="s3-progress">正在提问 · 1 / 5</div></div></div>
+        <div id="s3-current"></div>
+        <div id="s3-done"></div>
+      </div>
+
+      <div class="step-content" id="s4">
+        <div class="sh"><div class="snum">4</div><div><div class="stitle">12位幕僚并行发言</div><div class="ssub">点气泡查看完整发言</div></div></div>
+        <div class="ocard on" onclick="setMode('speech','jobs-s4')">
+          <div class="ocard-n">💼 乔布斯 · 发言中 ↗</div>
+          <div class="ocard-t cur">你的问题不是时机，是勇气。你在用"市场分析"来逃避一个内心已经作出的决定</div>
+        </div>
+        <div class="ocard" onclick="setMode('speech','mao-s4')">
+          <div class="ocard-n">⚔️ 毛泽东 · 完成 ↗</div>
+          <div class="ocard-t">天时不如地利，地利不如人和。合伙人才是你的核心变量</div>
+        </div>
+        <div class="ocard" style="opacity:.5">
+          <div class="ocard-n">🧪 Paul Graham · 等待中</div>
+          <div class="ocard-t" style="color:rgba(255,255,255,.25)">等待发言轮次...</div>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.05)">2/12 完成</div>
+      </div>
+
+      <div class="step-content" id="s5">
+        <div class="sh"><div class="snum">5</div><div><div class="stitle">主持人提炼冲突</div><div class="ssub">选择最想深入辩论的维度</div></div></div>
+        <div class="dcard" onclick="toggleDim(this)"><div class="dicon">⚡</div><div><div class="dlabel">勇气 vs 理性</div><div class="dtext">乔布斯认为内心已有答案，只差行动。PG认为需先验证市场。</div></div></div>
+        <div class="dcard sel" onclick="toggleDim(this)"><div class="dicon" style="background:rgba(255,255,255,.15)">✓</div><div><div class="dlabel">时机 vs 准备度 ←</div><div class="dtext">毛泽东侧重主观能动性，PG侧重外部验证。你的担忧在这里。</div></div></div>
+        <div class="dcard" onclick="toggleDim(this)"><div class="dicon">🏠</div><div><div class="dlabel">家庭 vs 梦想</div><div class="dtext">三位幕僚对家庭压力是否真实障碍有不同看法。</div></div></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-w" onclick="show('s6')">进入辩论 →</button>
+        </div>
+      </div>
+
+      <!-- S6 DEBATE — dramatic: only debaters lit, rest fade to almost nothing -->
+      <div class="step-content" id="s6">
+        <div class="sh"><div class="snum">6</div><div><div class="stitle">辩论：时机 vs 准备度</div><div class="ssub">只有辩论者在场 · 点角色可追问</div></div></div>
+        <div style="font-size:8.5px;color:rgba(255,255,255,.28);margin-bottom:9px;padding:5px 8px;border:1px solid rgba(255,255,255,.06);border-radius:5px">
+          场景：12位幕僚隐入黑暗，正反方浮出光影
+        </div>
+        <div class="dbmsg h"><div class="dbmsg-n">🎙️ 主持人</div><div class="dbmsg-t">辩题：现在就行动，还是再准备6个月？乔布斯请先发言。</div></div>
+        <div class="dbmsg j"><div class="dbmsg-n">💼 乔布斯 · 正方</div><div class="dbmsg-t cur">再等6个月，只会让你的恐惧变得更合理化。你永远不会"准备好"。那些说要准备好再出发的人，最终都死在了准备里。</div></div>
+        <div class="dbmsg pg"><div class="dbmsg-n">🧪 Paul Graham · 等待反驳</div><div class="dbmsg-t" style="color:rgba(255,255,255,.25)">正在思考...</div></div>
+        <input class="ginput ginput-sm" placeholder="插话 / 追问..." style="margin-top:5px">
+      </div>
+
+      <div class="step-content" id="s7">
+        <div class="sh"><div class="snum">7</div><div><div class="stitle">汇总洞察</div><div class="ssub">点气泡查看完整总结</div></div></div>
+        <div class="scard"><div class="st">核心共识 · 动机是真实的</div><div class="sb">12位幕僚近乎一致：你的创业渴望是真实的，不是逃避。</div></div>
+        <div class="scard c"><div class="st">最大分歧 · 时机判断</div><div class="sb">乔布斯：现在。PG：先验证3个月。毛泽东：先找到核心矛盾。</div></div>
+        <div class="scard"><div class="st">隐藏变量 · 合伙人</div><div class="sb">你对合伙人的描述太少。建议单独开一局。</div></div>
+      </div>
+
+      <div class="step-content" id="s8">
+        <div class="sh"><div class="snum">8</div><div><div class="stitle">你要带走什么？</div><div class="ssub">点击选中，存入行动清单</div></div></div>
+        <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="at">本周找合伙人做一次深度对话：能力互补 + 压力测试</div><div class="am">毛泽东 · 高优先级</div></div></div>
+        <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="at">列出5个最可能的首批付费客户，下周联系3个</div><div class="am">Paul Graham · 市场验证</div></div></div>
+        <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="at">和老婆做一次"最坏情况"推演：6个月后失败，怎么办？</div><div class="am">乔布斯 · 消除恐惧</div></div></div>
+        <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="at">给自己一个决策截止日期：2026-05-01前做决定</div><div class="am">主持人 · 防止拖延</div></div></div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px" id="ck-count">0/4 已选</div>
+      </div>
+
+    </div><!-- /view-step -->
+
+    <!-- VIEW: PROFILE -->
+    <div id="view-profile" class="panel-view" style="display:none">
+      <div class="prof-av" id="vp-av"></div>
+      <div class="prof-name" id="vp-name"></div>
+      <div class="prof-role" id="vp-role"></div>
+      <div id="vp-body"></div>
+    </div>
+
+    <!-- VIEW: SPEECH -->
+    <div id="view-speech" class="panel-view" style="display:none">
+      <div class="speech-hdr">
+        <div class="speech-av" id="vs-av"></div>
+        <div><div class="speech-name" id="vs-name"></div><div class="speech-meta" id="vs-meta"></div></div>
+      </div>
+      <div class="speech-body" id="vs-body"></div>
+    </div>
+
+    <!-- VIEW: WIKI -->
+    <div id="view-wiki" class="panel-view" style="display:none">
+      <div class="view-title">📝 Session 记录</div>
+      <div class="view-sub">要不要全职创业？· 2026-04-09</div>
+      <div class="wiki-entry"><div class="wiki-step">Step 1 · 输入</div><div class="wiki-text">核心困境：3年老员工考虑全职创业。有合伙人意向，面临经济压力（新房）、家庭顾虑、自我怀疑（逃避 vs 真实渴望）。</div></div>
+      <div class="wiki-entry"><div class="wiki-step">Step 2 · 定义问题</div><div class="wiki-text">锁定两个核心框架：<ul><li>个人准备程度 + 风险评估</li><li>创业动机的真实性</li></ul>关键确认：即使公司一切正常，仍然想创业。</div></div>
+      <div class="wiki-entry"><div class="wiki-step">Step 3 · 挖事实</div><div class="wiki-text"><ul><li>乔布斯问：害怕放弃idea本身，非身份认同</li><li>PG问：尚未找潜在用户验证（待完成）</li><li>毛泽东问：合伙人互补性未考察（关键风险）</li><li>Bezos问：10年后不会后悔尝试</li></ul></div></div>
+      <div class="wiki-entry"><div class="wiki-step">Step 4 · 发言</div><div class="wiki-text">乔布斯：问题是勇气而非时机。毛泽东：合伙人是核心变量。其余幕僚发言中。</div></div>
+      <div class="wiki-entry" style="border-left-color:rgba(255,255,255,.35)"><div class="wiki-step" style="color:rgba(255,255,255,.5)">当前位置 · 进行中</div><div class="wiki-text" style="color:rgba(255,255,255,.3)">Session 进度 48%</div></div>
+    </div>
+
+    <!-- VIEW: STATUS -->
+    <div id="view-status" class="panel-view" style="display:none">
+      <div class="view-title">⚖️ 当前局势</div>
+      <div class="view-sub">调解员实时监控</div>
+      <div class="prof-sec" style="margin-top:0">幕僚立场温度计</div>
+      <div class="status-adv-row"><div class="status-adv-name">💼 乔布斯</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">⚡ 强烈正方</div><div class="status-temp"><div class="status-temp-fill" style="width:90%"></div></div></div></div>
+      <div class="status-adv-row"><div class="status-adv-name">⚔️ 毛泽东</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">🔀 谨慎</div><div class="status-temp"><div class="status-temp-fill" style="width:55%"></div></div></div></div>
+      <div class="status-adv-row"><div class="status-adv-name">🧪 Paul Graham</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">📊 条件正方</div><div class="status-temp"><div class="status-temp-fill" style="width:70%"></div></div></div></div>
+      <div class="status-adv-row"><div class="status-adv-name">🌊 老子</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">🤫 沉默</div><div class="status-temp"><div class="status-temp-fill" style="width:10%"></div></div></div></div>
+      <div class="status-adv-row"><div class="status-adv-name">☁️ Jeff Bezos</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">✅ 支持</div><div class="status-temp"><div class="status-temp-fill" style="width:75%"></div></div></div></div>
+      <div class="status-adv-row"><div class="status-adv-name">⚡ Elon Musk</div><div style="display:flex;align-items:center;gap:6px"><div style="font-size:8.5px">🚀 激进正方</div><div class="status-temp"><div class="status-temp-fill" style="width:95%"></div></div></div></div>
+      <div class="status-note"><strong>当前局势基本健康。</strong> 主要分歧集中在"时机 vs 准备度"。<br><br>注意：<strong>合伙人问题</strong>被多名幕僚提及但未深入。辩论后建议单独追问。</div>
+    </div>
+
+    <div id="pane-footer" style="display:none">
+      <div class="mic">🎙️</div>
+      <div style="flex:1;display:flex;gap:5px">
+        <button class="btn btn-g" style="flex:1" id="btn-prev" onclick="prevStep()">← 上一步</button>
+        <button class="btn btn-w" style="flex:1" id="btn-next" onclick="nextStep()">下一步 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="nav-zone"></div>
+<div id="nav">
+  <span class="nbrand">参谋</span>
+  <button class="nbtn" onclick="show('s1')">1 输入</button>
+  <button class="nbtn" onclick="show('s2')">2 定义</button>
+  <button class="nbtn" onclick="show('s3')">3 挖事实</button>
+  <button class="nbtn" onclick="show('s4')">4 发言</button>
+  <button class="nbtn" onclick="show('s5')">5 拆维度</button>
+  <button class="nbtn" onclick="show('s6')">6 辩论</button>
+  <button class="nbtn" onclick="show('s7')">7 汇总</button>
+  <button class="nbtn" onclick="show('s8')">8 摘果子</button>
+  <span class="nav-info" id="nav-info"></span>
+</div>
+
+<script>
+const MASTERS=[
+  {id:'bruce',av:'🥋',name:'Bruce Lee',role:'截拳道 · Be Water',bg:'武术家、哲学家，创立截拳道。',philosophy:'以无法为有法，以无限为有限',method:'实战检验 · 去掉花拳绣腿',values:'直接 · 灵活 · 自我超越',quote:'"Be water, my friend."',said:'像水一样。不要固执于一种策略，根据情况适应。',tags:['如果是你会怎么适应？','最该去掉什么？']},
+  {id:'mao',av:'⚔️',name:'毛泽东',role:'战略谋断 · 矛盾论',bg:'革命战略家，"实事求是"和"矛盾论"著称。',philosophy:'矛盾论：抓住主要矛盾就抓住了全局',method:'集中优势兵力各个歼灭 · 群众路线',values:'民心 · 主动权 · 底层优先',lifeEvent:'长征：在生死存亡中保存革命火种，最终逆转局势。',quote:'"集中优势兵力，各个歼灭敌人。"',said:'你的合伙人才是关键变量。天时地利，不如人和。',tags:['核心矛盾是什么？','最薄弱的环节在哪？']},
+  {id:'laozi',av:'🌊',name:'老子',role:'道法自然 · 无为',bg:'道德经作者，水德哲学。',philosophy:'道法自然：顺应事物本来的样子',method:'无为而无不为 · 顺势而动',values:'柔弱 · 虚静 · 自然',quote:'"上善若水，水善利万物而不争。"',said:'无为而无不为。你的焦虑来自抗拒，而非情况本身。',tags:['顺势而为是什么？','什么叫不争？']},
+  {id:'huineng',av:'🪷',name:'六祖慧能',role:'顿悟 · 本自具足',bg:'禅宗六祖，倡导顿悟。',philosophy:'本自具足：答案早已在内心',method:'不立文字 · 直指人心',values:'当下 · 内求 · 清净',quote:'"本来无一物，何处惹尘埃。"',said:'你已经知道答案了。你只是不敢相信自己知道。',tags:['当下的答案是什么？','什么在阻碍你？']},
+  {id:'qian',av:'🚀',name:'钱学森',role:'系统科学 · 综合集成',bg:'中国航天之父，开放复杂巨系统理论。',philosophy:'任何复杂问题都是多个子系统的集成',method:'综合集成法 · 系统工程',values:'整体性 · 严谨 · 科学报国',quote:'"科学没有国界，但科学家有祖国。"',said:'这个创业决策是一个系统问题，不是单点问题。',tags:['系统的关键节点在哪？','如何做综合分析？']},
+  {id:'einstein',av:'🔬',name:'爱因斯坦',role:'第一性原理 · 思想实验',bg:'物理学家，相对论创立者。',philosophy:'质疑一切假设，从基本原理推导',method:'思想实验 · 第一性原理',values:'好奇心 · 想象力 · 独立思考',quote:'"想象力比知识更重要。"',said:'你在用别人的框架思考自己的问题。',tags:['第一性原理是什么？','最大的假设是什么？']},
+  {id:'jobs',av:'💼',name:'乔布斯',role:'产品哲学 · 极简专注',bg:'苹果、Pixar、NeXT创始人。',philosophy:'产品是艺术，技术与人文的交汇',method:'做减法到极致 · 控制全栈体验',values:'极简 · 审美 · 专注',lifeEvent:'1985年被苹果驱逐，1997年回归，打造iPod→iPhone→iPad三次革命。',quote:'"Stay hungry, stay foolish."',said:'你的问题不是时机，是勇气。你在用"市场分析"来逃避一个内心已经作出的决定。',tags:['如果是你会怎么做？','什么东西应该做减法？']},
+  {id:'kk',av:'🔮',name:'Kevin Kelly',role:'技术必然性 · 长期趋势',bg:'《连线》创始主编，《失控》作者。',philosophy:'技术是生命的延伸，有自己的趋势',method:'识别不可逆趋势 · 长周期思考',values:'好奇心 · 开放性 · 长期主义',quote:'"Technology wants what life wants."',said:'你选择的这个方向——10年后的技术趋势往哪里走？',tags:['这个方向的技术趋势是？','10年后世界会怎样？']},
+  {id:'pg',av:'🧪',name:'Paul Graham',role:'早期验证 · YC方法论',bg:'Y Combinator联合创始人。',philosophy:'做有人真正想要的东西',method:'最小验证 · 与用户对话 · 快速迭代',values:'真实需求 · 简单直接 · 早期验证',quote:'"Make something people want."',said:'你有没有找过10个真正可能付费的潜在用户谈过？',tags:['最小验证是什么？','怎么快速测试？']},
+  {id:'bezos',av:'☁️',name:'Jeff Bezos',role:'Day 1 · 长期主义',bg:'亚马逊创始人，"Day 1"心态。',philosophy:'遗憾最小化框架：用10年后的自己评价今天',method:'逆向工作法 · 客户痴迷',values:'长期 · 客户第一 · Day 1心态',quote:'"It\'s always Day 1."',said:'如果这个创业失败了，10年后你会后悔没有尝试吗？',tags:['10年后你会后悔吗？','客户最想要什么？']},
+  {id:'musk',av:'⚡',name:'Elon Musk',role:'第一性原理 · 10x思维',bg:'Tesla、SpaceX、X创始人。',philosophy:'物理定律是唯一约束，其余都是假设',method:'第一性原理重推 · 10x而非10% · 垂直整合',values:'使命驱动 · 极致效率 · 边界突破',quote:'"First principles."',said:'你的竞争对手在10年内会把这个市场做到多大？如果你现在不做，谁会做？',tags:['这个市场的物理边界是哪？','为什么非你不可？']},
+  {id:'a16z',av:'🌐',name:'a16z',role:'软件吞噬世界 · 网络效应',bg:'Andreessen Horowitz，顶级风投。',philosophy:'软件在吞噬世界，每个行业都会被重新发明',method:'识别网络效应 · 押注技术趋势',values:'技术加速 · 网络效应 · 市场时机',quote:'"Software is eating the world."',said:'你的产品有网络效应吗？如果没有，你的护城河在哪里？',tags:['护城河是什么？','网络效应从哪里来？']},
+];
+const PROFILES={};MASTERS.forEach(m=>PROFILES[m.id]=m);
+PROFILES['host']={av:'🎙️',name:'主持人',role:'流程引导 · 结构提炼',bg:'参谋系统的核心协调者。不表达观点，只提炼结构。',philosophy:'一个好的问题，胜过一百个答案',method:'倾听→提炼→结构化→追问',values:'客观 · 中立 · 深挖结构',quote:'"一个好的问题，胜过一百个答案。"',said:'如果把公司问题全部解决了，你还会想创业吗？',tags:['后面还有什么要注意？','我需要问自己什么？']};
+
+const SPEECH_FULL={
+  'jobs-s4':{av:'💼',name:'乔布斯',meta:'第4步 · 并行发言',html:`<p><strong>"你的问题不是时机，是勇气。"</strong></p><p>你在用"市场分析"来逃避一个内心已经作出的决定。</p><h3>真正的问题</h3><ul><li>你害怕失败吗？每个人都害怕。</li><li>你害怕后悔吗？那就更应该做。</li><li>你害怕家人受苦吗？这才是值得认真讨论的唯一问题。</li></ul><h3>我的建议</h3><p>给自己一个截止日期。<strong>2026-05-01前给一个决定</strong>。没有截止日期的决策，永远不会有决定。</p><blockquote>Stay hungry, stay foolish.</blockquote>`},
+  'mao-s4':{av:'⚔️',name:'毛泽东',meta:'第4步 · 并行发言',html:`<p><strong>"天时不如地利，地利不如人和。"</strong></p><p>你对合伙人的描述只有一句"有朋友愿意一起"。这是一个巨大的信息空洞。</p><h3>我需要你回答</h3><ul><li>他的能力和你互补，还是重叠？</li><li>在压力下，他的反应是什么？</li><li>利益分配的对话做过了吗？</li></ul><p>先搞定人的问题，再谈市场。</p>`},
+  'jobs-s3':{av:'💼',name:'乔布斯',meta:'第3步 · 挖事实',html:`<p><strong>"你最害怕放弃的是什么——那个idea本身，还是'我是创业者'这个自我认同？"</strong></p><p>这个问题是一把手术刀。</p><p>如果你的答案是"我怕失去那个idea"——健康。</p><p>如果是"我怕变回普通员工"——我们需要先聊这个。</p>`},
+  'pg-s3':{av:'🧪',name:'Paul Graham',meta:'第3步 · 挖事实',html:`<p><strong>"你有没有找过10个真正可能付费的潜在用户谈过？"</strong></p><h3>现在就去做</h3><ul><li>列出10个最可能有这个痛的人（不是你朋友）</li><li>约他们喝咖啡，不讲产品，只问"你现在怎么解决"</li><li>如果3个人愿意预付款——那就是真需求</li></ul><blockquote>Make something people want.</blockquote>`},
+  'mao-s3':{av:'⚔️',name:'毛泽东',meta:'第3步 · 挖事实',html:`<p><strong>"你的合伙人，能力和你互补还是重叠？困难时期他有没有扛过事？"</strong></p><p>很多创业失败不是败给市场，而是败给合伙人。</p><ul><li>他在能力上补你的短板了吗？</li><li>在压力下的反应是什么？</li><li>利益分配的对话做过了吗？</li></ul>`},
+  'bezos-s3':{av:'☁️',name:'Jeff Bezos',meta:'第3步 · 挖事实',html:`<p><strong>"10年后你会怎么评价今天这个决定？"</strong></p><blockquote>"10年后的我，会更后悔没有尝试，还是尝试了但失败了？"</blockquote><p>我在1994年辞掉华尔街工作去创建亚马逊时，我知道可能失败。但10年后的我如果没有尝试，会后悔一辈子。</p>`},
+  'host-s7':{av:'🎙️',name:'主持人',meta:'第7步 · 全场汇总',html:`<h3>三个核心发现</h3><p><strong>① 动机是真实的</strong><br>12位幕僚近乎一致：你的创业渴望不是逃避。</p><p><strong>② 最大分歧在时机</strong><br>乔布斯：现在。PG：先做3个月产品验证。毛泽东：先找到核心矛盾。</p><p><strong>③ 合伙人是最大未解变量</strong><br>建议单独开一局，专门讨论合伙人问题。</p><blockquote>Session完成86% · 最后一步：带走行动项</blockquote>`},
+};
+
+const STEPS=[{id:'s1',label:'输入'},{id:'s2',label:'定义'},{id:'s3',label:'挖事实'},{id:'s4',label:'发言'},{id:'s5',label:'拆维度'},{id:'s6',label:'辩论'},{id:'s7',label:'汇总'},{id:'s8',label:'摘果子'}];
+const PCTS={s1:12,s2:24,s3:36,s4:48,s5:60,s6:72,s7:86,s8:100};
+const CHAR_STATES={
+  lobby:{host:'active',all:'dim'},
+  s1:{host:'dim',all:'dim'},
+  s2:{host:'speaking',all:'active'},
+  s3:{host:'active',all:'dim'},
+  s4:{host:'active',all:'waiting',speaking:[6]},
+  // s6: ONLY debaters lit — pro bright, con visible, everyone else nearly invisible
+  s5:{host:'speaking',all:'done'},
+  s6:{host:'active',all:'waiting',pro:[6,4,9],con:[1,8,10]},
+  s7:{host:'speaking',all:'done'},
+  s8:{host:'done',all:'done'},
+};
+
+const S3_QUEUE=[
+  {id:'jobs',av:'💼',name:'乔布斯',speechId:'jobs-s3',q:'你最害怕放弃的是什么——那个idea本身，还是"我是创业者"这个自我认同？'},
+  {id:'pg',av:'🧪',name:'Paul Graham',speechId:'pg-s3',q:'你有没有找过10个真正可能付费的潜在用户谈过？他们说了什么？'},
+  {id:'mao',av:'⚔️',name:'毛泽东',speechId:'mao-s3',q:'你的合伙人，能力和你互补还是重叠？困难时期他有没有扛过事？'},
+  {id:'bezos',av:'☁️',name:'Jeff Bezos',speechId:'bezos-s3',q:'如果这个创业失败了，10年后你会怎么评价今天这个决定？'},
+  {id:'laozi',av:'🌊',name:'老子',speechId:null,q:'',skip:true},
+];
+let s3Idx=0;
+const s3Answers={};
+
+const RBUB={
+  s2:[{style:'top:72%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'如果公司问题全解决了，你还会想创业吗？',speechId:null}],
+  s4:[{style:'top:78%;left:7%',name:'💼 乔布斯',text:'你的问题不是时机，是勇气…',speechId:'jobs-s4'},{style:'top:12%;right:6%;text-align:right',name:'⚔️ 毛泽东',text:'合伙人才是关键变量',speechId:'mao-s4'}],
+  s5:[{style:'top:72%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'提炼出3个核心冲突维度，请选择',speechId:null}],
+  s6:[{style:'top:78%;left:5%',name:'💼 乔布斯 正方',text:'再等6个月只会让恐惧更合理化',speechId:'jobs-s4'},{style:'top:8%;left:50%;transform:translateX(-50%)',name:'🧪 Paul Graham 反方',text:'先验证，再全力投入',speechId:'pg-s3'}],
+  s7:[{style:'top:72%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'动机真实。合伙人是最大未解风险。',speechId:'host-s7'}],
+};
+const TBUB={
+  s2:[{style:'bottom:22%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'如果公司问题全解决了，你还会想创业吗？',speechId:null}],
+  s4:[{style:'top:55%;left:-5px',name:'💼 乔布斯',text:'你的问题不是时机，是勇气…',speechId:'jobs-s4'},{style:'top:15%;right:-5px;text-align:right',name:'⚔️ 毛泽东',text:'合伙人才是关键变量',speechId:'mao-s4'}],
+  s5:[{style:'bottom:22%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'提炼出3个核心冲突维度',speechId:null}],
+  s6:[{style:'top:55%;left:-5px',name:'💼 乔布斯 正方',text:'再等6个月只会让恐惧合理化',speechId:'jobs-s4'},{style:'top:5%;left:50%;transform:translateX(-50%)',name:'🧪 Paul Graham 反方',text:'先验证，再全力投入',speechId:'pg-s3'}],
+  s7:[{style:'bottom:22%;left:50%;transform:translateX(-50%)',name:'🎙️ 主持人',text:'动机真实，合伙人是最大未解风险',speechId:'host-s7'}],
+};
+
+let curStep='s4',curLayout='A',panelMode='lobby',panelData=null,inSession=false;
+
+function posRingNodes(){
+  const r=210,cx=270,cy=270;
+  for(let i=0;i<12;i++){
+    const rad=i*30*Math.PI/180;
+    const el=document.getElementById('rn-'+i);
+    if(el){el.style.left=(cx+r*Math.sin(rad))+'px';el.style.top=(cy-r*Math.cos(rad))+'px';}
+  }
+}
+
+function buildPersonaGrid(){
+  const grid=document.getElementById('persona-grid');
+  if(!grid)return;
+  grid.innerHTML=MASTERS.map(m=>`<div class="persona-chip" onclick="setMode('profile','${m.id}')">
+    <div class="persona-chip-av">${m.av}</div>
+    <div class="persona-chip-name">${m.name.replace('Jeff ','').replace('Paul ','').replace('Kevin ','').replace('Bruce ','Bruce\n')}</div>
+  </div>`).join('');
+}
+
+/* ── MODE SYSTEM ─────────────────────────── */
+const ROOT_MODES=['lobby','step','wiki','status'];
+function setMode(mode,data){
+  panelMode=mode; panelData=data||null;
+  ['lobby','step','profile','speech','wiki','status'].forEach(v=>{
+    document.getElementById('view-'+v).style.display='none';
+  });
+  document.getElementById('view-'+mode).style.display='';
+  const isRoot=ROOT_MODES.includes(mode);
+  document.getElementById('mode-back').style.display=isRoot?'none':'block';
+  document.getElementById('pane-footer').style.display=mode==='step'?'flex':'none';
+  if(mode==='lobby') document.getElementById('pstrip').innerHTML='';
+  updateModeBar(mode);
+  if(mode==='profile') populateProfile(data);
+  if(mode==='speech') populateSpeech(data);
+}
+function backToStep(){ setMode(inSession?'step':'lobby'); }
+
+function updateModeBar(mode){
+  const el=document.getElementById('mode-label');
+  const map={lobby:'大厅',wiki:'📝 记录',status:'⚖️ 局势'};
+  if(map[mode]){el.textContent=map[mode];return;}
+  if(mode==='step'){const idx=STEPS.findIndex(s=>s.id===curStep);el.textContent='第'+(idx+1)+'步：'+STEPS[idx].label;return;}
+  if(mode==='profile'){const p=PROFILES[panelData];el.textContent=p?p.av+' '+p.name:'档案';return;}
+  if(mode==='speech'){const s=SPEECH_FULL[panelData];el.textContent=s?s.name+' · 发言':'发言';return;}
+}
+
+function populateProfile(id){
+  const p=PROFILES[id];if(!p)return;
+  document.getElementById('vp-av').textContent=p.av;
+  document.getElementById('vp-name').textContent=p.name;
+  document.getElementById('vp-role').textContent=p.role;
+  let h='';
+  h+=`<div class="prof-sec">身份背景</div><div class="prof-txt">${p.bg}</div>`;
+  if(p.philosophy)h+=`<div class="prof-sec">哲学体系</div><div class="prof-txt">${p.philosophy}</div>`;
+  if(p.method)h+=`<div class="prof-sec">方法论</div><div class="prof-txt">${p.method}</div>`;
+  if(p.values){const pills=p.values.split('·').map(v=>`<span class="prof-pill">${v.trim()}</span>`).join('');h+=`<div class="prof-sec">核心价值观</div><div>${pills}</div>`;}
+  if(p.lifeEvent)h+=`<div class="prof-sec">关键事件</div><div class="prof-q">${p.lifeEvent}</div>`;
+  h+=`<div class="prof-sec">标志性信念</div><div class="prof-q">${p.quote}</div>`;
+  h+=`<div class="prof-sec">本场已说</div><div class="prof-said">${p.said}</div>`;
+  if(p.tags&&p.tags.length)h+=`<div class="prof-sec">你可以问他</div><div>${p.tags.map(t=>`<span class="prof-tag">${t}</span>`).join('')}</div>`;
+  document.getElementById('vp-body').innerHTML=h;
+}
+function populateSpeech(id){
+  const s=SPEECH_FULL[id];
+  if(!s){document.getElementById('vs-av').textContent='📄';document.getElementById('vs-name').textContent='发言内容';document.getElementById('vs-meta').textContent='';document.getElementById('vs-body').innerHTML='<p style="color:rgba(255,255,255,.3)">暂无完整发言记录</p>';return;}
+  document.getElementById('vs-av').textContent=s.av;
+  document.getElementById('vs-name').textContent=s.name;
+  document.getElementById('vs-meta').textContent=s.meta;
+  document.getElementById('vs-body').innerHTML=s.html;
+}
+
+/* ── CHAR STATES ─────────────────────────── */
+function updateChars(stepId){
+  const st=CHAR_STATES[stepId]||{all:'dim',host:'dim'};
+  const rh=document.getElementById('rh');
+  if(rh){const av=rh.querySelector('.ring-host-av');av.style.boxShadow=st.host==='speaking'?'0 0 36px rgba(255,255,255,.5),0 0 70px rgba(255,255,255,.2)':st.host==='active'?'0 0 22px rgba(255,255,255,.14)':'0 0 14px rgba(255,255,255,.05)';av.style.borderColor=st.host==='speaking'?'rgba(255,255,255,.8)':st.host==='active'?'rgba(255,255,255,.4)':'rgba(255,255,255,.15)';}
+  const th=document.getElementById('th-host');if(th)th.className='seat seat-host '+st.host;
+  for(let i=0;i<12;i++){
+    let s=st.all||'dim';
+    if(st.speaking&&st.speaking.includes(i))s='speaking';
+    if(st.pro&&st.pro.includes(i))s='pro';
+    if(st.con&&st.con.includes(i))s='con';
+    const rn=document.getElementById('rn-'+i);if(rn)rn.className='rn '+s;
+    const tn=document.getElementById('th-'+i);if(tn)tn.className='seat seat-adv '+s;
+  }
+}
+
+function updateS3SceneChar(speakingId){
+  const speakingIdx=MASTERS.findIndex(m=>m.id===speakingId);
+  const queueIds=S3_QUEUE.map(q=>q.id);
+  for(let i=0;i<12;i++){
+    const m=MASTERS[i];let s='dim';
+    if(i===speakingIdx)s='speaking';
+    else if(s3Answers[m.id])s='done';
+    else if(queueIds.includes(m.id))s='active';
+    const rn=document.getElementById('rn-'+i);if(rn)rn.className='rn '+s;
+    const tn=document.getElementById('th-'+i);if(tn)tn.className='seat seat-adv '+s;
+  }
+  const rh=document.getElementById('rh');
+  if(rh){const av=rh.querySelector('.ring-host-av');av.style.boxShadow='0 0 22px rgba(255,255,255,.14)';av.style.borderColor='rgba(255,255,255,.4)';}
+  const th=document.getElementById('th-host');if(th)th.className='seat seat-host active';
+  document.querySelectorAll('.dyn-b').forEach(b=>b.remove());
+  const q=S3_QUEUE[s3Idx];
+  if(q&&!q.skip){
+    const brief=q.q.length>42?q.q.slice(0,42)+'…':q.q;
+    function mkBub(container,style){const d=document.createElement('div');d.className='sbub dyn-b';d.style.cssText='position:absolute;z-index:30;'+style;d.innerHTML=`<div class="sbub-name">${q.av} ${q.name}</div>${brief}`;container.appendChild(d);}
+    const rw=document.getElementById('rw');if(rw)mkBub(rw,'top:72%;left:50%;transform:translateX(-50%)');
+    const ta=document.getElementById('ta');if(ta)mkBub(ta,'bottom:22%;left:50%;transform:translateX(-50%)');
+  }
+}
+
+function renderS3Step(){
+  const prog=document.getElementById('s3-progress');
+  const cur=document.getElementById('s3-current');
+  const done=document.getElementById('s3-done');
+  const doneItems=S3_QUEUE.slice(0,s3Idx).map(q=>{
+    if(q.skip)return'';
+    const ans=s3Answers[q.id];if(!ans)return'';
+    return`<div class="s3-done-item"><div class="s3-done-hdr">${q.av} ${q.name}${ans.skipped?' · 跳过':''}</div><div class="s3-done-ans${ans.skipped?' skip':''}">${ans.skipped?'（已跳过）':ans.text}</div></div>`;
+  }).join('');
+  done.innerHTML=doneItems;
+  if(s3Idx>=S3_QUEUE.length){
+    prog.textContent='全部完成';
+    cur.innerHTML=`<div style="text-align:center;padding:14px 0"><div style="font-size:18px;margin-bottom:8px">✓</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:12px">问询完成</div><button class="btn btn-w" onclick="show('s4')">进入发言阶段 →</button></div>`;
+    return;
+  }
+  const q=S3_QUEUE[s3Idx];
+  if(q.skip){
+    cur.innerHTML=`<div class="s3-silent"><div class="s3-silent-av">${q.av}</div><div style="font-size:10px;color:rgba(255,255,255,.28)">${q.name} 此刻选择沉默</div></div><div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-w" onclick="s3AutoSkip()">完成问询 →</button></div>`;
+    prog.textContent='最后 · '+q.name;
+    updateS3SceneChar(q.id);return;
+  }
+  const total=S3_QUEUE.filter(q=>!q.skip).length;
+  const soFar=Object.keys(s3Answers).length;
+  prog.textContent='正在提问 · '+(soFar+1)+' / '+total;
+  cur.innerHTML=`<div class="s3-q-block">
+    <div class="s3-adv-row">
+      <div class="s3-adv-av">${q.av}</div>
+      <div><div class="s3-adv-name">${q.name}</div><div class="s3-adv-badge">正在提问</div></div>
+      ${q.speechId?`<button class="btn btn-g" style="margin-left:auto;font-size:9px" onclick="setMode('speech','${q.speechId}')">完整发言 ↗</button>`:''}
+    </div>
+    <div class="s3-question">${q.q}</div>
+    <textarea class="ginput" id="s3-ans-input" rows="3" placeholder="你的回答..."></textarea>
+    <div class="s3-btns"><button class="btn btn-g" onclick="s3Skip()">跳过</button><button class="btn btn-w" onclick="s3Submit()">提交回答 →</button></div>
+  </div>`;
+  updateS3SceneChar(q.id);
+}
+function s3Submit(){const input=document.getElementById('s3-ans-input');const q=S3_QUEUE[s3Idx];if(!q)return;s3Answers[q.id]={text:(input&&input.value.trim())||'（已提交）',skipped:false};s3Idx++;renderS3Step();}
+function s3Skip(){const q=S3_QUEUE[s3Idx];if(!q)return;s3Answers[q.id]={text:'',skipped:true};s3Idx++;renderS3Step();}
+function s3AutoSkip(){s3Idx++;renderS3Step();}
+
+function updateBubbles(stepId){
+  document.querySelectorAll('.dyn-b').forEach(b=>b.remove());
+  if(stepId==='s3')return;
+  function inject(container,data){
+    (data[stepId]||[]).forEach(b=>{
+      const d=document.createElement('div');
+      const clickable=!!b.speechId;
+      d.className='sbub dyn-b'+(clickable?' clickable':'');
+      d.style.cssText='position:absolute;z-index:30;'+b.style;
+      d.innerHTML=`<div class="sbub-name">${b.name}</div>${b.text}${clickable?'<div class="sbub-hint">点击查看完整发言 ↗</div>':''}`;
+      if(clickable){const sid=b.speechId;d.onclick=()=>setMode('speech',sid);}
+      container.appendChild(d);
+    });
+  }
+  const rw=document.getElementById('rw');if(rw)inject(rw,RBUB);
+  const ta=document.getElementById('ta');if(ta)inject(ta,TBUB);
+}
+
+function buildStrip(){
+  const el=document.getElementById('pstrip');
+  const idx=STEPS.findIndex(s=>s.id===curStep);
+  el.innerHTML=STEPS.map((s,i)=>{
+    const cls=i<idx?'pnode done':i===idx?'pnode now':'pnode';
+    return`<span class="${cls}" onclick="show('${s.id}')"><div class="pdot"></div>${s.label}</span>${i<STEPS.length-1?'<div class="pline"></div>':''}`;
+  }).join('');
+}
+function updateDimTracker(stepId){
+  document.getElementById('dim-tracker').style.display=['s5','s6','s7','s8'].includes(stepId)?'block':'none';
+}
+
+function show(stepId){
+  inSession=true;
+  if(panelMode!=='step')setMode('step');
+  document.querySelectorAll('.step-content').forEach(e=>e.style.display='none');
+  const el=document.getElementById(stepId);if(el)el.style.display='block';
+  curStep=stepId;buildStrip();
+  document.querySelectorAll('.nbtn').forEach((b,i)=>b.classList.toggle('on',STEPS[i].id===stepId));
+  const idx=STEPS.findIndex(s=>s.id===stepId);
+  document.getElementById('nav-info').textContent='Step '+(idx+1)+' · '+PCTS[stepId]+'%';
+  document.getElementById('btn-prev').style.opacity=idx===0?'.3':'1';
+  document.getElementById('btn-next').textContent=idx===STEPS.length-1?'完成 ✓':'下一步 →';
+  updateModeBar('step');
+  updateChars(stepId);
+  updateBubbles(stepId);
+  updateDimTracker(stepId);
+  if(stepId==='s3')renderS3Step();
+}
+function prevStep(){const i=STEPS.findIndex(s=>s.id===curStep);if(i>0)show(STEPS[i-1].id);}
+function nextStep(){const i=STEPS.findIndex(s=>s.id===curStep);if(i<STEPS.length-1)show(STEPS[i+1].id);}
+function setLayout(l){
+  curLayout=l;
+  document.getElementById('ring-scene').style.display=l==='A'?'flex':'none';
+  document.getElementById('table-scene').style.display=l==='B'?'flex':'none';
+  document.getElementById('lt-A').classList.toggle('on',l==='A');
+  document.getElementById('lt-B').classList.toggle('on',l==='B');
+  updateBubbles(curStep);
+  if(curStep==='s3')updateS3SceneChar(S3_QUEUE[s3Idx]&&S3_QUEUE[s3Idx].id);
+}
+function newSession(){show('s1');}
+function resumeSession(){show('s4');}
+function togglePCheck(el){el.classList.toggle('sel');el.querySelector('.pck-box').textContent=el.classList.contains('sel')?'✓':'';}
+function toggleDim(el){el.classList.toggle('sel');}
+function ck(el){
+  el.classList.toggle('ck');el.querySelector('.achk').textContent=el.classList.contains('ck')?'✓':'';
+  const total=document.querySelectorAll('#s8 .aitem').length;
+  const done=document.querySelectorAll('#s8 .aitem.ck').length;
+  document.getElementById('ck-count').textContent=done+'/'+total+' 已选';
+}
+
+posRingNodes();
+buildPersonaGrid();
+updateChars('lobby');
+setMode('lobby');
+</script>
+</body>
+</html>

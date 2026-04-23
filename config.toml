@@ -1,0 +1,38 @@
+[server]
+host = "0.0.0.0"
+port = 3000
+
+[storage]
+root = "./sessions"
+
+[model]
+default = "deepseek"
+
+[model.providers.ollama]
+type = "ollama"
+base_url = "http://127.0.0.1:11434"
+model = "llama3.2"
+
+[model.providers.openai]
+type = "openai"
+base_url = "https://api.openai.com/v1"
+model = "gpt-4"
+api_key = "${OPENAI_API_KEY}"
+
+[model.providers.deepseek]
+type = "deepseek"
+base_url = "https://api.deepseek.com/v1"
+model = "deepseek-chat"
+api_key = "${DEEPSEEK_API_KEY}"
+
+[model.providers.kimi]
+type = "kimi"
+base_url = "https://api.moonshot.cn/v1"
+model = "moonshot-v1-8k"
+api_key = "${KIMI_API_KEY}"
+
+[model.providers.minimax]
+type = "minimax"
+base_url = "https://api.minimax.chat/v1"
+model = "MiniMax-M2.7"
+api_key = "${MINIMAX_API_KEY}"

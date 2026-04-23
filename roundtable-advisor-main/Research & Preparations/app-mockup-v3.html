@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · Roundtable v3</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #020408; font-family: -apple-system,'PingFang SC',sans-serif; }
+
+:root {
+  --g: #00F3A8; --gdim: rgba(0,243,168,0.08); --gglow: rgba(0,243,168,0.25);
+  --amber: #FFB347; --red: #FF6B6B; --blue: #4A9EFF;
+  --text: #e8e8e8; --muted: #555;
+}
+
+/* ── SCENE ─────────────────────────────────────────────── */
+#scene {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,243,168,0.03) 0%, #020408 70%);
+}
+
+/* subtle grid floor */
+#scene::after {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image: linear-gradient(rgba(0,243,168,0.018) 1px,transparent 1px),
+                    linear-gradient(90deg,rgba(0,243,168,0.018) 1px,transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* ── TABLE AREA ─────────────────────────────────────────── */
+.table-area {
+  position: relative; width: 540px; height: 340px; z-index: 10;
+  /* shift up so dialogue box doesn't cover it */
+  margin-bottom: 100px;
+}
+
+.table-surface {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-42%) rotateX(28deg);
+  width: 340px; height: 190px; border-radius: 50%;
+  background: radial-gradient(ellipse at 45% 40%, #0c1a12 0%, #080d0a 60%, #040808 100%);
+  border: 1px solid rgba(0,243,168,0.14);
+  box-shadow: 0 0 60px rgba(0,243,168,0.06), 0 24px 80px rgba(0,0,0,0.9),
+              inset 0 1px 0 rgba(0,243,168,0.07);
+}
+
+@keyframes tableBreath { 0%,100%{opacity:.7} 50%{opacity:1} }
+.table-ring {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-42%) rotateX(28deg);
+  width: 360px; height: 205px; border-radius: 50%;
+  border: 1px solid rgba(0,243,168,0.06);
+  animation: tableBreath 5s ease-in-out infinite;
+}
+
+.table-topic {
+  position: absolute; top: 36%; left: 50%;
+  transform: translate(-50%,-50%);
+  text-align: center; pointer-events: none; z-index: 15;
+}
+.table-topic-label { font-size: 8px; color: rgba(0,243,168,0.25); letter-spacing:3px; text-transform:uppercase; margin-bottom:4px; }
+.table-topic-text  { font-size: 12px; color: rgba(0,243,168,0.45); font-weight:500; max-width:180px; line-height:1.4; }
+
+/* ── CHARACTERS ─────────────────────────────────────────── */
+.char {
+  position: absolute; display:flex; flex-direction:column;
+  align-items:center; gap:5px; cursor:pointer; z-index:20;
+  transition: transform .3s;
+}
+.char:hover { transform: scale(1.08) !important; }
+
+.char-av {
+  width:52px; height:52px; border-radius:50%;
+  border: 1.5px solid rgba(255,255,255,0.07);
+  background: rgba(8,16,12,0.92);
+  display:flex; align-items:center; justify-content:center;
+  font-size:21px; position:relative;
+  transition: all .35s; backdrop-filter:blur(6px);
+}
+.char-label {
+  font-size:8px; color:rgba(255,255,255,0.2);
+  white-space:nowrap; letter-spacing:.5px; transition:color .3s;
+}
+
+/* states */
+.char.dim    .char-av { opacity:.22; filter:grayscale(.9); }
+.char.active .char-av { border-color:rgba(0,243,168,.35); box-shadow:0 0 14px rgba(0,243,168,.18); }
+.char.active .char-label { color:rgba(0,243,168,.6); }
+
+@keyframes speakPulse {
+  0%,100%{ box-shadow:0 0 20px rgba(0,243,168,.5),0 0 40px rgba(0,243,168,.15); }
+  50%    { box-shadow:0 0 34px rgba(0,243,168,.85),0 0 70px rgba(0,243,168,.3); }
+}
+@keyframes ripple { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(1.7);opacity:0} }
+
+.char.speaking .char-av {
+  border-color: var(--g);
+  animation: speakPulse 1.6s ease-in-out infinite;
+}
+.char.speaking .char-av::after {
+  content:''; position:absolute; inset:-5px; border-radius:50%;
+  border:1px solid rgba(0,243,168,.28);
+  animation: ripple 1.6s ease-out infinite;
+}
+.char.speaking .char-label { color:var(--g); }
+.char.done .char-av { border-color:rgba(0,243,168,.28); opacity:.65; }
+.char.done .char-label { color:rgba(0,243,168,.4); }
+.char.waiting .char-av { opacity:.2; }
+
+/* positions — around the table */
+.char-host { bottom:-28px; left:50%; transform:translateX(-50%); }
+.char-host:hover { transform:translateX(-50%) scale(1.08) !important; }
+.char-jobs { top:8px; left:42px; }
+.char-pg   { top:8px; right:42px; }
+.char-mao  { top:-18px; left:50%; transform:translateX(-50%); }
+.char-mao:hover { transform:translateX(-50%) scale(1.08) !important; }
+
+/* facilitator larger */
+.char-host .char-av { width:60px; height:60px; font-size:24px; border-color:rgba(0,243,168,.22); box-shadow:0 0 18px rgba(0,243,168,.08); }
+.char-host .char-label { font-size:9px; color:rgba(0,243,168,.35); letter-spacing:1px; }
+
+/* debate stance colours */
+.stance-pro { border-color:rgba(0,212,148,.45) !important; box-shadow:0 0 18px rgba(0,212,148,.35) !important; }
+.stance-con { border-color:rgba(255,107,107,.45) !important; box-shadow:0 0 18px rgba(255,107,107,.35) !important; }
+.stance-neu { border-color:rgba(100,100,100,.3) !important; }
+
+/* ── SPEECH BUBBLES (near characters) ──────────────────── */
+.sbubble {
+  position:absolute; z-index:30; pointer-events:none;
+  padding:8px 11px; border-radius:8px;
+  font-size:11px; line-height:1.55; color:rgba(255,255,255,.7);
+  max-width:175px;
+  animation: bIn .35s ease-out;
+}
+@keyframes bIn { from{opacity:0;transform:translateY(5px)scale(.96)} to{opacity:1;transform:none} }
+.sbubble-name { font-size:8px; font-weight:700; opacity:.65; margin-bottom:3px; letter-spacing:.5px; }
+
+.sb-host { background:rgba(0,243,168,.05); border:1px solid rgba(0,243,168,.2); bottom:82px; left:50%; transform:translateX(-50%); text-align:center; }
+.sb-jobs { background:rgba(74,158,255,.05); border:1px solid rgba(74,158,255,.2); top:68px; left:-10px; }
+.sb-pg   { background:rgba(255,179,71,.05); border:1px solid rgba(255,179,71,.2); top:68px; right:-10px; text-align:right; }
+.sb-mao  { background:rgba(255,107,107,.05); border:1px solid rgba(255,107,107,.2); top:-90px; left:50%; transform:translateX(-50%); text-align:center; }
+
+/* ── NAV (hover-reveal) ─────────────────────────────────── */
+#nav-zone { position:fixed; top:0; left:0; right:0; height:10px; z-index:90; }
+#nav {
+  position:fixed; top:0; left:0; right:0; height:42px;
+  background:rgba(2,4,8,.93); backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(0,243,168,.07);
+  display:flex; align-items:center; padding:0 16px; gap:6px;
+  z-index:100; opacity:0; transform:translateY(-100%);
+  transition: opacity .25s, transform .25s;
+  pointer-events:none;
+}
+#nav-zone:hover ~ #nav,
+#nav:hover { opacity:1 !important; transform:translateY(0) !important; pointer-events:all !important; }
+
+.nbrand { color:var(--g); font-weight:700; font-size:14px; margin-right:10px; }
+.nbtn {
+  padding:3px 9px; background:transparent;
+  border:1px solid rgba(255,255,255,.07);
+  color:rgba(255,255,255,.28); font-size:10px; border-radius:4px;
+  cursor:pointer; transition:all .15s; font-family:inherit;
+}
+.nbtn:hover { border-color:var(--gglow); color:var(--text); }
+.nbtn.on { background:var(--gdim); border-color:rgba(0,243,168,.35); color:var(--g); }
+.nav-info { margin-left:auto; font-size:10px; color:var(--muted); }
+
+/* ── DIALOGUE BOX (bottom overlay, RPG style) ─────────── */
+#dlg {
+  position:fixed; bottom:0; left:0; right:0; z-index:50;
+}
+.dbox {
+  background:rgba(3,6,10,.93); backdrop-filter:blur(18px);
+  border-top:1px solid rgba(0,243,168,.1);
+  padding:14px 22px; max-height:46vh; overflow-y:auto;
+  display:none;
+}
+.dbox::-webkit-scrollbar { width:2px; }
+.dbox::-webkit-scrollbar-thumb { background:rgba(0,243,168,.18); }
+
+/* progress strip inside dialogue */
+.pstrip {
+  display:flex; align-items:center; gap:4px;
+  margin-bottom:12px; padding-bottom:11px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.pnode {
+  display:flex; align-items:center; gap:3px;
+  font-size:8.5px; color:rgba(255,255,255,.18);
+  cursor:pointer; white-space:nowrap;
+  transition:color .2s;
+}
+.pnode.done { color:rgba(0,243,168,.5); }
+.pnode.now  { color:var(--text); }
+.pdot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.1); }
+.pnode.done .pdot { background:var(--g); }
+.pnode.now  .pdot { background:var(--text); box-shadow:0 0 5px rgba(255,255,255,.4); }
+.pline { flex:1; height:1px; background:rgba(255,255,255,.05); min-width:8px; }
+
+/* step header */
+.sh { display:flex; align-items:center; gap:9px; margin-bottom:12px; }
+.snum {
+  width:20px; height:20px; border-radius:50%;
+  background:var(--gdim); border:1px solid rgba(0,243,168,.28);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:var(--g); flex-shrink:0;
+}
+.stitle { font-size:13px; font-weight:600; color:var(--text); }
+.ssub   { font-size:10px; color:var(--muted); margin-top:1px; }
+
+/* inputs */
+.ginput {
+  width:100%; background:rgba(0,243,168,.03);
+  border:1px solid rgba(0,243,168,.12); border-radius:8px;
+  padding:11px 13px; color:var(--text); font-size:12.5px;
+  line-height:1.6; resize:none; outline:none; font-family:inherit;
+  transition:border-color .2s;
+}
+.ginput:focus { border-color:rgba(0,243,168,.3); }
+
+/* actions row */
+.dact { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; }
+
+/* buttons */
+.btn { padding:7px 15px; border-radius:5px; border:none; cursor:pointer; font-size:12px; font-weight:500; transition:all .15s; font-family:inherit; }
+.btn-g  { background:var(--g); color:#000; }
+.btn-g:hover { background:#00d494; }
+.btn-o  { background:transparent; border:1px solid rgba(0,243,168,.25); color:var(--g); }
+.btn-o:hover { background:rgba(0,243,168,.06); }
+.btn-gh { background:transparent; border:1px solid rgba(255,255,255,.1); color:var(--muted); }
+.btn-gh:hover { border-color:rgba(0,243,168,.25); color:var(--text); }
+
+.mic { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; flex-shrink:0; }
+.mic:hover { border-color:rgba(0,243,168,.28); }
+
+/* chat (step 2) */
+.cmsg { display:flex; gap:8px; margin-bottom:10px; align-items:flex-start; }
+.cmsg.u { flex-direction:row-reverse; }
+.cbubble { padding:8px 11px; border-radius:8px; font-size:12px; line-height:1.55; max-width:76%; }
+.cbubble.f { background:rgba(0,243,168,.05); border:1px solid rgba(0,243,168,.13); color:rgba(255,255,255,.68); }
+.cbubble.u { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); color:rgba(255,255,255,.68); }
+.cav { width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.09); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; background:rgba(8,16,12,.85); }
+
+.sugbox { background:rgba(0,243,168,.04); border:1px solid rgba(0,243,168,.18); border-radius:8px; padding:11px 13px; margin:10px 0; }
+.sugtitle { font-size:8px; color:var(--g); letter-spacing:2px; margin-bottom:7px; }
+.sugitem  { font-size:12px; color:rgba(255,255,255,.65); margin-bottom:5px; }
+
+/* step 3 question cards */
+.qcard { padding:9px 11px; border:1px solid rgba(0,243,168,.18); border-radius:7px; cursor:pointer; transition:border-color .15s; }
+.qcard:hover { border-color:rgba(0,243,168,.4); }
+.qcard-head { display:flex; gap:7px; align-items:center; margin-bottom:6px; }
+.qcard-name { font-size:11px; font-weight:600; color:rgba(0,243,168,.8); }
+.qcard-body { font-size:11px; color:rgba(255,255,255,.48); line-height:1.5; }
+.qcard.muted { border-color:rgba(255,255,255,.05); opacity:.4; }
+.qcard.muted .qcard-name { color:var(--muted); }
+
+/* step 4 opinion cards */
+.ocard { flex:1; padding:9px 11px; border:1px solid rgba(255,255,255,.06); border-radius:7px; }
+.ocard-name { font-size:8.5px; margin-bottom:5px; letter-spacing:.8px; opacity:.6; }
+.ocard-text { font-size:11px; color:rgba(255,255,255,.55); line-height:1.55; }
+
+/* streaming cursor */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cur::after { content:'▋'; animation:blink .85s infinite; color:var(--g); }
+
+/* dimensions (step 5) */
+.dimcard { display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid rgba(255,255,255,.06); border-radius:7px; margin-bottom:7px; cursor:pointer; transition:border-color .15s; }
+.dimcard:hover { border-color:rgba(0,243,168,.25); }
+.dimcard.sel { border-color:rgba(0,243,168,.4); background:rgba(0,243,168,.04); }
+.dimicon { width:20px; height:20px; border-radius:4px; background:rgba(0,243,168,.08); display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; margin-top:2px; }
+.dimcard.sel .dimicon { background:rgba(0,243,168,.18); }
+.dimlabel { font-size:10.5px; font-weight:600; color:rgba(0,243,168,.7); margin-bottom:2px; }
+.dimtext  { font-size:11px; color:rgba(255,255,255,.45); line-height:1.5; }
+
+/* debate msgs */
+.dbmsg { padding:9px 11px; border-radius:7px; margin-bottom:8px; }
+.dbmsg-name { font-size:8.5px; margin-bottom:4px; opacity:.55; letter-spacing:.5px; }
+.dbmsg-text { font-size:11px; color:rgba(255,255,255,.65); line-height:1.55; }
+.dbmsg.h  { background:rgba(0,243,168,.04);  border:1px solid rgba(0,243,168,.12); }
+.dbmsg.j  { background:rgba(74,158,255,.03); border:1px solid rgba(74,158,255,.14); }
+.dbmsg.pg { background:rgba(255,179,71,.03); border:1px solid rgba(255,179,71,.1); opacity:.5; }
+
+/* summary */
+.sumcard { padding:10px 12px; border-left:2px solid rgba(0,243,168,.3); background:rgba(0,243,168,.03); border-radius:0 6px 6px 0; margin-bottom:8px; }
+.sumcard.c { border-left-color:rgba(255,107,107,.4); background:rgba(255,107,107,.03); }
+.sumtitle { font-size:11px; font-weight:600; color:rgba(255,255,255,.75); margin-bottom:4px; }
+.sumbody  { font-size:11px; color:rgba(255,255,255,.38); line-height:1.5; }
+
+/* action items */
+.aitem { display:flex; gap:10px; align-items:flex-start; padding:9px 12px; border:1px solid rgba(255,255,255,.06); border-radius:7px; margin-bottom:7px; cursor:pointer; transition:all .15s; }
+.aitem:hover { border-color:rgba(0,243,168,.28); }
+.aitem.ck { border-color:rgba(0,243,168,.45); background:rgba(0,243,168,.04); }
+.achk { width:16px; height:16px; border-radius:4px; border:1px solid rgba(255,255,255,.14); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:9px; transition:all .15s; }
+.aitem.ck .achk { background:var(--g); border-color:var(--g); color:#000; }
+.atext { font-size:12px; color:rgba(255,255,255,.58); line-height:1.5; }
+.ameta { font-size:9.5px; color:var(--muted); margin-top:2px; }
+
+/* grid */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* ── PROFILE PANEL ─────────────────────────────────────── */
+#pp {
+  position:fixed; right:0; top:0; bottom:0; width:272px;
+  background:rgba(3,6,10,.97); backdrop-filter:blur(20px);
+  border-left:1px solid rgba(0,243,168,.09);
+  z-index:80; transform:translateX(100%);
+  transition:transform .3s ease; overflow-y:auto; padding:16px;
+}
+#pp.open { transform:translateX(0); }
+.ppclose { position:absolute; top:10px; right:10px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; color:var(--muted); }
+.ppclose:hover { color:var(--text); }
+.ppav { width:60px; height:60px; border-radius:50%; border:2px solid rgba(0,243,168,.28); display:flex; align-items:center; justify-content:center; font-size:26px; margin:28px auto 10px; background:rgba(0,243,168,.04); box-shadow:0 0 20px rgba(0,243,168,.1); }
+.ppname { text-align:center; font-size:15px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.pprole { text-align:center; font-size:10px; color:var(--g); opacity:.6; margin-bottom:14px; letter-spacing:1px; }
+.ppsec-t { font-size:8px; color:rgba(0,243,168,.38); text-transform:uppercase; letter-spacing:2px; margin-bottom:5px; margin-top:12px; }
+.pptxt  { font-size:11px; color:rgba(255,255,255,.48); line-height:1.6; }
+.ppquote { border-left:2px solid rgba(0,243,168,.25); padding-left:9px; font-size:11px; color:rgba(255,255,255,.38); line-height:1.6; font-style:italic; margin:6px 0; }
+.ppsaid { padding:8px 10px; background:rgba(0,243,168,.03); border:1px solid rgba(0,243,168,.08); border-radius:6px; font-size:11px; color:rgba(255,255,255,.48); line-height:1.5; margin-bottom:6px; }
+.pptag { display:inline-block; padding:3px 9px; background:rgba(0,243,168,.06); border:1px solid rgba(0,243,168,.14); border-radius:20px; font-size:10px; color:rgba(0,243,168,.7); cursor:pointer; margin:3px 3px 3px 0; }
+.pptag:hover { background:rgba(0,243,168,.1); }
+
+/* ── HOME SCREEN ────────────────────────────────────────── */
+#home {
+  position:fixed; inset:0; background:rgba(2,4,8,.97);
+  z-index:200; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+.htitle { font-size:34px; font-weight:700; color:var(--g); letter-spacing:2px; margin-bottom:6px; }
+.hsub   { font-size:12px; color:var(--muted); margin-bottom:30px; }
+.hcards { display:flex; gap:10px; margin-bottom:22px; }
+.hcard {
+  width:192px; background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px; padding:14px; cursor:pointer; transition:all .2s;
+}
+.hcard:hover { border-color:rgba(0,243,168,.28); background:rgba(0,243,168,.03); }
+.hcard.new { border-style:dashed; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.2); font-size:13px; }
+.hctitle { font-size:13px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.hcmeta  { font-size:9.5px; color:var(--muted); }
+.hcbar   { height:2px; background:rgba(255,255,255,.05); border-radius:1px; margin-top:10px; }
+.hcfill  { height:100%; background:var(--g); border-radius:1px; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <div style="font-size:28px;margin-bottom:14px">🪑</div>
+  <div class="htitle">参谋</div>
+  <div class="hsub">召唤你的智囊团，照亮你的盲区</div>
+  <div class="hcards">
+    <div class="hcard" onclick="enterSession()">
+      <div class="hctitle">要不要全职创业？</div>
+      <div class="hcmeta">Session 3 · 2026-04-09 · 进行中</div>
+      <div class="hcbar"><div class="hcfill" style="width:48%"></div></div>
+    </div>
+    <div class="hcard">
+      <div class="hctitle">和张总的合作深入吗？</div>
+      <div class="hcmeta">Session 1 · 2026-03-28 · 已完成</div>
+      <div class="hcbar"><div class="hcfill" style="width:88%;background:#333"></div></div>
+    </div>
+    <div class="hcard new" onclick="enterSession()">+ 新建讨论</div>
+  </div>
+  <button class="btn btn-g" style="padding:10px 28px;font-size:13px" onclick="enterSession()">进入圆桌 →</button>
+</div>
+
+<!-- SCENE (always present) -->
+<div id="scene">
+  <div class="table-area" id="ta">
+    <div class="table-ring"></div>
+    <div class="table-surface"></div>
+    <div class="table-topic">
+      <div class="table-topic-label">议题</div>
+      <div class="table-topic-text">要不要全职创业？</div>
+    </div>
+
+    <!-- FACILITATOR -->
+    <div class="char char-host dim" id="ch-host" onclick="showP('host')">
+      <div class="char-av">🎙️</div>
+      <div class="char-label">主持人</div>
+    </div>
+    <!-- JOBS -->
+    <div class="char char-jobs dim" id="ch-jobs" onclick="showP('jobs')">
+      <div class="char-av">💼</div>
+      <div class="char-label">乔布斯</div>
+    </div>
+    <!-- PG -->
+    <div class="char char-pg dim" id="ch-pg" onclick="showP('pg')">
+      <div class="char-av">🧪</div>
+      <div class="char-label">Paul Graham</div>
+    </div>
+    <!-- MAO -->
+    <div class="char char-mao dim" id="ch-mao" onclick="showP('mao')">
+      <div class="char-av">⚔️</div>
+      <div class="char-label">毛泽东</div>
+    </div>
+    <!-- speech bubbles injected here by JS -->
+  </div>
+</div>
+
+<!-- NAV hover-reveal -->
+<div id="nav-zone"></div>
+<div id="nav">
+  <span class="nbrand">参谋</span>
+  <button class="nbtn" onclick="show('s1')">1 输入</button>
+  <button class="nbtn" onclick="show('s2')">2 定义</button>
+  <button class="nbtn" onclick="show('s3')">3 挖事实</button>
+  <button class="nbtn" onclick="show('s4')">4 发言</button>
+  <button class="nbtn" onclick="show('s5')">5 拆维度</button>
+  <button class="nbtn" onclick="show('s6')">6 辩论</button>
+  <button class="nbtn" onclick="show('s7')">7 汇总</button>
+  <button class="nbtn" onclick="show('s8')">8 摘果子</button>
+  <span class="nav-info" id="nav-info">Step 4 · 48%</span>
+</div>
+
+<!-- DIALOGUE BOX -->
+<div id="dlg">
+
+<!-- S1 -->
+<div class="dbox" id="s1">
+  <div class="pstrip" id="ps1"></div>
+  <div class="sh"><div class="snum">1</div><div><div class="stitle">你现在最想解决的是什么？</div><div class="ssub">不用完美，不用逻辑清晰。直接说，越真实越好。</div></div></div>
+  <textarea class="ginput" rows="5">我在现在的公司做了3年了，手上有一个想做的产品方向，最近有朋友愿意一起创业。但我不知道现在时机对不对——市场竞争很激烈，而且我家里刚买了房，经济压力不小。我老婆支持但也担心。我自己内心是想做的，但我怕自己只是在逃避公司里的一些问题，而不是真正想创业。</textarea>
+  <div class="dact">
+    <div class="mic">🎙️</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:10px;color:var(--muted)">238字</span>
+      <button class="btn btn-g" onclick="show('s2')">提交，开始定义 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="dbox" id="s2">
+  <div class="pstrip" id="ps2"></div>
+  <div class="sh"><div class="snum">2</div><div><div class="stitle">主持人帮你定义问题</div><div class="ssub">问题越清晰，幕僚越能击中要害</div></div></div>
+  <div class="cmsg">
+    <div class="cav">🎙️</div>
+    <div class="cbubble f">你提到"怕自己只是在逃避公司里的问题"——如果把公司问题全部解决了，你还会想创业吗？</div>
+  </div>
+  <div class="cmsg u">
+    <div class="cav" style="background:rgba(0,243,168,.06);border-color:rgba(0,243,168,.2)">M</div>
+    <div class="cbubble u">想了一下——即使公司一切都好，我依然想做自己的产品。但创业的紧迫感确实被公司环境催化出来了。</div>
+  </div>
+  <div class="cmsg">
+    <div class="cav">🎙️</div>
+    <div class="cbubble f">你说"时机"——你担心的是市场时机，还是个人准备程度？还是两者都有？</div>
+  </div>
+  <div class="cmsg u">
+    <div class="cav" style="background:rgba(0,243,168,.06);border-color:rgba(0,243,168,.2)">M</div>
+    <div class="cbubble u">主要是个人准备程度。市场我觉得OK，但我不确定自己能扛住压力，尤其是有家庭了。</div>
+  </div>
+  <div class="sugbox">
+    <div class="sugtitle">✦ 建议锁定三个核心问题</div>
+    <div class="sugitem">① 个人准备程度是否足够？风险如何评估？</div>
+    <div class="sugitem">② 创业动机是真实渴望还是对现状的逃避？</div>
+    <div class="sugitem">③ 如何在家庭经济压力和个人追求之间找到平衡？</div>
+  </div>
+  <div class="dact">
+    <div style="display:flex;gap:7px;align-items:center">
+      <div class="mic">🎙️</div>
+      <input class="ginput" style="height:34px;padding:6px 11px;flex:1;min-width:180px" placeholder="再问一个 / 修改措辞...">
+    </div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-gh">再追一问</button>
+      <button class="btn btn-g" onclick="show('s3')">锁定，挖事实 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="dbox" id="s3">
+  <div class="pstrip" id="ps3"></div>
+  <div class="sh"><div class="snum">3</div><div><div class="stitle">幕僚在问你</div><div class="ssub">点击角色可查看完整问题 · 统一回答即可</div></div></div>
+  <div class="g2" style="margin-bottom:11px">
+    <div class="qcard" onclick="showP('jobs')">
+      <div class="qcard-head"><span style="font-size:18px">💼</span><span class="qcard-name">乔布斯</span></div>
+      <div class="qcard-body">你最害怕放弃的是什么——是那个 idea 本身，还是"我是创业者"这个自我认同？</div>
+    </div>
+    <div class="qcard" onclick="showP('pg')">
+      <div class="qcard-head"><span style="font-size:18px">🧪</span><span class="qcard-name">Paul Graham</span></div>
+      <div class="qcard-body">你有没有找过10个真正可能付费的潜在用户谈过？他们说了什么？</div>
+    </div>
+    <div class="qcard" onclick="showP('mao')">
+      <div class="qcard-head"><span style="font-size:18px">⚔️</span><span class="qcard-name">毛泽东</span></div>
+      <div class="qcard-body">你的合伙人，能力和你是互补还是重叠？在困难时期他有没有扛过事？</div>
+    </div>
+    <div class="qcard muted" onclick="showP('host')">
+      <div class="qcard-head"><span style="font-size:18px">🎙️</span><span class="qcard-name" style="color:var(--muted)">主持人</span></div>
+      <div class="qcard-body" style="color:var(--muted)">前面的对话已经足够。此刻沉默。</div>
+    </div>
+  </div>
+  <textarea class="ginput" rows="3" placeholder="统一回答所有问题..."></textarea>
+  <div class="dact">
+    <div class="mic">🎙️</div>
+    <button class="btn btn-g" onclick="show('s4')">提交，开始并行发言 →</button>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="dbox" id="s4">
+  <div class="pstrip" id="ps4"></div>
+  <div class="sh"><div class="snum">4</div><div><div class="stitle">幕僚独立发言中</div><div class="ssub">点击幕僚查看完整发言 · 气泡实时更新</div></div></div>
+  <div style="display:flex;gap:8px">
+    <div class="ocard" onclick="showP('jobs')">
+      <div class="ocard-name" style="color:rgba(74,158,255,.6)">💼 乔布斯</div>
+      <div class="ocard-text cur">你的问题不是时机，是勇气。你在用"市场分析"来逃避一个内心已经作出的决定</div>
+    </div>
+    <div class="ocard" style="opacity:.45">
+      <div class="ocard-name" style="color:rgba(255,179,71,.5)">🧪 Paul Graham</div>
+      <div class="ocard-text" style="color:rgba(255,255,255,.25)">等待乔布斯发言完成...</div>
+    </div>
+    <div class="ocard" style="opacity:.3">
+      <div class="ocard-name" style="color:rgba(255,107,107,.4)">⚔️ 毛泽东</div>
+      <div class="ocard-text" style="color:rgba(255,255,255,.2)">等待...</div>
+    </div>
+  </div>
+  <div class="dact">
+    <span style="font-size:10px;color:var(--muted)">1/3 完成发言</span>
+    <button class="btn btn-g" onclick="show('s5')">全部完成，拆维度 →</button>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="dbox" id="s5">
+  <div class="pstrip" id="ps5"></div>
+  <div class="sh"><div class="snum">5</div><div><div class="stitle">主持人提炼核心冲突</div><div class="ssub">选择最想深入辩论的维度</div></div></div>
+  <div class="dimcard" onclick="toggleDim(this)">
+    <div class="dimicon">⚡</div>
+    <div><div class="dimlabel">勇气 vs 理性</div><div class="dimtext">乔布斯认为内心已有答案，只差行动。PG认为需要先验证市场。</div></div>
+  </div>
+  <div class="dimcard sel" onclick="toggleDim(this)">
+    <div class="dimicon" style="background:rgba(0,243,168,.18)">✓</div>
+    <div><div class="dimlabel">时机 vs 准备度 ← 已选</div><div class="dimtext">毛泽东侧重"主观能动性"，PG侧重"外部验证"。你说担心个人准备，值得深挖。</div></div>
+  </div>
+  <div class="dimcard" onclick="toggleDim(this)">
+    <div class="dimicon">🏠</div>
+    <div><div class="dimlabel">家庭 vs 梦想</div><div class="dimtext">三位幕僚对"家庭压力是否是真实障碍"有不同看法。</div></div>
+  </div>
+  <div class="dact">
+    <span style="font-size:10px;color:var(--muted)">已选1个维度</span>
+    <button class="btn btn-g" onclick="show('s6')">进入辩论 →</button>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="dbox" id="s6">
+  <div class="pstrip" id="ps6"></div>
+  <div class="sh"><div class="snum">6</div><div><div class="stitle">辩论：时机 vs 准备度</div><div class="ssub">点击幕僚可追问 · 气泡贴近说话人</div></div></div>
+  <div class="dbmsg h">
+    <div class="dbmsg-name">🎙️ 主持人</div>
+    <div class="dbmsg-text">辩题：现在就行动，还是再准备6个月？乔布斯请先发言。</div>
+  </div>
+  <div class="dbmsg j">
+    <div class="dbmsg-name" style="color:rgba(74,158,255,.6)">💼 乔布斯 · 立场：现在就行动</div>
+    <div class="dbmsg-text cur">再等6个月，只会让你的恐惧变得更合理化。你永远不会"准备好"。那些说要准备好再出发的人，最终都死在了准备里。</div>
+  </div>
+  <div class="dbmsg pg">
+    <div class="dbmsg-name" style="color:rgba(255,179,71,.45)">🧪 Paul Graham · 等待反驳</div>
+  </div>
+  <div class="dact">
+    <div style="display:flex;gap:7px;align-items:center">
+      <div class="mic">🎙️</div>
+      <input class="ginput" style="height:34px;padding:6px 11px;width:200px" placeholder="插话 / 追问乔布斯...">
+    </div>
+    <button class="btn btn-g" onclick="show('s7')">结束辩论，汇总 →</button>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="dbox" id="s7">
+  <div class="pstrip" id="ps7"></div>
+  <div class="sh"><div class="snum">7</div><div><div class="stitle">汇总洞察</div><div class="ssub">主持人提炼全场最重要的发现</div></div></div>
+  <div class="sumcard">
+    <div class="sumtitle">核心共识 · 动机是真实的</div>
+    <div class="sumbody">三位幕僚一致认为，你的创业渴望是真实的，不是逃避。乔布斯和毛泽东甚至认为这种渴望被压抑太久了。</div>
+  </div>
+  <div class="sumcard c">
+    <div class="sumtitle">最大分歧 · 时机判断</div>
+    <div class="sumbody">乔布斯：现在就是最佳时机。PG：再做3个月产品验证。毛泽东：找到核心矛盾再动。这个分歧你需要自己决定。</div>
+  </div>
+  <div class="sumcard">
+    <div class="sumtitle">隐藏变量 · 合伙人</div>
+    <div class="sumbody">你对合伙人的描述太少。这可能是最大的未解风险。</div>
+  </div>
+  <div class="dact">
+    <button class="btn btn-gh">重新辩一轮</button>
+    <button class="btn btn-g" onclick="show('s8')">摘果子 →</button>
+  </div>
+</div>
+
+<!-- S8 -->
+<div class="dbox" id="s8">
+  <div class="pstrip" id="ps8"></div>
+  <div class="sh"><div class="snum">8</div><div><div class="stitle">你要带走什么？</div><div class="ssub">点击选中，存入行动清单</div></div></div>
+  <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="atext">本周找合伙人做一次深度对话：能力互补性 + 压力测试</div><div class="ameta">来自毛泽东 · 高优先级</div></div></div>
+  <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="atext">列出5个最可能的首批付费客户，下周联系3个</div><div class="ameta">来自 Paul Graham · 市场验证</div></div></div>
+  <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="atext">和老婆做一次"最坏情况"推演：6个月后失败，你们怎么办？</div><div class="ameta">来自乔布斯 · 消除恐惧</div></div></div>
+  <div class="aitem" onclick="ck(this)"><div class="achk"></div><div><div class="atext">给自己一个决策截止日期：2026-05-01前做决定</div><div class="ameta">来自主持人 · 防止拖延</div></div></div>
+  <div class="dact">
+    <span style="font-size:10px;color:var(--muted)" id="ck-count">0/4 已选</span>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-gh">导出报告</button>
+      <button class="btn btn-g">完成本轮 ✓</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /dlg -->
+
+<!-- PROFILE PANEL -->
+<div id="pp">
+  <div class="ppclose" onclick="closeP()">×</div>
+  <div class="ppav" id="pp-av">💼</div>
+  <div class="ppname" id="pp-name">乔布斯</div>
+  <div class="pprole" id="pp-role">战略直觉 · 产品哲学</div>
+  <div class="ppsec-t">身份背景</div>
+  <div class="pptxt" id="pp-bg"></div>
+  <div class="ppsec-t">核心信念</div>
+  <div class="ppquote" id="pp-quote"></div>
+  <div class="ppsec-t">本场已说</div>
+  <div class="ppsaid" id="pp-said"></div>
+  <div class="ppsec-t">你可以问他</div>
+  <div id="pp-tags"></div>
+</div>
+
+<script>
+const STEPS = [
+  {id:'s1',label:'输入'},   {id:'s2',label:'定义'},
+  {id:'s3',label:'挖事实'}, {id:'s4',label:'发言'},
+  {id:'s5',label:'拆维度'}, {id:'s6',label:'辩论'},
+  {id:'s7',label:'汇总'},   {id:'s8',label:'摘果子'},
+];
+const PCTS = {s1:12,s2:24,s3:36,s4:48,s5:60,s6:72,s7:86,s8:100};
+
+const PROFILES = {
+  host:{av:'🎙️',name:'主持人',role:'流程引导 · 结构提炼',
+    bg:'参谋系统的核心协调者。不表达观点，只提炼结构。帮你把混乱的情绪变成可辩论的问题，把冲突变成洞察。',
+    quote:'"一个好的问题，胜过一百个答案。"',
+    said:'如果把公司问题全部解决了，你还会想创业吗？',
+    tags:['你是怎么看这个决定的？','后面还有什么我要注意？']},
+  jobs:{av:'💼',name:'乔布斯',role:'战略直觉 · 产品哲学',
+    bg:'苹果、Pixar、NeXT创始人。改变了个人电脑、音乐、手机、平板电脑和零售行业。以极致产品直觉和残酷标准著称。',
+    quote:'"活着就是为了改变世界，难道还有其他原因吗？"',
+    said:'你的问题不是时机，是勇气。你在用"市场分析"来逃避一个内心已经作出的决定。',
+    tags:['如果是你会怎么做？','你最担心哪个风险？','你会给我老婆说什么？']},
+  pg:{av:'🧪',name:'Paul Graham',role:'YC创始人 · 早期验证',
+    bg:'Y Combinator联合创始人，投资了Airbnb、Dropbox、Stripe等。核心方法论：做真正有人想要的东西，从小处开始验证。',
+    quote:'"Make something people want. 其他都是次要的。"',
+    said:'你有没有找过10个真正可能付费的潜在用户谈过？这是你现在最应该做的事。',
+    tags:['最小验证是什么？','我的想法有人想要吗？','怎么快速测试？']},
+  mao:{av:'⚔️',name:'毛泽东',role:'战略谋断 · 主观能动',
+    bg:'中国革命战略家。以"实事求是"和"矛盾论"著称。擅长在极端逆境中找到核心矛盾，集中力量突破。',
+    quote:'"集中优势兵力，各个歼灭敌人。"',
+    said:'你的合伙人才是关键变量。天时地利，不如人和。先搞清楚这个人行不行。',
+    tags:['核心矛盾是什么？','敌人是谁？','最薄弱的环节在哪？']},
+};
+
+const BUBBLES = {
+  s1:[],
+  s2:[{cls:'sb-host',name:'🎙️ 主持人',text:'如果把公司问题全部解决了，你还会想创业吗？'}],
+  s3:[
+    {cls:'sb-jobs',name:'💼 乔布斯',text:'你最害怕放弃的是什么——idea本身，还是"我是创业者"这个认同？'},
+    {cls:'sb-pg',  name:'🧪 PG',    text:'找到10个可能付费的用户了吗？'},
+  ],
+  s4:[{cls:'sb-jobs',name:'💼 乔布斯',text:'你的问题不是时机，是勇气。你在用分析来逃避内心已作出的决定'}],
+  s5:[{cls:'sb-host',name:'🎙️ 主持人',text:'三个核心冲突维度已提炼，请选择'}],
+  s6:[
+    {cls:'sb-jobs',name:'💼 正方：乔布斯',text:'再等6个月，只会让恐惧更合理化。没有人会"准备好"的那天。'},
+    {cls:'sb-mao', name:'⚔️ 反方：毛泽东',text:'打无准备之仗，等于以卵击石。先摸清主要矛盾。'},
+  ],
+  s7:[{cls:'sb-host',name:'🎙️ 主持人',text:'三位共识：动机真实。最大分歧：合伙人未明。'}],
+  s8:[],
+};
+
+const STATES = {
+  s1:{host:'dim',jobs:'dim',pg:'dim',mao:'dim'},
+  s2:{host:'speaking',jobs:'active',pg:'active',mao:'active'},
+  s3:{host:'active',jobs:'active',pg:'active',mao:'active'},
+  s4:{host:'active',jobs:'speaking',pg:'waiting',mao:'waiting'},
+  s5:{host:'speaking',jobs:'done',pg:'done',mao:'done'},
+  s6:{host:'active',jobs:'speaking',pg:'active',mao:'active'},
+  s7:{host:'speaking',jobs:'done',pg:'done',mao:'done'},
+  s8:{host:'done',jobs:'done',pg:'done',mao:'done'},
+};
+
+const DEBATE_STANCE = {
+  s6:{jobs:'stance-pro',pg:'stance-neu',mao:'stance-con'}
+};
+
+let current = 's4';
+
+function buildStrip(id, stepId) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const idx = STEPS.findIndex(s=>s.id===stepId);
+  el.innerHTML = STEPS.map((s,i)=>{
+    const cls = i<idx?'pnode done':i===idx?'pnode now':'pnode';
+    return `<span class="${cls}" onclick="show('${s.id}')">${
+      '<div class="pdot"></div>'}${s.label}</span>${i<STEPS.length-1?'<div class="pline"></div>':''}`;
+  }).join('');
+}
+
+function updateChars(stepId) {
+  const st = STATES[stepId] || {};
+  ['host','jobs','pg','mao'].forEach(c=>{
+    const el = document.getElementById('ch-'+c);
+    const base = el.className.replace(/\b(dim|active|speaking|done|waiting)\b/g,'').trim();
+    el.className = base + ' ' + (st[c]||'dim');
+    // clear stance
+    el.querySelector('.char-av').classList.remove('stance-pro','stance-con','stance-neu');
+  });
+  // apply stance
+  if (DEBATE_STANCE[stepId]) {
+    Object.entries(DEBATE_STANCE[stepId]).forEach(([c,cls])=>{
+      const av = document.querySelector('#ch-'+c+' .char-av');
+      if(av) av.classList.add(cls);
+    });
+  }
+}
+
+function updateBubbles(stepId) {
+  document.querySelectorAll('.dyn-bubble').forEach(b=>b.remove());
+  const ta = document.getElementById('ta');
+  (BUBBLES[stepId]||[]).forEach(b=>{
+    const d = document.createElement('div');
+    d.className = 'sbubble '+b.cls+' dyn-bubble';
+    d.innerHTML = `<div class="sbubble-name">${b.name}</div>${b.text}`;
+    ta.appendChild(d);
+  });
+}
+
+function show(stepId) {
+  STEPS.forEach(s=>{
+    const el=document.getElementById(s.id);
+    if(el) el.style.display='none';
+  });
+  const el=document.getElementById(stepId);
+  if(!el) return;
+  el.style.display='block';
+  current=stepId;
+  // progress strips
+  STEPS.forEach((_,i)=>{
+    buildStrip('ps'+(i+1),stepId);
+  });
+  // nav buttons
+  document.querySelectorAll('.nbtn').forEach((b,i)=>{
+    b.classList.toggle('on',STEPS[i].id===stepId);
+  });
+  document.getElementById('nav-info').textContent = 'Step '+(STEPS.findIndex(s=>s.id===stepId)+1)+' · '+PCTS[stepId]+'%';
+  updateChars(stepId);
+  updateBubbles(stepId);
+}
+
+function showP(id) {
+  const p=PROFILES[id]; if(!p) return;
+  document.getElementById('pp-av').textContent=p.av;
+  document.getElementById('pp-name').textContent=p.name;
+  document.getElementById('pp-role').textContent=p.role;
+  document.getElementById('pp-bg').textContent=p.bg;
+  document.getElementById('pp-quote').textContent=p.quote;
+  document.getElementById('pp-said').textContent=p.said;
+  document.getElementById('pp-tags').innerHTML=p.tags.map(t=>`<span class="pptag">${t}</span>`).join('');
+  document.getElementById('pp').classList.add('open');
+}
+function closeP(){ document.getElementById('pp').classList.remove('open'); }
+
+function toggleDim(el){ el.classList.toggle('sel'); }
+
+function ck(el){
+  el.classList.toggle('ck');
+  const chk=el.querySelector('.achk');
+  chk.textContent=el.classList.contains('ck')?'✓':'';
+  const total=document.querySelectorAll('#s8 .aitem').length;
+  const done=document.querySelectorAll('#s8 .aitem.ck').length;
+  document.getElementById('ck-count').textContent=done+'/'+total+' 已选';
+}
+
+function enterSession(){
+  document.getElementById('home').style.display='none';
+  show('s4');
+}
+
+// init
+show('s4');
+</script>
+</body>
+</html>

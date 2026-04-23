@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · 三种布局方案</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; font-family:'PingFang SC','Noto Sans SC',sans-serif; color:#fff; overflow:hidden; height:100vh; }
+
+/* ── TABS ── */
+.tabs {
+  position:fixed; top:0; left:0; right:0; z-index:999;
+  display:flex; background:#000; border-bottom:1px solid #222;
+  padding:0 20px;
+}
+.tab {
+  padding:12px 24px; cursor:pointer; font-size:13px; color:#555;
+  border-bottom:2px solid transparent; transition:all .2s; white-space:nowrap;
+}
+.tab.active { color:#00F3A8; border-bottom-color:#00F3A8; }
+.tab:hover { color:#aaa; }
+.tab-label { font-size:10px; display:block; color:#333; margin-top:2px; }
+.tab.active .tab-label { color:#00F3A875; }
+
+/* ── SCREENS ── */
+.screen { display:none; position:fixed; top:41px; left:0; right:0; bottom:0; }
+.screen.active { display:block; }
+
+/* ══════════════════════════════════
+   方案A — 星环 (Ring)
+   ══════════════════════════════════ */
+#screenA {
+  background:radial-gradient(ellipse at center, #0d0d0d 0%, #000 70%);
+  display:none; align-items:center; justify-content:center;
+}
+#screenA.active { display:flex; }
+
+.ring-container {
+  position:relative;
+  width:min(80vh, 85vw);
+  height:min(80vh, 85vw);
+}
+
+/* Center facilitator */
+.facilitator {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  z-index:10;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  cursor:pointer;
+}
+.facilitator-ring {
+  width:72px; height:72px; border-radius:50%;
+  border:2px solid #00F3A8;
+  background:rgba(0,243,168,0.08);
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px;
+  box-shadow:0 0 24px rgba(0,243,168,0.3), 0 0 48px rgba(0,243,168,0.1);
+  transition:all .3s;
+}
+.facilitator:hover .facilitator-ring {
+  box-shadow:0 0 36px rgba(0,243,168,0.6);
+  transform:scale(1.05);
+}
+.facilitator-label {
+  font-size:11px; color:#00F3A8; letter-spacing:2px; font-weight:600;
+}
+
+/* Orbit ring line */
+.orbit-line {
+  position:absolute; top:50%; left:50%;
+  width:84%; height:84%;
+  margin-left:-42%; margin-top:-42%;
+  border:1px solid #111;
+  border-radius:50%;
+}
+
+/* Persona nodes */
+.persona-node {
+  position:absolute;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  transform-origin:center;
+  cursor:pointer;
+  transition:all .3s;
+}
+.persona-node:hover .p-avatar { box-shadow:0 0 20px rgba(0,243,168,0.5); border-color:#00F3A8; transform:scale(1.1); }
+.p-avatar {
+  width:48px; height:48px; border-radius:50%;
+  border:1.5px solid #2a2a2a;
+  background:#111;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+  transition:all .3s;
+  position:relative;
+}
+.p-avatar.speaking {
+  border-color:#00F3A8;
+  box-shadow:0 0 16px rgba(0,243,168,0.4);
+}
+.p-avatar.speaking::after {
+  content:''; position:absolute; inset:-4px; border-radius:50%;
+  border:1px solid rgba(0,243,168,0.3);
+  animation:pulse-ring 1.5s infinite;
+}
+@keyframes pulse-ring {
+  0%{transform:scale(1);opacity:1} 100%{transform:scale(1.3);opacity:0}
+}
+.p-name { font-size:9px; color:#555; white-space:nowrap; text-align:center; transition:color .3s; }
+.persona-node:hover .p-name { color:#aaa; }
+.p-name.speaking { color:#00F3A875; }
+
+/* Speech bubble in center */
+.ring-speech {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:160px; text-align:center;
+  font-size:11px; color:#666; line-height:1.5;
+  pointer-events:none;
+  transition:all .4s;
+}
+
+/* ══════════════════════════════════
+   方案B — 45° 圆桌
+   ══════════════════════════════════ */
+#screenB {
+  background:linear-gradient(180deg, #080808 0%, #050505 100%);
+  display:none; align-items:center; justify-content:center; overflow:hidden;
+}
+#screenB.active { display:flex; }
+
+.table-scene {
+  position:relative;
+  width:900px; height:560px;
+}
+
+/* The table ellipse (45° perspective) */
+.table-surface {
+  position:absolute;
+  width:480px; height:200px;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse at center, #1a1a1a 0%, #0d0d0d 100%);
+  border:1px solid #2a2a2a;
+  border-radius:50%;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+/* Table center glow */
+.table-surface::after {
+  content:'';
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:200px; height:80px;
+  background:radial-gradient(ellipse, rgba(0,243,168,0.04) 0%, transparent 70%);
+}
+
+/* Table topic text */
+.table-topic {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center; z-index:5; pointer-events:none;
+}
+.table-topic .topic-label { font-size:9px; color:#333; letter-spacing:2px; margin-bottom:4px; }
+.table-topic .topic-text { font-size:12px; color:#555; line-height:1.5; max-width:200px; }
+
+/* 45° seat positioning - manual for visual correctness */
+.seat { position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.seat:hover .s-avatar { transform:scale(1.1); border-color:#00F3A875; }
+.s-avatar {
+  width:44px; height:44px; border-radius:50%;
+  border:1.5px solid #252525;
+  background:#0f0f0f;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; transition:all .3s;
+  position:relative;
+}
+.s-avatar.speaking {
+  border-color:#00F3A8;
+  box-shadow:0 0 14px rgba(0,243,168,0.4);
+}
+.s-name { font-size:8px; color:#444; white-space:nowrap; }
+.seat:hover .s-name { color:#888; }
+
+/* Facilitator in scene */
+.table-facilitator {
+  position:absolute;
+  left:50%; bottom:30px;
+  transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.tf-avatar {
+  width:52px; height:52px; border-radius:50%;
+  border:2px solid #00F3A8;
+  background:rgba(0,243,168,0.06);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+  box-shadow:0 0 20px rgba(0,243,168,0.2);
+}
+.tf-label { font-size:10px; color:#00F3A8; letter-spacing:1px; }
+
+/* Speech panel - right side */
+.b-speech-panel {
+  position:absolute; right:0; top:0; bottom:0; width:220px;
+  border-left:1px solid #111;
+  padding:16px;
+  display:flex; flex-direction:column; gap:8px;
+  overflow-y:auto;
+}
+.b-msg { padding:8px 10px; border-radius:6px; font-size:10px; line-height:1.5; }
+.b-msg.facilitator { background:#0f1f1a; border-left:2px solid #00F3A8; color:#aaa; }
+.b-msg.persona { background:#111; border-left:2px solid #333; color:#666; }
+.b-msg.persona.active { border-left-color:#00F3A875; color:#999; }
+.b-msg-name { font-size:9px; color:#00F3A875; margin-bottom:3px; font-weight:600; }
+.b-msg-name.dim { color:#333; }
+
+/* ══════════════════════════════════
+   方案C — 舰桥 (Bridge/HUD)
+   ══════════════════════════════════ */
+#screenC {
+  background:#000;
+  display:none; flex-direction:column;
+}
+#screenC.active { display:flex; }
+
+/* Top HUD bar with personas */
+.bridge-hud {
+  height:90px;
+  background:linear-gradient(180deg, #050505 0%, #000 100%);
+  border-bottom:1px solid #111;
+  display:flex; align-items:center;
+  padding:0 24px; gap:0;
+  position:relative;
+  flex-shrink:0;
+}
+/* Subtle arc line behind personas */
+.bridge-hud::before {
+  content:'';
+  position:absolute; left:0; right:0; bottom:-1px; height:1px;
+  background:linear-gradient(90deg, transparent, #00F3A820, #00F3A840, #00F3A820, transparent);
+}
+
+.hud-persona {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  gap:4px; cursor:pointer; padding:8px 4px;
+  transition:all .2s; position:relative;
+}
+.hud-persona:hover .h-avatar { border-color:#00F3A875; transform:translateY(-2px); }
+.hud-persona.speaking .h-avatar {
+  border-color:#00F3A8;
+  box-shadow:0 0 12px rgba(0,243,168,0.4);
+  transform:translateY(-4px);
+}
+.hud-persona.speaking .h-name { color:#00F3A8; }
+/* Speaking indicator line */
+.hud-persona.speaking::after {
+  content:''; position:absolute; bottom:-1px; left:50%;
+  transform:translateX(-50%);
+  width:30px; height:2px; background:#00F3A8;
+}
+.h-avatar {
+  width:36px; height:36px; border-radius:50%;
+  border:1.5px solid #1e1e1e;
+  background:#0a0a0a;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; transition:all .3s;
+}
+.h-name { font-size:8px; color:#333; white-space:nowrap; transition:color .3s; }
+
+/* Facilitator in HUD - center, bigger */
+.hud-facilitator {
+  flex:1.5; display:flex; flex-direction:column; align-items:center;
+  gap:4px; cursor:pointer; padding:4px;
+}
+.hf-avatar {
+  width:50px; height:50px; border-radius:50%;
+  border:2px solid #00F3A8;
+  background:rgba(0,243,168,0.06);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  box-shadow:0 0 16px rgba(0,243,168,0.2);
+}
+.hf-label { font-size:9px; color:#00F3A8; letter-spacing:1px; }
+
+/* Main content area */
+.bridge-main {
+  flex:1; display:flex; overflow:hidden;
+}
+
+/* Left: status / conflict map */
+.bridge-status {
+  width:200px; border-right:1px solid #0d0d0d;
+  padding:16px 14px;
+  display:flex; flex-direction:column; gap:12px;
+  flex-shrink:0;
+}
+.status-label { font-size:9px; color:#333; letter-spacing:2px; margin-bottom:4px; }
+.status-item {
+  font-size:10px; color:#444; padding:6px 8px;
+  border:1px solid #111; border-radius:4px; line-height:1.4;
+}
+.status-item.active { border-color:#00F3A820; color:#666; }
+.status-item span { color:#00F3A875; display:block; font-size:9px; margin-bottom:2px; }
+
+/* Center: conversation */
+.bridge-convo {
+  flex:1; padding:20px 24px;
+  display:flex; flex-direction:column; gap:12px;
+  overflow-y:auto;
+}
+.c-msg {
+  max-width:80%; padding:10px 14px;
+  border-radius:8px; font-size:12px; line-height:1.6;
+}
+.c-msg.facilitator {
+  background:#0a1a14; border:1px solid #0d2d20;
+  color:#aaa; align-self:flex-start;
+}
+.c-msg.persona {
+  background:#0f0f0f; border:1px solid #1a1a1a;
+  color:#777; align-self:flex-start;
+}
+.c-msg.persona.highlight {
+  border-color:#00F3A820; color:#999;
+}
+.c-msg-who { font-size:10px; color:#00F3A875; margin-bottom:4px; font-weight:600; }
+.c-msg-who.dim { color:#2a2a2a; }
+
+/* Right: input */
+.bridge-input {
+  width:240px; border-left:1px solid #0d0d0d;
+  padding:16px 14px;
+  display:flex; flex-direction:column; gap:10px;
+  flex-shrink:0;
+}
+.input-label { font-size:9px; color:#333; letter-spacing:2px; }
+.input-box {
+  background:#080808; border:1px solid #1a1a1a;
+  border-radius:6px; padding:10px;
+  font-size:11px; color:#555; line-height:1.5;
+  flex:1; resize:none;
+}
+.input-hint { font-size:9px; color:#222; line-height:1.5; }
+
+/* ── COMPARISON NOTES ── */
+.compare-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,0.95); border-top:1px solid #111;
+  padding:8px 20px; display:flex; gap:20px; align-items:center;
+}
+.compare-note { font-size:10px; color:#333; }
+.compare-note strong { color:#00F3A8; }
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="show('A')">
+    方案A · 星环
+    <span class="tab-label">俯视 · 抽象 · 苹果感</span>
+  </div>
+  <div class="tab" onclick="show('B')">
+    方案B · 45°圆桌
+    <span class="tab-label">透视 · 真实感 · 会议室</span>
+  </div>
+  <div class="tab" onclick="show('C')">
+    方案C · 舰桥HUD
+    <span class="tab-label">横版 · 内容优先 · Mission Control</span>
+  </div>
+</div>
+
+<!-- ═══════════ 方案A ═══════════ -->
+<div class="screen" id="screenA">
+  <div class="ring-container">
+    <div class="orbit-line"></div>
+
+    <!-- 12 personas positioned around the ring -->
+    <!-- Positions: clock positions, calculated for a circle -->
+    <div class="persona-node speaking" style="top:2%;left:46%">
+      <div class="p-avatar speaking">🦁</div>
+      <div class="p-name speaking">Bruce Lee</div>
+    </div>
+    <div class="persona-node" style="top:8%;left:70%">
+      <div class="p-avatar">⚡</div>
+      <div class="p-name">毛泽东</div>
+    </div>
+    <div class="persona-node" style="top:26%;left:87%">
+      <div class="p-avatar">🔬</div>
+      <div class="p-name">钱学森</div>
+    </div>
+    <div class="persona-node" style="top:48%;left:90%">
+      <div class="p-avatar">🌊</div>
+      <div class="p-name">老子</div>
+    </div>
+    <div class="persona-node" style="top:70%;left:82%">
+      <div class="p-avatar">☯️</div>
+      <div class="p-name">六祖慧能</div>
+    </div>
+    <div class="persona-node" style="top:84%;left:64%">
+      <div class="p-avatar">🍎</div>
+      <div class="p-name">Steve Jobs</div>
+    </div>
+    <div class="persona-node" style="top:88%;left:44%">
+      <div class="p-avatar">📝</div>
+      <div class="p-name">Paul Graham</div>
+    </div>
+    <div class="persona-node" style="top:84%;left:24%">
+      <div class="p-avatar">🚀</div>
+      <div class="p-name">Elon Musk</div>
+    </div>
+    <div class="persona-node" style="top:70%;left:9%">
+      <div class="p-avatar">📦</div>
+      <div class="p-name">Jeff Bezos</div>
+    </div>
+    <div class="persona-node" style="top:48%;left:2%">
+      <div class="p-avatar">🌐</div>
+      <div class="p-name">Kevin Kelly</div>
+    </div>
+    <div class="persona-node" style="top:26%;left:6%">
+      <div class="p-avatar">💡</div>
+      <div class="p-name">Einstein</div>
+    </div>
+    <div class="persona-node" style="top:8%;left:22%">
+      <div class="p-avatar">🧬</div>
+      <div class="p-name">Otto Scharmer</div>
+    </div>
+
+    <!-- Facilitator center -->
+    <div class="facilitator">
+      <div class="facilitator-ring">🎯</div>
+      <div class="facilitator-label">主持人</div>
+    </div>
+
+    <!-- Inner speech hint -->
+    <div class="ring-speech" style="margin-top:30px">
+      <div style="color:#333;font-size:9px;letter-spacing:1px">当前冲突 · 维度①</div>
+      <div style="color:#444;font-size:10px;margin-top:6px">时机 vs 准备度</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 方案B ═══════════ -->
+<div class="screen" id="screenB">
+  <div class="table-scene">
+
+    <!-- Table -->
+    <div class="table-surface">
+      <div class="table-topic">
+        <div class="topic-label">当前议题</div>
+        <div class="topic-text">你真正在决定的是什么？</div>
+      </div>
+    </div>
+
+    <!-- Seats arranged around the 45° ellipse table -->
+    <!-- Top arc -->
+    <div class="seat" style="top:60px;left:240px">
+      <div class="s-avatar speaking">🦁</div>
+      <div class="s-name">Bruce Lee</div>
+    </div>
+    <div class="seat" style="top:40px;left:340px">
+      <div class="s-avatar">⚡</div>
+      <div class="s-name">毛泽东</div>
+    </div>
+    <div class="seat" style="top:40px;left:440px">
+      <div class="s-avatar">🔬</div>
+      <div class="s-name">钱学森</div>
+    </div>
+    <div class="seat" style="top:60px;left:540px">
+      <div class="s-avatar">🌊</div>
+      <div class="s-name">老子</div>
+    </div>
+    <!-- Right -->
+    <div class="seat" style="top:170px;left:660px">
+      <div class="s-avatar">☯️</div>
+      <div class="s-name">六祖慧能</div>
+    </div>
+    <div class="seat" style="top:270px;left:690px">
+      <div class="s-avatar">🍎</div>
+      <div class="s-name">Steve Jobs</div>
+    </div>
+    <!-- Bottom arc -->
+    <div class="seat" style="top:380px;left:580px">
+      <div class="s-avatar">📝</div>
+      <div class="s-name">Paul Graham</div>
+    </div>
+    <div class="seat" style="top:400px;left:460px">
+      <div class="s-avatar">🚀</div>
+      <div class="s-name">Elon Musk</div>
+    </div>
+    <div class="seat" style="top:400px;left:340px">
+      <div class="s-avatar">📦</div>
+      <div class="s-name">Jeff Bezos</div>
+    </div>
+    <div class="seat" style="top:380px;left:220px">
+      <div class="s-avatar">🌐</div>
+      <div class="s-name">Kevin Kelly</div>
+    </div>
+    <!-- Left -->
+    <div class="seat" style="top:270px;left:130px">
+      <div class="s-avatar">💡</div>
+      <div class="s-name">Einstein</div>
+    </div>
+    <div class="seat" style="top:170px;left:100px">
+      <div class="s-avatar">🧬</div>
+      <div class="s-name">Scharmer</div>
+    </div>
+
+    <!-- Facilitator at head -->
+    <div class="table-facilitator">
+      <div class="tf-avatar">🎯</div>
+      <div class="tf-label">主持人</div>
+    </div>
+
+    <!-- Right speech panel -->
+    <div class="b-speech-panel">
+      <div style="font-size:9px;color:#333;letter-spacing:2px;margin-bottom:4px">SESSION LOG</div>
+      <div class="b-msg facilitator">
+        <div class="b-msg-name">主持人</div>
+        你真正在决定的是：是否在没有确定性时向前走。
+      </div>
+      <div class="b-msg persona active">
+        <div class="b-msg-name">Bruce Lee</div>
+        你爱上了形式，不是结果。清空你的杯子。
+      </div>
+      <div class="b-msg persona">
+        <div class="b-msg-name dim">Paul Graham</div>
+        你建了大教堂，还没验证有人想在里面祈祷。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════ 方案C ═══════════ -->
+<div class="screen" id="screenC">
+
+  <!-- Top HUD -->
+  <div class="bridge-hud">
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🌐</div>
+      <div class="h-name">Kevin Kelly</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">💡</div>
+      <div class="h-name">Einstein</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🧬</div>
+      <div class="h-name">Scharmer</div>
+    </div>
+    <div class="hud-persona speaking" style="flex:0.8">
+      <div class="h-avatar">🦁</div>
+      <div class="h-name">Bruce Lee</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">⚡</div>
+      <div class="h-name">毛泽东</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🔬</div>
+      <div class="h-name">钱学森</div>
+    </div>
+
+    <!-- Center facilitator -->
+    <div class="hud-facilitator">
+      <div class="hf-avatar">🎯</div>
+      <div class="hf-label">主持人</div>
+    </div>
+
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🌊</div>
+      <div class="h-name">老子</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">☯️</div>
+      <div class="h-name">六祖慧能</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🍎</div>
+      <div class="h-name">Steve Jobs</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">📝</div>
+      <div class="h-name">Paul Graham</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">🚀</div>
+      <div class="h-name">Musk</div>
+    </div>
+    <div class="hud-persona" style="flex:0.8">
+      <div class="h-avatar">📦</div>
+      <div class="h-name">Bezos</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="bridge-main">
+
+    <!-- Left status -->
+    <div class="bridge-status">
+      <div>
+        <div class="status-label">SESSION PHASE</div>
+        <div class="status-item active">
+          <span>Phase 4 · 进行中</span>
+          冲突维度① 时机 vs 准备度
+        </div>
+      </div>
+      <div>
+        <div class="status-label">CONFLICT MAP</div>
+        <div class="status-item">
+          <span style="color:#00F3A875">正方</span>
+          Jobs · Musk · 毛泽东
+        </div>
+        <div class="status-item">
+          <span style="color:#555">反方</span>
+          PG · Bruce Lee · 老子
+        </div>
+        <div class="status-item">
+          <span style="color:#444">调和</span>
+          Einstein · Bezos
+        </div>
+      </div>
+      <div>
+        <div class="status-label">HYPOTHESIS</div>
+        <div class="status-item">置信度 70% → <span style="color:#00F3A875;display:inline">55%</span></div>
+      </div>
+    </div>
+
+    <!-- Center conversation -->
+    <div class="bridge-convo">
+      <div class="c-msg facilitator">
+        <div class="c-msg-who">主持人</div>
+        你真正在决定的，不是A还是B——而是你是否愿意在没有确定性的情况下向前走。
+      </div>
+      <div class="c-msg persona highlight">
+        <div class="c-msg-who">Bruce Lee · 发言中</div>
+        你今天像是个学者研究格斗艺术，而不是踏入擂台。你爱上了形式，不是功能。清空你的杯子。
+      </div>
+      <div class="c-msg persona">
+        <div class="c-msg-who dim">Paul Graham</div>
+        你在建大教堂，还没验证有人想在里面祈祷。架构文档一文不值，直到有人说"拿走我的钱"。
+      </div>
+    </div>
+
+    <!-- Right input -->
+    <div class="bridge-input">
+      <div class="input-label">YOUR RESPONSE</div>
+      <textarea class="input-box" placeholder="追问幕僚，或提出新问题...
+&#10;按 ⌘+Enter 发送">
+      </textarea>
+      <div class="input-hint">主持人会在你发言后引导下一个冲突维度</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom comparison bar -->
+<div class="compare-bar">
+  <div class="compare-note"><strong>方案A · 星环</strong> — 极致抽象，苹果太空感，沉浸感强，内容区小</div>
+  <div style="color:#222">|</div>
+  <div class="compare-note"><strong>方案B · 45°圆桌</strong> — 真实会议室感，空间感强，适合"仪式感"体验</div>
+  <div style="color:#222">|</div>
+  <div class="compare-note"><strong>方案C · 舰桥HUD</strong> — 内容最大化，信息密度高，最适合日常使用</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen'+id).classList.add('active');
+  document.querySelectorAll('.tab')[['A','B','C'].indexOf(id)].classList.add('active');
+}
+</script>
+</body>
+</html>

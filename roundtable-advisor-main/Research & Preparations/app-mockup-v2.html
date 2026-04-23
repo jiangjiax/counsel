@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · Counsel AI — Mockup v2</title>
+<style>
+:root {
+  --green: #00F3A8; --green-dim: rgba(0,243,168,0.12); --green-border: rgba(0,243,168,0.3);
+  --bg: #0a0a0a; --card: #111; --card2: #161616; --text: #e8e8e8; --muted: #666;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system,'PingFang SC',sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* NAV */
+.nav { display: flex; gap: 4px; padding: 6px 14px; background: #080808; border-bottom: 1px solid #151515; align-items: center; flex-shrink: 0; }
+.nav-brand { color: var(--green); font-weight: 700; font-size: 14px; margin-right: 8px; }
+.layout-tabs { display: flex; gap: 2px; margin-right: 12px; border: 1px solid #222; border-radius: 5px; overflow: hidden; }
+.layout-tab { padding: 3px 10px; font-size: 11px; cursor: pointer; color: var(--muted); background: transparent; border: none; transition: all 0.15s; }
+.layout-tab.active { background: var(--green-dim); color: var(--green); }
+.nav-sep { width: 1px; height: 14px; background: #222; margin: 0 6px; }
+.nav-btn { padding: 3px 9px; border: 1px solid #1e1e1e; background: transparent; color: var(--muted); font-size: 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.nav-btn:hover { border-color: var(--green-border); color: var(--text); }
+.nav-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+/* PROGRESS */
+.prog-bar { display: flex; align-items: center; padding: 4px 14px; background: #080808; border-bottom: 1px solid #111; flex-shrink: 0; }
+.prog-step { display: flex; align-items: center; gap: 3px; font-size: 9px; color: #444; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
+.prog-step.done { color: var(--green); }
+.prog-step.active { color: var(--text); background: #161616; }
+.prog-arrow { color: #222; font-size: 9px; }
+.prog-dot { width: 4px; height: 4px; border-radius: 50%; background: #2a2a2a; }
+.prog-step.done .prog-dot { background: var(--green); }
+.prog-step.active .prog-dot { background: var(--text); }
+
+/* SCREENS */
+.screen { display: none; flex: 1; overflow: hidden; }
+.screen.active { display: flex; flex-direction: column; }
+.scroll { flex: 1; overflow-y: auto; padding: 16px; }
+.scroll::-webkit-scrollbar { width: 3px; }
+.scroll::-webkit-scrollbar-thumb { background: #1e1e1e; }
+
+/* SHARED COMPONENTS */
+.card { background: var(--card); border: 1px solid #1a1a1a; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.btn { padding: 7px 14px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+.btn-green { background: var(--green); color: #000; }
+.btn-outline { background: transparent; border: 1px solid var(--green-border); color: var(--green); }
+.btn-ghost { background: transparent; border: 1px solid #222; color: var(--muted); }
+.input-box { width: 100%; background: #0f0f0f; border: 1px solid #222; border-radius: 7px; padding: 10px 12px; color: var(--text); font-size: 13px; resize: none; outline: none; font-family: inherit; }
+.input-box:focus { border-color: var(--green-border); }
+.tag { display: inline-block; padding: 1px 7px; border-radius: 20px; font-size: 10px; border: 1px solid; }
+.tag-g { color: var(--green); border-color: var(--green-border); background: var(--green-dim); }
+.tag-m { color: var(--muted); border-color: #222; }
+.tag-r { color: #ff6b6b; border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.08); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; border: 1px solid #222; background: #111; }
+.bubble-l { padding: 9px 12px; border-radius: 9px; font-size: 12px; line-height: 1.6; max-width: 80%; background: var(--card2); border: 1px solid #222; border-top-left-radius: 2px; }
+.bubble-r { padding: 9px 12px; border-radius: 9px; font-size: 12px; line-height: 1.6; max-width: 80%; background: var(--green-dim); border: 1px solid var(--green-border); border-top-right-radius: 2px; align-self: flex-end; }
+.chat-row { display: flex; gap: 9px; margin-bottom: 12px; align-items: flex-start; }
+.chat-row.r { flex-direction: row-reverse; }
+.sec-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.action-bar { padding: 10px 16px; border-top: 1px solid #111; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-shrink: 0; background: #080808; }
+.mic-btn { width: 34px; height: 34px; border-radius: 50%; background: #111; border: 1px solid #222; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
+.mic-btn:hover { border-color: var(--green-border); }
+.streaming::after { content: '▋'; animation: blink 0.8s infinite; color: var(--green); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes pulse-ring { 0%{transform:scale(1);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+@keyframes seat-glow { 0%,100%{box-shadow:0 0 8px rgba(0,243,168,.4)} 50%{box-shadow:0 0 18px rgba(0,243,168,.7)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.screen.active { animation: fadeIn 0.2s ease-out; }
+
+/* ==================== RING LAYOUT (A) ==================== */
+.ring-wrap { display: flex; gap: 12px; align-items: center; justify-content: center; height: 100%; padding: 8px; }
+.ring-container { position: relative; width: 640px; height: 640px; flex-shrink: 0; }
+.orbit-line { position: absolute; width: 560px; height: 560px; top: 50%; left: 50%; transform: translate(-50%,-50%); border-radius: 50%; border: 1px solid #151515; }
+.facilitator { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 10; cursor: pointer; }
+.facilitator-ring { width: 68px; height: 68px; border-radius: 50%; border: 2px solid var(--green); background: rgba(0,243,168,.07); display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 0 20px rgba(0,243,168,.25), 0 0 40px rgba(0,243,168,.1); transition: all .3s; }
+.facilitator:hover .facilitator-ring { box-shadow: 0 0 32px rgba(0,243,168,.5); transform: scale(1.05); }
+.facilitator-label { font-size: 10px; color: var(--green); letter-spacing: 2px; }
+.persona-node { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; z-index: 5; }
+.p-avatar { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid #252525; background: #0f0f0f; display: flex; align-items: center; justify-content: center; font-size: 19px; transition: all .3s; position: relative; }
+.persona-node:hover .p-avatar { box-shadow: 0 0 16px rgba(0,243,168,.4); border-color: var(--green); transform: scale(1.08); }
+.p-avatar.speaking { border-color: var(--green); box-shadow: 0 0 14px rgba(0,243,168,.5); }
+.p-avatar.speaking::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1px solid rgba(0,243,168,.35); animation: pulse-ring 1.5s infinite; }
+.p-avatar.done { border-color: var(--green); opacity: .8; }
+.p-avatar.waiting { opacity: .35; }
+.p-avatar.pro { border-color: #00D494; box-shadow: 0 0 10px rgba(0,212,148,.4); }
+.p-avatar.con { border-color: #ff6b6b; box-shadow: 0 0 10px rgba(255,107,107,.4); }
+.p-avatar.neutral { border-color: #444; }
+.p-name { font-size: 8px; color: #333; white-space: nowrap; transition: color .3s; }
+.p-name.speaking { color: rgba(0,243,168,.65); }
+.ring-panel { width: 230px; height: calc(100% - 16px); overflow-y: auto; background: #0a0a0a; border: 1px solid #151515; border-radius: 9px; flex-shrink: 0; }
+.ring-panel::-webkit-scrollbar { width: 3px; }
+.ring-panel::-webkit-scrollbar-thumb { background: #1a1a1a; }
+.panel-item { padding: 9px 11px; border-bottom: 1px solid #0f0f0f; }
+.panel-item.active { background: rgba(0,243,168,.04); }
+.panel-persona-name { font-size: 10px; font-weight: 600; color: rgba(0,243,168,.8); margin-bottom: 3px; }
+.panel-persona-name.dim { color: #2a2a2a; }
+.panel-text { font-size: 10px; color: #555; line-height: 1.5; }
+.panel-status { font-size: 9px; color: #2a2a2a; }
+
+/* ==================== TABLE LAYOUT (B) ==================== */
+.table-wrap { display: flex; height: 100%; width: 100%; }
+.table-scene { flex: 0 0 52%; position: relative; border-right: 1px solid #111; background: radial-gradient(ellipse at 50% 45%, #0d0d0d 0%, #050505 100%); }
+.table-surface { position: absolute; width: 420px; height: 168px; top: 50%; left: 50%; transform: translate(-56%, -45%); border-radius: 50%; background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 100%); border: 1px solid #1e1e1e; box-shadow: 0 8px 40px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.02); }
+.table-topic { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; pointer-events: none; }
+.table-topic-label { font-size: 8px; color: #2a2a2a; letter-spacing: 2px; text-transform: uppercase; }
+.table-topic-text { font-size: 11px; color: #333; }
+.seat { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; z-index: 5; transform: translate(-50%,-50%); }
+.s-avatar { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #1e1e1e; background: #0c0c0c; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all .3s; position: relative; }
+.seat:hover .s-avatar { border-color: var(--green); box-shadow: 0 0 14px rgba(0,243,168,.35); transform: scale(1.1); }
+.s-avatar.speaking { border-color: var(--green); animation: seat-glow 1.5s infinite; }
+.s-avatar.speaking::after { content:''; position:absolute; inset:-3px; border-radius:50%; border:1px solid rgba(0,243,168,.3); animation: pulse-ring 1.5s infinite; }
+.s-avatar.done { border-color: var(--green); opacity:.75; }
+.s-avatar.waiting { opacity:.3; }
+.s-avatar.pro { border-color: #00D494; box-shadow: 0 0 9px rgba(0,212,148,.4); }
+.s-avatar.con { border-color: #ff6b6b; box-shadow: 0 0 9px rgba(255,107,107,.4); }
+.s-avatar.neutral { border-color: #333; }
+.s-name { font-size: 7px; color: #2a2a2a; white-space: nowrap; }
+.seat:hover .s-name { color: #555; }
+.table-facilitator { position: absolute; bottom: 12px; left: 50%; transform: translateX(-58%); display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; z-index: 5; }
+.tf-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--green); background: rgba(0,243,168,.06); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 18px rgba(0,243,168,.18); }
+.tf-label { font-size: 9px; color: var(--green); letter-spacing: 1px; }
+.b-speech-panel { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 7px; overflow-y: auto; }
+.b-speech-panel::-webkit-scrollbar { width: 3px; }
+.b-speech-panel::-webkit-scrollbar-thumb { background: #1a1a1a; }
+.b-msg { padding: 7px 9px; border-radius: 5px; font-size: 11px; line-height: 1.55; border-left: 2px solid; }
+.b-msg.facilitator { background: #0c1a14; border-left-color: var(--green); color: #999; }
+.b-msg.persona { background: #0f0f0f; border-left-color: #222; color: #555; }
+.b-msg.persona.active { border-left-color: rgba(0,243,168,.45); color: #888; background: rgba(0,243,168,.03); }
+.b-msg.persona.waiting { opacity: .4; }
+.b-msg-name { font-size: 9px; font-weight: 600; margin-bottom: 3px; }
+.b-msg-name.g { color: rgba(0,243,168,.7); }
+.b-msg-name.dim { color: #2a2a2a; }
+.faction-label { font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 3px; display: inline-block; margin-bottom: 5px; }
+.faction-pro { color: #00D494; background: rgba(0,212,148,.1); border: 1px solid rgba(0,212,148,.25); }
+.faction-con { color: #ff6b6b; background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.25); }
+.faction-neu { color: #666; background: #111; border: 1px solid #222; }
+
+/* SHARED CHECK ITEM */
+.check-item { display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px; border: 1px solid #1e1e1e; border-radius: 7px; cursor: pointer; margin-bottom: 7px; transition: border-color .15s; }
+.check-item:hover { border-color: var(--green-border); }
+.check-item.checked { border-color: var(--green); background: var(--green-dim); }
+.check-box { width: 15px; height: 15px; border-radius: 3px; border: 1px solid #333; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+.check-item.checked .check-box { background: var(--green); border-color: var(--green); color: #000; }
+.summary-block { border-left: 2px solid var(--green); padding-left: 11px; margin-bottom: 12px; }
+.summary-block.conflict { border-color: #ff6b35; }
+.summary-block.neutral { border-color: #333; }
+.divider { border: none; border-top: 1px solid #111; margin: 14px 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <span class="nav-brand">参谋</span>
+  <div class="layout-tabs">
+    <button class="layout-tab active" data-l="A" onclick="switchLayout('A')">⬤ 星环</button>
+    <button class="layout-tab" data-l="B" onclick="switchLayout('B')">⬡ 圆桌</button>
+  </div>
+  <div class="nav-sep"></div>
+  <button class="nav-btn active" onclick="show('home')">首页</button>
+  <button class="nav-btn" onclick="show('s1')">1 输入</button>
+  <button class="nav-btn" onclick="show('s2')">2 定义</button>
+  <button class="nav-btn" onclick="show('s3')">3 挖事实</button>
+  <button class="nav-btn" onclick="show('s4')">4 发言</button>
+  <button class="nav-btn" onclick="show('s5')">5 拆维度</button>
+  <button class="nav-btn" onclick="show('s6')">6 辩论</button>
+  <button class="nav-btn" onclick="show('s7')">7 汇总</button>
+  <button class="nav-btn" onclick="show('s8')">8 摘果子</button>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="prog-bar" id="prog-bar" style="display:none">
+  <div class="prog-step done"><div class="prog-dot"></div>输入</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step done"><div class="prog-dot"></div>定义</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step done"><div class="prog-dot"></div>挖事实</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step active"><div class="prog-dot"></div>独立发言</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>拆维度</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>辩论</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>汇总</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>摘果子</div>
+</div>
+
+<!-- ======================== HOME ======================== -->
+<div class="screen active" id="home">
+<div class="scroll">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <div><div style="font-size:20px;font-weight:700;color:var(--green)">参谋</div><div style="font-size:11px;color:var(--muted)">一个人的盲区，参谋来照亮</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="font-size:11px">⚡ Demo模式</button>
+      <button class="btn btn-green" onclick="show('s1')">+ 新项目</button>
+    </div>
+  </div>
+  <div class="sec-title">进行中</div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card" style="cursor:pointer;border-color:#1e1e1e" onclick="show('s4')">
+      <div style="display:flex;justify-content:space-between"><div><div style="font-weight:600;font-size:13px">要不要全职创业？</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Session 3 · 2026-04-09</div></div><span class="tag tag-g">进行中</span></div>
+      <div style="font-size:11px;color:#555;margin-top:7px">当前：Step 4 · 12幕僚并行发言中</div>
+      <div style="height:2px;background:#111;border-radius:1px;margin-top:9px"><div style="height:100%;width:48%;background:var(--green);border-radius:1px"></div></div>
+    </div>
+    <div class="card" style="cursor:pointer;border-color:#1e1e1e">
+      <div style="display:flex;justify-content:space-between"><div><div style="font-weight:600;font-size:13px">和张总的合作深入吗？</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Session 1 · 2026-03-28</div></div><span class="tag tag-m">已完成</span></div>
+      <div style="font-size:11px;color:#555;margin-top:7px">7/8步完成 · to-do: 约一次线下见面</div>
+      <div style="height:2px;background:#111;border-radius:1px;margin-top:9px"><div style="height:100%;width:88%;background:#333;border-radius:1px"></div></div>
+    </div>
+  </div>
+  <div class="sec-title">已完成</div>
+  <div class="grid-2">
+    <div class="card" style="opacity:.5;cursor:pointer"><div style="font-weight:600;font-size:12px">要不要接受这个投资条款</div><div style="font-size:10px;color:var(--muted);margin-top:3px">3 sessions · 2026-02-14结束</div></div>
+    <div class="card" style="opacity:.4;border:1px dashed #1a1a1a;background:transparent;display:flex;align-items:center;justify-content:center;min-height:72px;cursor:pointer"><span style="color:#333;font-size:12px">+ 导入历史记录</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== STEP 1: 输入 ======================== -->
+<div class="screen" id="s1">
+<div class="scroll" style="max-width:620px;margin:0 auto">
+  <div style="text-align:center;padding:28px 0 18px">
+    <div style="font-size:28px;margin-bottom:7px">🪑</div>
+    <h2 style="font-size:18px;font-weight:600;margin-bottom:5px">你现在最想解决的是什么？</h2>
+    <p style="font-size:12px;color:var(--muted)">不用完美，不用逻辑清晰。直接说，越真实越好。</p>
+  </div>
+  <textarea class="input-box" rows="8">我在现在的公司做了3年了，手上有一个想做的产品方向，最近有朋友愿意一起创业。但我不知道现在时机对不对——市场竞争很激烈，而且我家里刚买了房，经济压力不小。我老婆支持但也担心。我自己内心是想做的，但我怕自己只是在逃避公司里的一些问题，而不是真正想创业。</textarea>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+    <div class="mic-btn" title="微信语音输入（接入后可用）">🎙️</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="font-size:10px;color:var(--muted)">238字</span><button class="btn btn-green" onclick="show('s2')">提交，开始定义 →</button></div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== STEP 2: 定义问题 ======================== -->
+<div class="screen" id="s2">
+<div class="scroll" style="max-width:660px;margin:0 auto">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+    <div class="avatar">🎙️</div>
+    <div><div style="font-size:12px;font-weight:600;color:var(--green)">主持人</div><div style="font-size:10px;color:var(--muted)">正在帮你定义可以被讨论的问题</div></div>
+  </div>
+  <div class="chat-row"><div class="avatar">🎙️</div><div class="bubble-l">你提到"怕自己只是在逃避公司里的问题"——如果把公司问题全部解决了，你还会想创业吗？</div></div>
+  <div class="chat-row r"><div class="avatar" style="background:#0f1f0f;border-color:#1a3a1a">M</div><div class="bubble-r">想了一下——即使公司一切都好，我依然想做自己的产品。但创业的紧迫感确实被公司环境催化出来了。</div></div>
+  <div class="chat-row"><div class="avatar">🎙️</div><div class="bubble-l">你说"时机"——你担心的是市场时机，还是个人准备程度？还是两者都有？</div></div>
+  <div class="chat-row r"><div class="avatar" style="background:#0f1f0f;border-color:#1a3a1a">M</div><div class="bubble-r">主要是个人准备程度。市场我觉得OK，但我不确定自己能扛住压力，尤其是有家庭了。</div></div>
+  <div class="chat-row"><div class="avatar">🎙️</div>
+    <div class="bubble-l" style="border-color:var(--green-border);background:var(--green-dim)">
+      <div style="font-size:10px;color:var(--green);margin-bottom:5px">✦ 锁定建议</div>
+      <div style="font-weight:600;font-size:12px;margin-bottom:8px">① 个人准备程度是否足够？风险如何评估？</div>
+      <div style="font-weight:600;font-size:12px;margin-bottom:8px">② 创业动机是真实渴望还是对现状的逃避？</div>
+      <div style="font-weight:600;font-size:12px;margin-bottom:8px">③ 如何在家庭经济压力和个人追求之间找到平衡？</div>
+      <div style="font-size:10px;color:var(--muted)">推荐12位幕僚全阵容</div>
+    </div>
+  </div>
+</div>
+<div class="action-bar"><div class="mic-btn">🎙️</div><input class="input-box" style="flex:1;padding:7px 11px;height:34px" placeholder="再问一个 / 修改措辞..."><button class="btn btn-outline">再问一个</button><button class="btn btn-green" onclick="show('s3')">锁定，进入挖事实 →</button></div>
+</div>
+
+<!-- ======================== STEP 3: 挖事实 ======================== -->
+<div class="screen" id="s3">
+<div class="scroll">
+  <div style="margin-bottom:14px"><h2 style="font-size:16px;font-weight:600">挖事实</h2><p style="font-size:12px;color:var(--muted)">每位幕僚提出最想了解的问题，你统一回答</p></div>
+  <div class="grid-2">
+    <div class="card" style="border-color:var(--green-border)"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">💼</div><div><div style="font-size:12px;font-weight:600">乔布斯</div><span class="tag tag-g" style="font-size:9px">有问题</span></div></div><p style="font-size:12px;line-height:1.6">在你描述的这个创业想法里，你最害怕放弃的是什么——是那个idea本身，还是"我是一个创业者"这个自我认同？</p></div>
+    <div class="card" style="border-color:var(--green-border)"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">🧪</div><div><div style="font-size:12px;font-weight:600">Paul Graham</div><span class="tag tag-g" style="font-size:9px">有问题</span></div></div><p style="font-size:12px;line-height:1.6">你有没有找过10个真正可能付费的潜在用户谈过？他们说了什么？</p></div>
+    <div class="card" style="border-color:var(--green-border)"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">⚔️</div><div><div style="font-size:12px;font-weight:600">毛泽东</div><span class="tag tag-g" style="font-size:9px">有问题</span></div></div><p style="font-size:12px;line-height:1.6">你的朋友愿意一起创业——他的能力和你是互补还是重叠？在困难时期他有没有扛过事？</p></div>
+    <div class="card" style="opacity:.45"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">🌊</div><div><div style="font-size:12px;font-weight:600">老子</div><span class="tag tag-m" style="font-size:9px">无需追问</span></div></div><p style="font-size:12px;color:var(--muted)">前面的对话已经足够。此刻沉默。</p></div>
+    <div class="card" style="border-color:var(--green-border)"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">☁️</div><div><div style="font-size:12px;font-weight:600">Jeff Bezos</div><span class="tag tag-g" style="font-size:9px">有问题</span></div></div><p style="font-size:12px;line-height:1.6">如果这个创业失败了，10年后你会怎么评价今天这个决定？</p></div>
+    <div class="card" style="opacity:.45"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="avatar">🪷</div><div><div style="font-size:12px;font-weight:600">六祖慧能</div><span class="tag tag-m" style="font-size:9px">无需追问</span></div></div><p style="font-size:12px;color:var(--muted)">已知晓所需。</p></div>
+  </div>
+  <div class="card" style="border-color:var(--green-border);margin-top:4px"><div style="font-size:11px;color:var(--green);margin-bottom:8px">✦ 统一回答区</div><textarea class="input-box" rows="4" placeholder="乔布斯：我害怕放弃的是那个idea...&#10;PG：谈了5个，3个说有这个痛点..."></textarea></div>
+</div>
+<div class="action-bar"><div class="mic-btn">🎙️</div><span style="font-size:11px;color:var(--muted)">9/12有问题 · 3个跳过</span><button class="btn btn-green" onclick="show('s4')">提交，开始并行发言 →</button></div>
+</div>
+
+<!-- ======================== STEP 4: 独立发言 ======================== -->
+<div class="screen" id="s4">
+
+  <!-- === RING VERSION (A) === -->
+  <div id="s4-ring" class="ring-wrap">
+    <div class="ring-container" id="ring4">
+      <div class="orbit-line"></div>
+      <div class="facilitator" onclick="alert('主持人\n\n等待12位幕僚全部发言完成\n然后提炼3-6个冲突维度')"><div class="facilitator-ring">🎙️</div><div class="facilitator-label">主持人</div></div>
+    </div>
+    <div class="ring-panel" id="panel4">
+      <div style="padding:10px 11px;border-bottom:1px solid #0f0f0f;font-size:9px;color:#2a2a2a;letter-spacing:2px">PARALLEL OPINIONS</div>
+    </div>
+  </div>
+
+  <!-- === TABLE VERSION (B) === -->
+  <div id="s4-table" class="table-wrap" style="display:none">
+    <div class="table-scene" id="table4">
+      <div class="table-surface"><div class="table-topic"><div class="table-topic-label">独立发言中</div><div class="table-topic-text">12幕僚并行生成</div></div></div>
+      <div class="table-facilitator" onclick="alert('主持人 · 等待所有幕僚完成')"><div class="tf-avatar">🎙️</div><div class="tf-label">主持人</div></div>
+    </div>
+    <div class="b-speech-panel" id="bpanel4">
+      <div style="font-size:9px;color:#2a2a2a;letter-spacing:2px;margin-bottom:4px">SESSION LOG</div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1s infinite"></div><span style="font-size:11px;color:var(--green)">9/12完成</span></div>
+    <button class="btn btn-ghost">等不及，先看</button>
+    <button class="btn btn-green" onclick="show('s5')">全部完成，进入拆维度 →</button>
+  </div>
+</div>
+
+<!-- ======================== STEP 5: 拆维度 ======================== -->
+<div class="screen" id="s5">
+<div class="scroll">
+  <div style="display:flex;gap:7px;align-items:center;margin-bottom:4px"><div class="avatar" style="width:26px;height:26px;font-size:12px">🎙️</div><span style="font-size:10px;color:var(--muted)">主持人 · 分析12份意见后提炼</span></div>
+  <h2 style="font-size:16px;font-weight:600;margin-bottom:4px">发现了5个核心冲突维度</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">选择你想深入讨论的（最多3个）</p>
+  <div class="check-item checked" onclick="toggleCheck(this)"><div class="check-box">✓</div><div style="flex:1"><div style="font-weight:600;font-size:12px">① 动机真实性：逃避 vs 真实渴望</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Jobs/老子 vs PG/毛泽东 · 高张力</div></div><span class="tag tag-r">高冲突</span></div>
+  <div class="check-item checked" onclick="toggleCheck(this)"><div class="check-box">✓</div><div style="flex:1"><div style="font-weight:600;font-size:12px">② 时间跨度：短期存活 vs 长期正确</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Musk/Bezos vs KK/六祖 · 中张力</div></div><span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,.3)">中冲突</span></div>
+  <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div style="flex:1"><div style="font-weight:600;font-size:12px">③ 伴侣关系：老婆支持够不够</div><div style="font-size:10px;color:var(--muted);margin-top:2px">六祖/老子 vs 毛泽东</div></div><span class="tag tag-m">低冲突</span></div>
+  <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div style="flex:1"><div style="font-weight:600;font-size:12px">④ 合伙人风险：这个朋友值不值</div><div style="font-size:10px;color:var(--muted);margin-top:2px">毛泽东/PG vs Jobs</div></div><span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,.3)">中冲突</span></div>
+  <div class="check-item checked" onclick="toggleCheck(this)"><div class="check-box">✓</div><div style="flex:1"><div style="font-weight:600;font-size:12px">⑤ 第一性原理：这个idea够不够大</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Musk/a16z vs 老子 · 高张力</div></div><span class="tag tag-r">高冲突</span></div>
+</div>
+<div class="action-bar"><span style="font-size:11px;color:var(--muted)">已选3个维度</span><button class="btn btn-ghost">全选</button><button class="btn btn-green" onclick="show('s6')">开始辩论 →</button></div>
+</div>
+
+<!-- ======================== STEP 6: 辩论 ======================== -->
+<div class="screen" id="s6">
+
+  <div style="padding:10px 16px;border-bottom:1px solid #111;flex-shrink:0;display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-size:10px;color:var(--muted)">维度 ① / 3</div><div style="font-size:14px;font-weight:600">动机真实性：逃避 vs 真实渴望</div></div>
+    <span class="tag tag-g">Round 1</span>
+  </div>
+
+  <!-- === RING VERSION (A) === -->
+  <div id="s6-ring" style="display:flex;gap:12px;align-items:center;justify-content:center;flex:1;padding:8px">
+    <div class="ring-container" id="ring6">
+      <div class="orbit-line"></div>
+      <div class="facilitator" onclick="alert('主持人')"><div class="facilitator-ring">🎙️</div><div class="facilitator-label">主持人</div></div>
+    </div>
+    <div class="ring-panel" id="panel6" style="height:calc(100% - 16px)">
+      <div style="padding:9px 11px;border-bottom:1px solid #111">
+        <div class="faction-label faction-pro">正方 · "这是真实渴望"</div>
+        <div class="b-msg persona active" style="margin-bottom:5px"><div class="b-msg-name g">💼 Steve Jobs</div>他说"即使公司一切都好，我依然想做"——这是最重要的一句话。真正的逃避者不会说这个。他的渴望是先于困境存在的。</div>
+        <div class="b-msg persona" style="margin-bottom:0"><div class="b-msg-name" style="color:#335">🌊 老子</div>逃避与渴望，本无对立。水往低处流，不是因为逃避高处，而是本性如此。这个问题本身是陷阱。</div>
+      </div>
+      <div style="padding:9px 11px;border-bottom:1px solid #111">
+        <div class="faction-label faction-con">反方 · "需要更多验证"</div>
+        <div class="b-msg persona active" style="margin-bottom:5px"><div class="b-msg-name g">🧪 Paul Graham</div>"即使公司好我依然想做"——很好。但你有没有在周末已经在做这件事？真实渴望会变成行动。你做了吗？</div>
+        <div class="b-msg persona" style="margin-bottom:0"><div class="b-msg-name" style="color:#335">⚔️ 毛泽东</div>动机不是自我分析出来的，是用行动检验出来的。在没有排除外部因素之前，他的"渴望"是可疑的。</div>
+      </div>
+      <div style="padding:9px 11px">
+        <div style="font-size:10px;color:var(--green);margin-bottom:5px">✦ 主持人小结</div>
+        <div class="b-msg facilitator" style="margin-bottom:0">核心分歧：Jobs认为动机的先验性已证明真实性；PG认为需要行动来验证。这个矛盾需要案主自己回答。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === TABLE VERSION (B) === -->
+  <div id="s6-table" class="table-wrap" style="display:none;flex:1">
+    <div class="table-scene" id="table6">
+      <div class="table-surface"><div class="table-topic"><div class="table-topic-label">维度①辩论中</div><div class="table-topic-text">动机真实性</div></div></div>
+      <div class="table-facilitator" onclick="alert('主持人')"><div class="tf-avatar">🎙️</div><div class="tf-label">主持人</div></div>
+    </div>
+    <div class="b-speech-panel" id="bpanel6">
+      <div style="font-size:9px;color:#2a2a2a;letter-spacing:2px;margin-bottom:8px">DEBATE LOG</div>
+      <div class="faction-label faction-pro">正方 · "这是真实渴望"</div>
+      <div class="b-msg persona active"><div class="b-msg-name g">💼 Steve Jobs</div>他说"即使公司一切都好，我依然想做"——真正的逃避者不会说这个。他的渴望是先于困境存在的。</div>
+      <div class="b-msg persona"><div class="b-msg-name" style="color:#2a4a2a">🌊 老子</div>逃避与渴望本无对立。水往低处流，不是因为逃避高处，而是本性如此。这个问题是陷阱。</div>
+      <div class="faction-label faction-con" style="margin-top:8px">反方 · "需要更多验证"</div>
+      <div class="b-msg persona active"><div class="b-msg-name g">🧪 Paul Graham</div>"即使公司好我依然想做"——很好。但你有没有在周末已经在做这件事？真实渴望会变成行动。</div>
+      <div class="b-msg persona"><div class="b-msg-name" style="color:#3a2a2a">⚔️ 毛泽东</div>动机不是自我分析出来的，是用行动检验出来的。他的"渴望"在外部压力消除前是可疑的。</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--green);margin-bottom:4px">✦ 主持人小结</div>
+      <div class="b-msg facilitator">核心分歧：Jobs认为动机的先验性已证明真实性；PG认为需要行动来验证。</div>
+    </div>
+  </div>
+
+  <div class="action-bar"><div class="mic-btn">🎙️</div><input class="input-box" style="flex:1;padding:7px 11px;height:34px" placeholder="问幕僚一个问题..."><button class="btn btn-outline">发问</button><button class="btn btn-green" onclick="show('s7')">进入汇总 →</button></div>
+</div>
+
+<!-- ======================== STEP 7: 汇总 ======================== -->
+<div class="screen" id="s7">
+<div class="scroll">
+  <div style="display:flex;gap:7px;align-items:center;margin-bottom:4px"><div class="avatar" style="width:26px;height:26px;font-size:12px">🎙️</div><span style="font-size:10px;color:var(--muted)">主持人 · 全程汇总</span></div>
+  <h2 style="font-size:16px;font-weight:600;margin-bottom:3px">本次会议汇总</h2>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:14px">2026-04-09 · 3个维度讨论完毕</p>
+  <div class="summary-block"><div class="sec-title">达成共识</div><p style="font-size:12px;line-height:1.8">• 你的创业渴望先于现有公司困境存在，具有一定真实性<br>• 家庭经济压力需要具体量化，而不是模糊恐惧<br>• 合伙人互补性需要在项目压力下才能真正验证</p></div>
+  <div class="summary-block conflict"><div class="sec-title" style="color:#ff6b35">核心分歧（未解决）</div><p style="font-size:12px;line-height:1.8">• <b>Jobs vs PG：</b>感受到的渴望 vs 行动验证的渴望<br>• <b>老子 vs Musk：</b>顺势无为 vs 第一性原理穿透</p></div>
+  <div class="summary-block neutral"><div class="sec-title">假设验证</div><p style="font-size:12px;line-height:1.8">• ✓ "时机"不是主要问题，准备度才是<br>• ✗ "有家庭=不适合创业"被多位幕僚否定<br>• ? 这个idea的市场规模（仍存疑）</p></div>
+  <div class="card" style="margin-top:4px"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">点击头像生成该幕僚的个人汇总（按需，省token）</div><div style="display:flex;gap:5px;flex-wrap:wrap">
+    <div class="avatar" style="cursor:pointer" onclick="alert('触发：生成 Steve Jobs 的完整发言汇总')">💼</div>
+    <div class="avatar" style="cursor:pointer" onclick="alert('触发：生成 Paul Graham 的完整发言汇总')">🧪</div>
+    <div class="avatar" style="cursor:pointer">🌊</div><div class="avatar" style="cursor:pointer">🪷</div>
+    <div class="avatar" style="cursor:pointer">⚔️</div><div class="avatar" style="cursor:pointer">🔬</div>
+    <div class="avatar" style="cursor:pointer">☁️</div><div class="avatar" style="cursor:pointer">🚀</div>
+    <div class="avatar" style="cursor:pointer">📡</div><div class="avatar" style="cursor:pointer">💰</div>
+    <div class="avatar" style="cursor:pointer">🥋</div><div class="avatar" style="cursor:pointer">⚛️</div>
+  </div><div style="font-size:9px;color:#333;margin-top:7px">不点 = 不生成（省token）</div></div>
+</div>
+<div class="action-bar"><button class="btn btn-green" onclick="show('s8')">进入摘果子 →</button></div>
+</div>
+
+<!-- ======================== STEP 8: 摘果子 ======================== -->
+<div class="screen" id="s8">
+<div class="scroll">
+  <h2 style="font-size:16px;font-weight:600;margin-bottom:3px">摘果子</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">幕僚对你的真实评价 + 你的收获与行动</p>
+  <div class="sec-title">幕僚评价你（真刀真枪）</div>
+  <div class="card"><div style="display:flex;gap:7px;align-items:center;margin-bottom:8px"><div class="avatar" style="width:26px;height:26px;font-size:12px">💼</div><span style="font-size:12px;font-weight:600">Steve Jobs</span></div><p style="font-size:12px;color:#5a5;margin-bottom:4px">优点：你知道自己想要什么——这在大多数人这里是罕见的能力。</p><p style="font-size:12px;color:#a55;margin-bottom:4px">盲区：你在用"家庭"当盾牌，保护自己不用真正去试。你真正怕的不是失败，是成功了之后要承担的重量。</p><p style="font-size:12px;color:var(--green)">建议：先做出一个真实用户愿意付钱的v0，再谈离职。</p></div>
+  <div class="card"><div style="display:flex;gap:7px;align-items:center;margin-bottom:8px"><div class="avatar" style="width:26px;height:26px;font-size:12px">🧪</div><span style="font-size:12px;font-weight:600">Paul Graham</span></div><p style="font-size:12px;color:#5a5;margin-bottom:4px">优点：你的自我觉察能力是创业者必需的。</p><p style="font-size:12px;color:#a55;margin-bottom:4px">盲区：你谈了5个客户，用的是"有痛点"来说服自己，不是"他们说要付钱"。</p><p style="font-size:12px;color:var(--green)">建议：本周找2个愿意预付费的用户——找到了，所有问题都不是问题了。</p></div>
+  <hr class="divider">
+  <div class="sec-title">你的收获</div>
+  <textarea class="input-box" rows="2" style="margin-bottom:12px" placeholder="这一轮你最大的收获是什么？（会自动记录到user wiki）"></textarea>
+  <div class="sec-title">To-Do（Secretary提取）</div>
+  <div class="card"><div style="display:flex;flex-direction:column;gap:7px">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span>☐</span><span>本周找2个愿意预付费的潜在用户</span><span class="tag tag-r" style="margin-left:auto">高优先</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span>☐</span><span>算清楚每月最低生存线（具体数字）</span><span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,.3);margin-left:auto">重要</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span>☐</span><span>和老婆做一次真正深入的价值观对话</span><span class="tag tag-m" style="margin-left:auto">本月</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span>☐</span><span>今晚：身体感受练习（不分析，只感受）</span><span class="tag tag-g" style="margin-left:auto">今晚</span></div>
+  </div></div>
+  <div style="margin-top:10px;padding:10px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:7px"><div style="font-size:11px;color:var(--green);margin-bottom:3px">✦ User Wiki已更新</div><p style="font-size:10px;color:#888">新增：用家庭作盾牌的决策模式 · 知道自己想要什么的能力 · 创业动机先于困境</p></div>
+</div>
+<div class="action-bar"><span style="font-size:11px;color:var(--muted)">会议完成 ✓</span><button class="btn btn-ghost" onclick="show('home')">回首页</button><button class="btn btn-green">下次继续，基于本轮上下文</button></div>
+</div>
+
+<script>
+// ===== PERSONA DATA =====
+const personas = [
+  { emoji:'🥋', name:'Bruce Lee',   id:'bruce-lee', step4:'speaking', step6:'neutral' },
+  { emoji:'⚔️', name:'毛泽东',      id:'mao',       step4:'done',     step6:'con' },
+  { emoji:'🔬', name:'钱学森',      id:'qian',      step4:'done',     step6:'neutral' },
+  { emoji:'🌊', name:'老子',        id:'laozi',     step4:'done',     step6:'pro' },
+  { emoji:'🪷', name:'六祖慧能',    id:'huineng',   step4:'done',     step6:'neutral' },
+  { emoji:'💼', name:'Steve Jobs',  id:'jobs',      step4:'done',     step6:'pro' },
+  { emoji:'🧪', name:'Paul Graham', id:'pg',        step4:'speaking', step6:'con' },
+  { emoji:'🚀', name:'Elon Musk',   id:'musk',      step4:'speaking', step6:'con' },
+  { emoji:'☁️', name:'Jeff Bezos',  id:'bezos',     step4:'done',     step6:'pro' },
+  { emoji:'📡', name:'Kevin Kelly', id:'kk',        step4:'waiting',  step6:'neutral' },
+  { emoji:'⚛️', name:'Einstein',    id:'einstein',  step4:'waiting',  step6:'con' },
+  { emoji:'💰', name:'a16z',        id:'a16z',      step4:'waiting',  step6:'pro' },
+];
+
+// Opinions for ring panel (step 4)
+const opinions = [
+  { id:'jobs',      text:'你问错了问题。不是"时机对不对"，是"你足不足够obsessed"。真正的创业者不会问时机。' },
+  { id:'pg',        text:'streaming中...', streaming: true },
+  { id:'mao',       text:'动机真实性不是自我分析出来的，是用行动检验出来的。' },
+  { id:'laozi',     text:'为而不争。你的焦虑来自于把"创业"当成了需要征服的目标。' },
+  { id:'huineng',   text:'本自具足。你所有需要的答案，已经在你内心了。' },
+  { id:'bruce-lee', text:'streaming中...', streaming: true },
+  { id:'bezos',     text:'Regret Minimization Framework：10年后，你会为没有尝试而后悔。' },
+  { id:'musk',      text:'streaming中...', streaming: true },
+  { id:'kk',        text:'等待...', dim: true },
+  { id:'qian',      text:'用系统工程方法拆解这个问题：边界条件是什么？' },
+  { id:'einstein',  text:'等待...', dim: true },
+  { id:'a16z',      text:'等待...', dim: true },
+];
+
+// ===== RENDER RINGS =====
+function renderRing(containerId, step) {
+  const container = document.getElementById(containerId);
+  const cx = 320, cy = 320, r = 280;
+
+  personas.forEach((p, i) => {
+    const angle = (i * 30 - 90) * Math.PI / 180;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+
+    const cls = step === 4 ? p.step4 : p.step6;
+    const colorCls = step === 6 ? p.step6 : '';
+
+    const node = document.createElement('div');
+    node.className = 'persona-node';
+    node.style.left = x + 'px';
+    node.style.top = y + 'px';
+    node.style.transform = 'translate(-50%, -50%)';
+    node.onclick = () => alert(`${p.emoji} ${p.name}\n\n这里会展开侧边栏：\n该幕僚的哲学框架、完整发言、历史观点`);
+
+    const avatarCls = step === 4 ? cls : (step === 6 ? colorCls : '');
+    node.innerHTML = `<div class="p-avatar ${avatarCls}">${p.emoji}</div><div class="p-name ${cls === 'speaking' ? 'speaking' : ''}">${p.name}</div>`;
+    container.appendChild(node);
+  });
+}
+
+// ===== RENDER TABLE SEATS =====
+const seatPositions = [
+  { top: 30,  left: 260 }, // Bruce Lee
+  { top: 16,  left: 340 }, // 毛泽东
+  { top: 16,  left: 420 }, // 钱学森
+  { top: 30,  left: 500 }, // 老子
+  { top: 85,  left: 560 }, // 六祖
+  { top: 155, left: 580 }, // Jobs
+  { top: 225, left: 510 }, // PG
+  { top: 255, left: 420 }, // Musk
+  { top: 255, left: 340 }, // Bezos
+  { top: 225, left: 255 }, // KK
+  { top: 155, left: 185 }, // Einstein
+  { top: 85,  left: 160 }, // a16z
+];
+
+function renderTable(containerId, step) {
+  const container = document.getElementById(containerId);
+  personas.forEach((p, i) => {
+    const pos = seatPositions[i];
+    const cls = step === 4 ? p.step4 : p.step6;
+
+    const seat = document.createElement('div');
+    seat.className = 'seat';
+    seat.style.top = pos.top + 'px';
+    seat.style.left = pos.left + 'px';
+    seat.onclick = () => alert(`${p.emoji} ${p.name}\n\n这里会展开侧边栏`);
+
+    const avatarCls = step === 4 ? cls : p.step6;
+    seat.innerHTML = `<div class="s-avatar ${avatarCls}">${p.emoji}</div><div class="s-name">${p.name}</div>`;
+    container.appendChild(seat);
+  });
+}
+
+// ===== RENDER PANELS =====
+function renderRingPanel4() {
+  const panel = document.getElementById('panel4');
+  personas.forEach(p => {
+    const op = opinions.find(o => o.id === p.id);
+    const isActive = p.step4 === 'speaking';
+    const isDim = p.step4 === 'waiting';
+    const item = document.createElement('div');
+    item.className = 'panel-item' + (isActive ? ' active' : '');
+    item.innerHTML = `<div class="panel-persona-name ${isDim ? 'dim' : ''}">${p.emoji} ${p.name}</div><div class="panel-text ${isDim ? '' : ''} ${op && op.streaming ? 'streaming' : ''}">${op ? op.text : ''}</div>`;
+    panel.appendChild(item);
+  });
+}
+
+function renderTablePanel4() {
+  const panel = document.getElementById('bpanel4');
+  personas.forEach(p => {
+    const op = opinions.find(o => o.id === p.id);
+    const isActive = p.step4 === 'speaking';
+    const isDim = p.step4 === 'waiting';
+    const msg = document.createElement('div');
+    msg.className = `b-msg persona ${isActive ? 'active' : ''} ${isDim ? 'waiting' : ''}`;
+    msg.innerHTML = `<div class="b-msg-name ${isActive ? 'g' : 'dim'}">${p.emoji} ${p.name}</div>${op ? op.text : ''}${op && op.streaming ? '<span class="streaming"></span>' : ''}`;
+    panel.appendChild(msg);
+  });
+}
+
+// ===== LAYOUT SWITCH =====
+let currentLayout = 'A';
+function switchLayout(id) {
+  currentLayout = id;
+  document.querySelectorAll('.layout-tab').forEach(t => t.classList.toggle('active', t.dataset.l === id));
+  document.getElementById('s4-ring').style.display  = id === 'A' ? 'flex' : 'none';
+  document.getElementById('s4-table').style.display = id === 'B' ? 'flex' : 'none';
+  document.getElementById('s6-ring').style.display  = id === 'A' ? 'flex' : 'none';
+  document.getElementById('s6-table').style.display = id === 'B' ? 'flex' : 'none';
+}
+
+// ===== STEP NAVIGATION =====
+const stepProgMap = { home:-1, s1:0, s2:1, s3:2, s4:3, s5:4, s6:5, s7:6, s8:7 };
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  const btns = document.querySelectorAll('.nav-btn');
+  const map = {home:0,s1:1,s2:2,s3:3,s4:4,s5:5,s6:6,s7:7,s8:8};
+  if(map[id] !== undefined) btns[map[id]].classList.add('active');
+
+  const prog = document.getElementById('prog-bar');
+  prog.style.display = id === 'home' ? 'none' : 'flex';
+
+  const activeIdx = stepProgMap[id] ?? -1;
+  if(activeIdx >= 0) {
+    document.querySelectorAll('.prog-step').forEach((s, i) => {
+      s.classList.remove('done', 'active');
+      if(i < activeIdx) s.classList.add('done');
+      else if(i === activeIdx) s.classList.add('active');
+    });
+  }
+
+  // Sync layout visibility for s4/s6
+  if(id === 's4' || id === 's6') switchLayout(currentLayout);
+}
+
+// ===== TOGGLE CHECK =====
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.querySelector('.check-box').textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+// ===== INIT =====
+renderRing('ring4', 4);
+renderRing('ring6', 6);
+renderTable('table4', 4);
+renderTable('table6', 6);
+renderRingPanel4();
+renderTablePanel4();
+</script>
+</body>
+</html>

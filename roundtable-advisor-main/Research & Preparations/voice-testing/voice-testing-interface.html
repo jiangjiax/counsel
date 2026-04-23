@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参谋AI · 声音测试台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid #1a1a2e;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px 0;
+        }
+
+        .panel {
+            background: #111118;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1a1a2e;
+        }
+
+        .panel-title {
+            font-size: 1.1em;
+            color: #888;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        /* Facilitator Section */
+        .facilitator-section {
+            grid-column: 1 / -1;
+        }
+
+        .facilitator-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .facilitator-card {
+            background: #0a0a0f;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .facilitator-card:hover {
+            border-color: #333;
+        }
+
+        .facilitator-card.selected {
+            border-color: #667eea;
+            background: #1a1a2e;
+        }
+
+        .facilitator-card .name {
+            font-size: 1em;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .facilitator-card .voice-id {
+            font-size: 0.75em;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .facilitator-card .lang {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #2a2a3e;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-top: 8px;
+        }
+
+        /* Persona Grid */
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .persona-card {
+            background: #0a0a0f;
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .persona-card:hover {
+            border-color: #333;
+        }
+
+        .persona-card.selected {
+            border-color: #f59e0b;
+            background: #1a1a2e;
+        }
+
+        .persona-card .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .persona-card .name {
+            font-size: 0.9em;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .persona-card .voice {
+            font-size: 0.7em;
+            color: #f59e0b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .persona-card .lang-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.6em;
+            padding: 2px 6px;
+            background: #2a2a3e;
+            border-radius: 3px;
+            color: #888;
+        }
+
+        /* Test Area */
+        .test-section {
+            grid-column: 1 / -1;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .test-text {
+            flex: 1;
+            min-width: 300px;
+            background: #0a0a0f;
+            border: 1px solid #2a2a3e;
+            border-radius: 8px;
+            padding: 14px;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .test-text:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #2a2a3e;
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #3a3a4e;
+        }
+
+        /* Audio Player */
+        .audio-player {
+            background: #0a0a0f;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .audio-player .title {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        audio {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        /* Status */
+        .status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.85em;
+        }
+
+        .status.generating {
+            background: #1a2a3a;
+            color: #4a9eff;
+            border: 1px solid #2a4a6a;
+        }
+
+        .status.success {
+            background: #1a2a1a;
+            color: #4aff4a;
+            border: 1px solid #2a4a2a;
+        }
+
+        .status.error {
+            background: #2a1a1a;
+            color: #ff4a4a;
+            border: 1px solid #4a2a2a;
+        }
+
+        /* Typewriter Display */
+        .typewriter-container {
+            background: #0a0a0f;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 20px;
+            min-height: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .typewriter-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            opacity: 0.5;
+        }
+
+        .typewriter-text {
+            font-size: 1.4em;
+            line-height: 1.8;
+            color: #fff;
+        }
+
+        .typewriter-text .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background: #667eea;
+            margin-left: 2px;
+            animation: blink 0.8s infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Ambient Background */
+        .ambient-hint {
+            color: #444;
+            font-size: 0.8em;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #4a9eff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Language Tabs */
+        .lang-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .lang-tab {
+            padding: 8px 16px;
+            background: #1a1a2e;
+            border: none;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .lang-tab.active {
+            background: #2a2a3e;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>参谋AI · 声音测试台</h1>
+            <p class="subtitle">为十二幕僚 + Facilitator 选择最匹配的声音</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Facilitator Section -->
+            <div class="panel facilitator-section">
+                <div class="panel-title">Facilitator 主持人（与你对话）</div>
+                <div class="facilitator-grid" id="facilitatorGrid"></div>
+
+                <div class="panel-title" style="margin-top: 30px;">测试文本</div>
+                <div class="lang-tabs">
+                    <button class="lang-tab active" data-lang="zh">中文版</button>
+                    <button class="lang-tab" data-lang="en">英文版</button>
+                </div>
+                <textarea class="test-text" id="facilitatorText" placeholder="输入测试文本..."></textarea>
+                <div class="test-controls">
+                    <button class="btn btn-primary" id="playFacilitator">▶ 生成并播放</button>
+                </div>
+                <div id="facilitatorStatus"></div>
+                <div class="audio-player" id="facilitatorPlayer" style="display:none;">
+                    <div class="title">Generated Audio</div>
+                    <audio id="facilitatorAudio" controls></audio>
+                </div>
+            </div>
+
+            <!-- Persona Section -->
+            <div class="panel">
+                <div class="panel-title">东方幕僚</div>
+                <div class="persona-grid" id="eastPersonas"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">西方幕僚</div>
+                <div class="persona-grid" id="westPersonas"></div>
+            </div>
+
+            <!-- Persona Test Area -->
+            <div class="panel test-section">
+                <div class="panel-title">幕僚声音测试</div>
+                <div class="test-controls">
+                    <button class="btn btn-primary" id="playPersona">▶ 生成并播放</button>
+                    <button class="btn btn-secondary" id="stopPersona">■ 停止</button>
+                </div>
+                <div id="personaStatus"></div>
+                <div class="typewriter-container">
+                    <div class="typewriter-text" id="typewriterText">
+                        <span class="cursor"></span>
+                    </div>
+                </div>
+                <div class="audio-player" id="personaPlayer" style="display:none;">
+                    <div class="title">Generated Audio</div>
+                    <audio id="personaAudio" controls></audio>
+                </div>
+            </div>
+        </div>
+
+        <div class="ambient-hint">
+            💡 背景音乐建议：禅意环境音乐、喜多郎《丝绸之路》风格、或道德经吟诵氛围
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const facilitators = [
+            { id: 'Chinese (Mandarin)_Male_Announcer', name: '播报男声', lang: 'CN', desc: '权威气场、清晰有力' },
+            { id: 'Chinese (Mandarin)_Reliable_Executive', name: '沉稳高管', lang: 'CN', desc: '高管气质、冷静决断' },
+            { id: 'English_Trustworthy_Man', name: 'Trustworthy Man', lang: 'EN', desc: '沉稳可靠、国际版' },
+        ];
+
+        const personas = [
+            // East
+            { id: 'bruce-lee', name: '李小龙', emoji: '🥋', voice: 'male-qn-badao', voiceName: '霸道青年', lang: 'EN', quote: "Don't think. Feel. Be water, my friend." },
+            { id: 'laozi', name: '老子', emoji: '☯️', voice: 'Chinese (Mandarin)_Gentleman', voiceName: '温润男声', lang: 'CN', quote: '上善若水。水善利萬物而不爭。' },
+            { id: 'huineng', name: '六祖慧能', emoji: '⚡', voice: 'Chinese (Mandarin)_Gentle_Youth', voiceName: '温润青年', lang: 'CN', quote: '本来无一物，何处惹尘埃。' },
+            { id: 'mao', name: '毛泽东', emoji: '🇨🇳', voice: 'Chinese (Mandarin)_Male_Announcer', voiceName: '播报男声', lang: 'CN', quote: '实事求是。矛盾是普遍的。' },
+            { id: 'qian', name: '钱学森', emoji: '🔬', voice: 'Chinese (Mandarin)_Male_Announcer', voiceName: '播报男声', lang: 'CN', quote: '系统工程是组织管理的技术。' },
+            // West
+            { id: 'jobs', name: 'Steve Jobs', emoji: '🍎', voice: 'male-qn-badao', voiceName: '霸道青年', lang: 'EN', quote: 'Stay hungry. Stay foolish.' },
+            { id: 'graham', name: 'Paul Graham', emoji: '📝', voice: 'male-qn-jingying', voiceName: '精英青年', lang: 'EN', quote: 'Make something people want.' },
+            { id: 'bezos', name: 'Jeff Bezos', emoji: '📦', voice: 'Chinese (Mandarin)_Reliable_Executive', voiceName: '沉稳高管', lang: 'EN', quote: "It's always Day 1." },
+            { id: 'musk', name: 'Elon Musk', emoji: '🚀', voice: 'male-qn-badao', voiceName: '霸道青年', lang: 'EN', quote: 'First principles. Move fast.' },
+            { id: 'kevin', name: 'Kevin Kelly', emoji: '🔮', voice: 'English_Trustworthy_Man', voiceName: 'Trustworthy', lang: 'EN', quote: 'Technology wants what life wants.' },
+            { id: 'a16z', name: 'a16z', emoji: '💰', voice: 'Chinese (Mandarin)_Reliable_Executive', voiceName: '沉稳高管', lang: 'EN', quote: 'Software is eating the world.' },
+            { id: 'einstein', name: 'Einstein', emoji: '⚛️', voice: 'male-qn-jingying', voiceName: '精英青年', lang: 'EN', quote: 'Imagination is more important than knowledge.' },
+        ];
+
+        const testTexts = {
+            zh: '欢迎来到参谋会议。这里聚集了十二位历史上最聪明的大脑。他们将从各自独特的哲学视角，为你照亮盲区。请说出你目前最困惑的问题。',
+            en: "Welcome to the Roundtable Council. Twelve of history's greatest minds have gathered here. Each will illuminate your blind spots from their unique perspective. Please share what weighs most on your mind."
+        };
+
+        // State
+        let selectedFacilitator = 'Chinese (Mandarin)_Male_Announcer';
+        let selectedPersona = 'laozi';
+        let currentLang = 'zh';
+        let typewriterInterval = null;
+
+        // Initialize
+        function init() {
+            renderFacilitators();
+            renderPersonas();
+            document.getElementById('facilitatorText').value = testTexts.zh;
+
+            // Event listeners
+            document.querySelectorAll('.lang-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentLang = tab.dataset.lang;
+                    document.getElementById('facilitatorText').value = testTexts[currentLang];
+                });
+            });
+
+            document.getElementById('playFacilitator').addEventListener('click', playFacilitatorAudio);
+            document.getElementById('playPersona').addEventListener('click', playPersonaAudio);
+            document.getElementById('stopPersona').addEventListener('click', stopTypewriter);
+        }
+
+        function renderFacilitators() {
+            const grid = document.getElementById('facilitatorGrid');
+            grid.innerHTML = facilitators.map(f => `
+                <div class="facilitator-card ${f.id === selectedFacilitator ? 'selected' : ''}"
+                     data-id="${f.id}">
+                    <div class="name">${f.name}</div>
+                    <div class="voice-id">${f.id}</div>
+                    <div class="lang">${f.lang === 'CN' ? '中文' : 'English'}</div>
+                </div>
+            `).join('');
+
+            grid.querySelectorAll('.facilitator-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.facilitator-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedFacilitator = card.dataset.id;
+                });
+            });
+        }
+
+        function renderPersonas() {
+            const east = personas.filter(p => ['bruce-lee', 'laozi', 'huineng', 'mao', 'qian'].includes(p.id));
+            const west = personas.filter(p => !['bruce-lee', 'laozi', 'huineng', 'mao', 'qian'].includes(p.id));
+
+            document.getElementById('eastPersonas').innerHTML = east.map(p => personaCardHTML(p)).join('');
+            document.getElementById('westPersonas').innerHTML = west.map(p => personaCardHTML(p)).join('');
+
+            document.querySelectorAll('.persona-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedPersona = card.dataset.id;
+                });
+            });
+        }
+
+        function personaCardHTML(p) {
+            return `
+                <div class="persona-card ${p.id === selectedPersona ? 'selected' : ''}" data-id="${p.id}">
+                    <span class="lang-tag">${p.lang === 'CN' ? 'CN' : 'EN'}</span>
+                    <div class="avatar">${p.emoji}</div>
+                    <div class="name">${p.name}</div>
+                    <div class="voice">${p.voiceName}</div>
+                </div>
+            `;
+        }
+
+        async function playFacilitatorAudio() {
+            const text = document.getElementById('facilitatorText').value.trim();
+            if (!text) return;
+
+            const status = document.getElementById('facilitatorStatus');
+            status.className = 'status generating';
+            status.innerHTML = '<span class="spinner"></span>正在生成音频...';
+            document.getElementById('facilitatorPlayer').style.display = 'none';
+
+            try {
+                // Call Python backend to generate audio
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        voiceId: selectedFacilitator,
+                        outputFile: 'facilitator_test.mp3'
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const result = await response.json();
+                document.getElementById('facilitatorAudio').src = result.audioUrl;
+                document.getElementById('facilitatorPlayer').style.display = 'block';
+
+                status.className = 'status success';
+                status.textContent = '✓ 音频生成成功';
+            } catch (err) {
+                status.className = 'status error';
+                status.textContent = '✗ 生成失败: ' + err.message;
+            }
+        }
+
+        async function playPersonaAudio() {
+            const persona = personas.find(p => p.id === selectedPersona);
+            if (!persona) return;
+
+            const status = document.getElementById('personaStatus');
+            status.className = 'status generating';
+            status.innerHTML = '<span class="spinner"></span>正在生成 ' + persona.name + ' 的声音...';
+            document.getElementById('personaPlayer').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: persona.quote,
+                        voiceId: persona.voice,
+                        outputFile: persona.id + '_test.mp3'
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const result = await response.json();
+
+                // Show typewriter effect
+                typewriterEffect(persona.quote, persona.lang);
+
+                // Play audio when ready
+                document.getElementById('personaAudio').src = result.audioUrl;
+                document.getElementById('personaPlayer').style.display = 'block';
+
+                status.className = 'status success';
+                status.textContent = '✓ ' + persona.name + ' 声音加载中...';
+            } catch (err) {
+                status.className = 'status error';
+                status.textContent = '✗ 生成失败: ' + err.message;
+            }
+        }
+
+        function typewriterEffect(text, lang) {
+            stopTypewriter();
+            const container = document.getElementById('typewriterText');
+            container.innerHTML = '<span class="cursor"></span>';
+
+            let i = 0;
+            const speed = lang === 'CN' ? 150 : 80;
+
+            typewriterInterval = setInterval(() => {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+                    container.innerHTML = text.substring(0, i + 1) + '<span class="cursor"></span>';
+                    i++;
+                } else {
+                    stopTypewriter();
+                }
+            }, speed);
+        }
+
+        function stopTypewriter() {
+            if (typewriterInterval) {
+                clearInterval(typewriterInterval);
+                typewriterInterval = null;
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

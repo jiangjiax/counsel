@@ -1,0 +1,29 @@
+/target
+**/*.rs.bak
+*.pdb
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Sessions data
+/sessions
+*.log
+
+# User-level wiki + follow-up journal (ephemeral per-user)
+/user-wiki.md
+/execution-journal.md
+
+# Phase 5 reference source texts (bulky; cross-project copies)
+/skills/_sources/
+
+# Build artifacts
+**/Cargo.lock
+node_modules/

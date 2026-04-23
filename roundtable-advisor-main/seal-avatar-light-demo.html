@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · 印章头像 · 浅色模式</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#f4f3ef;font-family:-apple-system,'PingFang SC',sans-serif;color:#1a1a1a;padding:32px;overflow-x:hidden}
+
+h1{font-size:13px;letter-spacing:4px;color:rgba(0,0,0,.35);text-transform:uppercase;margin-bottom:4px}
+h2{font-size:10px;letter-spacing:2px;color:rgba(0,0,0,.2);text-transform:uppercase;margin-bottom:28px}
+.section{margin-bottom:52px;padding-bottom:52px;border-bottom:1px solid rgba(0,0,0,.07)}
+.sec-title{font-size:9px;color:rgba(0,0,0,.3);letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.07)}
+
+/* ══════════════════════════════════════════
+   SEAL AVATAR — 印章风格，圆角方形
+   区分策略：朱砂底色统一，身份色从边框/光晕渗出
+   ══════════════════════════════════════════ */
+.av{
+  border-radius:18%;          /* 印章圆角方形，非圆形 */
+  overflow:hidden;
+  position:relative;
+  flex-shrink:0;
+  border:2.5px solid transparent;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+  /* 默认：轻微投影，让印章从米色底上"浮"起来 */
+  box-shadow: 0 2px 8px rgba(0,0,0,.18), 0 1px 3px rgba(0,0,0,.12);
+}
+
+/* 5×5 印章网格图
+   实测：图片1024×1024，每格158×182px，横向外边距19px，纵向6px
+   正确缩放：background-size = 1024/158 × 100% = 648%
+   位置公式：p = 100 × (0.5 - center/158) / (1 - 1024/158)
+*/
+.av-inner{
+  width:100%;
+  height:100%;
+  background-image:url('/Users/a1-6/Downloads/download.png');
+  background-size:648% 648%;
+  background-repeat:no-repeat;
+  filter:contrast(1.05);   /* 轻微锐化，印章更清晰 */
+}
+
+/* ── SIZES ── */
+.av.xl{width:120px;height:120px}
+.av.lg{width:72px;height:72px}
+.av.md{width:48px;height:48px}
+.av.sm{width:36px;height:36px}
+.av.xs{width:28px;height:28px}
+
+/* ── 旁观：灰度淡出 ── */
+.av.dim .av-inner{filter:grayscale(1) brightness(.65);opacity:.4}
+.av.dim{box-shadow:none;border-color:transparent}
+
+/* ── 激活：身份色边框出现 ── */
+.av.active{
+  border-color: var(--c);
+  box-shadow:
+    0 0 0 3px var(--c-ring),
+    0 4px 16px var(--c-drop);
+}
+
+/* ── 发言：脉冲光晕，印章"盖下去"的感觉 ── */
+.av.speaking{
+  border-color: var(--c);
+  box-shadow:
+    0 0 0 4px var(--c-ring),
+    0 0 28px var(--c-drop),
+    0 6px 24px rgba(0,0,0,.14);
+  animation: sealPulse 1.8s ease-in-out infinite;
+}
+@keyframes sealPulse{
+  0%,100%{
+    box-shadow:
+      0 0 0 3px var(--c-ring),
+      0 0 16px var(--c-drop);
+  }
+  50%{
+    box-shadow:
+      0 0 0 6px var(--c-ring),
+      0 0 36px var(--c-drop),
+      0 0 60px var(--c-glow2);
+  }
+}
+
+/* 发言时的方形扩散波 */
+.av.speaking::after{
+  content:'';
+  position:absolute;
+  inset:-7px;
+  border-radius:18%;
+  border:1.5px solid var(--c);
+  animation: sealRipple 1.8s ease-out infinite;
+  pointer-events:none;
+  opacity:.45;
+}
+@keyframes sealRipple{
+  0%{transform:scale(1);opacity:.45}
+  100%{transform:scale(1.55);opacity:0}
+}
+
+/* hover */
+.av:hover{
+  border-color:var(--c);
+  box-shadow:
+    0 0 0 3px var(--c-ring),
+    0 6px 22px var(--c-drop);
+  transform:translateY(-2px);
+}
+
+/* ══════════════════════════════════════════
+   COLOR IDENTITY — 25 顾问，浅色背景版
+   注意：浅色背景需要更饱和/更深的色，
+   去掉亮黄（改为金色）以保持可见度
+   ══════════════════════════════════════════ */
+
+/* Row 1 — 战略与愿景 */
+[data-p="mao"]     {--c:#B83226;--c-ring:rgba(184,50,38,.22);--c-drop:rgba(184,50,38,.32);--c-glow2:rgba(184,50,38,.08)}
+[data-p="jobs"]    {--c:#4A4AC8;--c-ring:rgba(74,74,200,.22);--c-drop:rgba(74,74,200,.32);--c-glow2:rgba(74,74,200,.08)}
+[data-p="musk"]    {--c:#007899;--c-ring:rgba(0,120,153,.22);--c-drop:rgba(0,120,153,.32);--c-glow2:rgba(0,120,153,.08)}
+[data-p="munger"]  {--c:#A87000;--c-ring:rgba(168,112,0,.22);--c-drop:rgba(168,112,0,.32);--c-glow2:rgba(168,112,0,.08)}
+[data-p="qian"]    {--c:#A83838;--c-ring:rgba(168,56,56,.22);--c-drop:rgba(168,56,56,.32);--c-glow2:rgba(168,56,56,.08)}
+
+/* Row 2 — 科技与组织 */
+[data-p="zhang"]   {--c:#177870;--c-ring:rgba(23,120,112,.22);--c-drop:rgba(23,120,112,.32);--c-glow2:rgba(23,120,112,.08)}
+[data-p="pg"]      {--c:#B84A08;--c-ring:rgba(184,74,8,.22);--c-drop:rgba(184,74,8,.32);--c-glow2:rgba(184,74,8,.08)}
+[data-p="karpathy"]{--c:#3E30A8;--c-ring:rgba(62,48,168,.22);--c-drop:rgba(62,48,168,.32);--c-glow2:rgba(62,48,168,.08)}
+[data-p="ilya"]    {--c:#981A60;--c-ring:rgba(152,26,96,.22);--c-drop:rgba(152,26,96,.32);--c-glow2:rgba(152,26,96,.08)}
+[data-p="mrbeast"] {--c:#806400;--c-ring:rgba(128,100,0,.22);--c-drop:rgba(128,100,0,.32);--c-glow2:rgba(128,100,0,.08)}
+
+/* Row 3 — 哲学与风险 */
+[data-p="naval"]   {--c:#14685A;--c-ring:rgba(20,104,90,.22);--c-drop:rgba(20,104,90,.32);--c-glow2:rgba(20,104,90,.08)}
+[data-p="feynman"] {--c:#B83840;--c-ring:rgba(184,56,64,.22);--c-drop:rgba(184,56,64,.32);--c-glow2:rgba(184,56,64,.08)}
+[data-p="taleb"]   {--c:#4E2E80;--c-ring:rgba(78,46,128,.22);--c-drop:rgba(78,46,128,.32);--c-glow2:rgba(78,46,128,.08)}
+[data-p="laozi"]   {--c:#146840;--c-ring:rgba(20,104,64,.22);--c-drop:rgba(20,104,64,.32);--c-glow2:rgba(20,104,64,.08)}
+[data-p="suntzu"]  {--c:#901808;--c-ring:rgba(144,24,8,.22);--c-drop:rgba(144,24,8,.32);--c-glow2:rgba(144,24,8,.08)}
+
+/* Row 4 — 执行与价值 */
+[data-p="brucelee"]{--c:#907200;--c-ring:rgba(144,114,0,.22);--c-drop:rgba(144,114,0,.32);--c-glow2:rgba(144,114,0,.08)}
+[data-p="plato"]   {--c:#136878;--c-ring:rgba(19,104,120,.22);--c-drop:rgba(19,104,120,.32);--c-glow2:rgba(19,104,120,.08)}
+[data-p="drucker"] {--c:#5A3E36;--c-ring:rgba(90,62,54,.22);--c-drop:rgba(90,62,54,.32);--c-glow2:rgba(90,62,54,.08)}
+[data-p="buffett"] {--c:#3E6000;--c-ring:rgba(62,96,0,.22);--c-drop:rgba(62,96,0,.32);--c-glow2:rgba(62,96,0,.08)}
+[data-p="bezos"]   {--c:#A03E18;--c-ring:rgba(160,62,24,.22);--c-drop:rgba(160,62,24,.32);--c-glow2:rgba(160,62,24,.08)}
+
+/* Row 5 — 历史与科学 */
+[data-p="oppie"]   {--c:#344E5C;--c-ring:rgba(52,78,92,.22);--c-drop:rgba(52,78,92,.32);--c-glow2:rgba(52,78,92,.08)}
+[data-p="davinci"] {--c:#4E2280;--c-ring:rgba(78,34,128,.22);--c-drop:rgba(78,34,128,.32);--c-glow2:rgba(78,34,128,.08)}
+[data-p="churchill"]{--c:#785C00;--c-ring:rgba(120,92,0,.22);--c-drop:rgba(120,92,0,.32);--c-glow2:rgba(120,92,0,.08)}
+[data-p="asmith"]  {--c:#145C5A;--c-ring:rgba(20,92,90,.22);--c-drop:rgba(20,92,90,.32);--c-glow2:rgba(20,92,90,.08)}
+[data-p="socrates"]{--c:#904040;--c-ring:rgba(144,64,64,.22);--c-drop:rgba(144,64,64,.32);--c-glow2:rgba(144,64,64,.08)}
+
+/* ── GRID POSITIONS (5×5, background-size:648%)
+   实测每格中心: X=[98,305,512,719,925.5], Y=[97,304,511,718.5,925]
+   公式: p = 100 × (0.5 - center/158) / (1 - 1024/158)
+── */
+.p-mao      {background-position:  2.2%  2.1%}
+.p-jobs     {background-position: 26.1%  2.1%}
+.p-musk     {background-position: 50.0%  2.1%}
+.p-munger   {background-position: 73.9%  2.1%}
+.p-qian     {background-position: 97.7%  2.1%}
+.p-zhang    {background-position:  2.2% 26.0%}
+.p-pg       {background-position: 26.1% 26.0%}
+.p-karpathy {background-position: 50.0% 26.0%}
+.p-ilya     {background-position: 73.9% 26.0%}
+.p-mrbeast  {background-position: 97.7% 26.0%}
+.p-naval    {background-position:  2.2% 49.9%}
+.p-feynman  {background-position: 26.1% 49.9%}
+.p-taleb    {background-position: 50.0% 49.9%}
+.p-laozi    {background-position: 73.9% 49.9%}
+.p-suntzu   {background-position: 97.7% 49.9%}
+.p-brucelee {background-position:  2.2% 73.8%}
+.p-plato    {background-position: 26.1% 73.8%}
+.p-drucker  {background-position: 50.0% 73.8%}
+.p-buffett  {background-position: 73.9% 73.8%}
+.p-bezos    {background-position: 97.7% 73.8%}
+.p-oppie    {background-position:  2.2% 97.7%}
+.p-davinci  {background-position: 26.1% 97.7%}
+.p-churchill{background-position: 50.0% 97.7%}
+.p-asmith   {background-position: 73.9% 97.7%}
+.p-socrates {background-position: 97.7% 97.7%}
+
+/* ══════════════════════════════════════════
+   LAYOUT UTILITIES
+   ══════════════════════════════════════════ */
+.palette-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:22px 18px;
+}
+.person-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.person-name{
+  font-size:8px;color:rgba(0,0,0,.45);letter-spacing:.5px;text-align:center;line-height:1.4;
+}
+.person-name strong{
+  display:block;font-size:7px;color:rgba(0,0,0,.25);font-weight:400;margin-top:1px;
+}
+.row-label{
+  font-size:8px;color:rgba(0,0,0,.2);letter-spacing:2px;
+  grid-column:1/-1;padding:4px 0 2px;
+  border-top:1px solid rgba(0,0,0,.05);
+  margin-top:6px;
+}
+.color-dot{width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0}
+
+.person-card:hover .av{
+  border-color:var(--c)!important;
+  box-shadow:
+    0 0 0 3px var(--c-ring),
+    0 8px 24px var(--c-drop)!important;
+  transform:translateY(-3px);
+}
+.person-card:hover .person-name{color:rgba(0,0,0,.75)}
+
+/* State demo */
+.state-row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end}
+.state-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.state-label{font-size:8px;color:rgba(0,0,0,.3);letter-spacing:1px;text-align:center;line-height:1.5}
+
+/* Ring scene */
+.ring-wrap{position:relative;width:460px;height:460px;margin:0 auto}
+.ring-orbit{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:1px solid rgba(0,0,0,.09);
+}
+.ring-orbit-outer{border-color:rgba(0,0,0,.04)}
+.ring-center{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:60px;height:60px;border-radius:50%;
+  background:#fff;border:1.5px solid rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.1)
+}
+.ring-node{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  transform:translate(-50%,-50%)
+}
+.ring-node-label{font-size:7px;color:rgba(0,0,0,.3);white-space:nowrap;text-align:center}
+.ring-node-label.lit{color:rgba(0,0,0,.75);font-weight:500}
+
+/* Panel */
+.panel-light{
+  width:260px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;
+  padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.08)
+}
+.panel-step-tag{font-size:8px;letter-spacing:2px;color:rgba(0,0,0,.28);margin-bottom:6px}
+.panel-title{font-size:13px;color:#1a1a1a;font-weight:500;margin-bottom:10px}
+.panel-body{font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.85}
+.panel-btn{
+  display:inline-flex;align-items:center;margin-top:12px;
+  padding:7px 14px;background:#1a1a1a;color:#fff;border-radius:20px;
+  font-size:10px;letter-spacing:1px;cursor:pointer;border:none
+}
+
+.side-by-side{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.scene-label{font-size:8px;color:rgba(0,0,0,.28);text-align:center;margin-top:10px;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<h1>参谋 · 印章头像系统</h1>
+<h2>Seal Avatar · Light Mode · 25 Advisors · 篆刻印章配色</h2>
+
+<!-- ① 完整25人 -->
+<div class="section">
+  <div class="sec-title">① 完整25人 · 印章头像 · hover 激活身份色边框</div>
+
+  <div class="palette-grid">
+
+    <div class="row-label">战略与愿景 · Strategy &amp; Vision</div>
+
+    <div class="person-card" data-p="mao">
+      <div class="av lg active" data-p="mao"><div class="av-inner p-mao"></div></div>
+      <div class="person-name">毛泽东<br><strong>Mao Zedong</strong></div>
+      <div class="color-dot" style="--c:#B83226"></div>
+    </div>
+    <div class="person-card" data-p="jobs">
+      <div class="av lg active" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+      <div class="person-name">乔布斯<br><strong>Steve Jobs</strong></div>
+      <div class="color-dot" style="--c:#4A4AC8"></div>
+    </div>
+    <div class="person-card" data-p="musk">
+      <div class="av lg active" data-p="musk"><div class="av-inner p-musk"></div></div>
+      <div class="person-name">马斯克<br><strong>Elon Musk</strong></div>
+      <div class="color-dot" style="--c:#007899"></div>
+    </div>
+    <div class="person-card" data-p="munger">
+      <div class="av lg active" data-p="munger"><div class="av-inner p-munger"></div></div>
+      <div class="person-name">芒格<br><strong>C. Munger</strong></div>
+      <div class="color-dot" style="--c:#A87000"></div>
+    </div>
+    <div class="person-card" data-p="qian">
+      <div class="av lg active" data-p="qian"><div class="av-inner p-qian"></div></div>
+      <div class="person-name">钱学森<br><strong>Qian Xuesen</strong></div>
+      <div class="color-dot" style="--c:#A83838"></div>
+    </div>
+
+    <div class="row-label">科技与组织 · Tech &amp; Organization</div>
+
+    <div class="person-card" data-p="zhang">
+      <div class="av lg active" data-p="zhang"><div class="av-inner p-zhang"></div></div>
+      <div class="person-name">张一鸣<br><strong>Zhang Yiming</strong></div>
+      <div class="color-dot" style="--c:#177870"></div>
+    </div>
+    <div class="person-card" data-p="pg">
+      <div class="av lg active" data-p="pg"><div class="av-inner p-pg"></div></div>
+      <div class="person-name">Paul Graham<br><strong>YC</strong></div>
+      <div class="color-dot" style="--c:#B84A08"></div>
+    </div>
+    <div class="person-card" data-p="karpathy">
+      <div class="av lg active" data-p="karpathy"><div class="av-inner p-karpathy"></div></div>
+      <div class="person-name">Karpathy<br><strong>AI Eng.</strong></div>
+      <div class="color-dot" style="--c:#3E30A8"></div>
+    </div>
+    <div class="person-card" data-p="ilya">
+      <div class="av lg active" data-p="ilya"><div class="av-inner p-ilya"></div></div>
+      <div class="person-name">Ilya<br><strong>Sutskever</strong></div>
+      <div class="color-dot" style="--c:#981A60"></div>
+    </div>
+    <div class="person-card" data-p="mrbeast">
+      <div class="av lg active" data-p="mrbeast"><div class="av-inner p-mrbeast"></div></div>
+      <div class="person-name">MrBeast<br><strong>Creator</strong></div>
+      <div class="color-dot" style="--c:#806400"></div>
+    </div>
+
+    <div class="row-label">哲学与风险 · Philosophy &amp; Risk</div>
+
+    <div class="person-card" data-p="naval">
+      <div class="av lg active" data-p="naval"><div class="av-inner p-naval"></div></div>
+      <div class="person-name">Naval<br><strong>Ravikant</strong></div>
+      <div class="color-dot" style="--c:#14685A"></div>
+    </div>
+    <div class="person-card" data-p="feynman">
+      <div class="av lg active" data-p="feynman"><div class="av-inner p-feynman"></div></div>
+      <div class="person-name">费曼<br><strong>R. Feynman</strong></div>
+      <div class="color-dot" style="--c:#B83840"></div>
+    </div>
+    <div class="person-card" data-p="taleb">
+      <div class="av lg active" data-p="taleb"><div class="av-inner p-taleb"></div></div>
+      <div class="person-name">塔勒布<br><strong>N. Taleb</strong></div>
+      <div class="color-dot" style="--c:#4E2E80"></div>
+    </div>
+    <div class="person-card" data-p="laozi">
+      <div class="av lg active" data-p="laozi"><div class="av-inner p-laozi"></div></div>
+      <div class="person-name">老子<br><strong>Laozi</strong></div>
+      <div class="color-dot" style="--c:#146840"></div>
+    </div>
+    <div class="person-card" data-p="suntzu">
+      <div class="av lg active" data-p="suntzu"><div class="av-inner p-suntzu"></div></div>
+      <div class="person-name">孙子<br><strong>Sun Tzu</strong></div>
+      <div class="color-dot" style="--c:#901808"></div>
+    </div>
+
+    <div class="row-label">执行与价值 · Execution &amp; Value</div>
+
+    <div class="person-card" data-p="brucelee">
+      <div class="av lg active" data-p="brucelee"><div class="av-inner p-brucelee"></div></div>
+      <div class="person-name">李小龙<br><strong>Bruce Lee</strong></div>
+      <div class="color-dot" style="--c:#907200"></div>
+    </div>
+    <div class="person-card" data-p="plato">
+      <div class="av lg active" data-p="plato"><div class="av-inner p-plato"></div></div>
+      <div class="person-name">柏拉图<br><strong>Plato</strong></div>
+      <div class="color-dot" style="--c:#136878"></div>
+    </div>
+    <div class="person-card" data-p="drucker">
+      <div class="av lg active" data-p="drucker"><div class="av-inner p-drucker"></div></div>
+      <div class="person-name">德鲁克<br><strong>P. Drucker</strong></div>
+      <div class="color-dot" style="--c:#5A3E36"></div>
+    </div>
+    <div class="person-card" data-p="buffett">
+      <div class="av lg active" data-p="buffett"><div class="av-inner p-buffett"></div></div>
+      <div class="person-name">巴菲特<br><strong>W. Buffett</strong></div>
+      <div class="color-dot" style="--c:#3E6000"></div>
+    </div>
+    <div class="person-card" data-p="bezos">
+      <div class="av lg active" data-p="bezos"><div class="av-inner p-bezos"></div></div>
+      <div class="person-name">贝索斯<br><strong>Jeff Bezos</strong></div>
+      <div class="color-dot" style="--c:#A03E18"></div>
+    </div>
+
+    <div class="row-label">历史与科学 · History &amp; Science</div>
+
+    <div class="person-card" data-p="oppie">
+      <div class="av lg active" data-p="oppie"><div class="av-inner p-oppie"></div></div>
+      <div class="person-name">奥本海默<br><strong>Oppenheimer</strong></div>
+      <div class="color-dot" style="--c:#344E5C"></div>
+    </div>
+    <div class="person-card" data-p="davinci">
+      <div class="av lg active" data-p="davinci"><div class="av-inner p-davinci"></div></div>
+      <div class="person-name">达芬奇<br><strong>da Vinci</strong></div>
+      <div class="color-dot" style="--c:#4E2280"></div>
+    </div>
+    <div class="person-card" data-p="churchill">
+      <div class="av lg active" data-p="churchill"><div class="av-inner p-churchill"></div></div>
+      <div class="person-name">丘吉尔<br><strong>Churchill</strong></div>
+      <div class="color-dot" style="--c:#785C00"></div>
+    </div>
+    <div class="person-card" data-p="asmith">
+      <div class="av lg active" data-p="asmith"><div class="av-inner p-asmith"></div></div>
+      <div class="person-name">亚当·斯密<br><strong>Adam Smith</strong></div>
+      <div class="color-dot" style="--c:#145C5A"></div>
+    </div>
+    <div class="person-card" data-p="socrates">
+      <div class="av lg active" data-p="socrates"><div class="av-inner p-socrates"></div></div>
+      <div class="person-name">苏格拉底<br><strong>Socrates</strong></div>
+      <div class="color-dot" style="--c:#904040"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ② 四种状态演示 -->
+<div class="section">
+  <div class="sec-title">② 四种状态演示 · 同一印章的不同"能量场"</div>
+  <div class="state-row">
+
+    <div class="state-col">
+      <div class="av xl" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+      <div class="state-label">静止<br>resting</div>
+    </div>
+
+    <div class="state-col">
+      <div class="av xl active" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+      <div class="state-label">激活<br>active</div>
+    </div>
+
+    <div class="state-col">
+      <div class="av xl speaking" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+      <div class="state-label">发言中<br>speaking</div>
+    </div>
+
+    <div class="state-col">
+      <div class="av xl dim" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+      <div class="state-label">旁观<br>dim</div>
+    </div>
+
+    <div style="width:1px;height:120px;background:rgba(0,0,0,.08);align-self:center"></div>
+
+    <!-- 不同人不同颜色的"发言"状态 -->
+    <div class="state-col">
+      <div class="av xl speaking" data-p="mao"><div class="av-inner p-mao"></div></div>
+      <div class="state-label">毛泽东<br>朱红</div>
+    </div>
+    <div class="state-col">
+      <div class="av xl speaking" data-p="laozi"><div class="av-inner p-laozi"></div></div>
+      <div class="state-label">老子<br>松绿</div>
+    </div>
+    <div class="state-col">
+      <div class="av xl speaking" data-p="musk"><div class="av-inner p-musk"></div></div>
+      <div class="state-label">马斯克<br>靛蓝</div>
+    </div>
+    <div class="state-col">
+      <div class="av xl speaking" data-p="taleb"><div class="av-inner p-taleb"></div></div>
+      <div class="state-label">塔勒布<br>深紫</div>
+    </div>
+    <div class="state-col">
+      <div class="av xl speaking" data-p="brucelee"><div class="av-inner p-brucelee"></div></div>
+      <div class="state-label">李小龙<br>赤金</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ③ 圆桌场景 -->
+<div class="section">
+  <div class="sec-title">③ 圆桌场景 · 老子发言 · 乔布斯激活 · 浅色印章版</div>
+  <div class="side-by-side">
+
+  <div>
+    <div class="ring-wrap">
+      <div class="ring-orbit" style="width:380px;height:380px"></div>
+      <div class="ring-orbit ring-orbit-outer" style="width:420px;height:420px"></div>
+
+      <!-- Center host -->
+      <div class="ring-center">🎙️</div>
+
+      <!-- 老子 SPEAKING — top -->
+      <div class="ring-node" style="top:28px;left:230px">
+        <div class="av md speaking" data-p="laozi"><div class="av-inner p-laozi"></div></div>
+        <div class="ring-node-label lit">老子</div>
+      </div>
+
+      <!-- Jobs 60° — active -->
+      <div class="ring-node" style="top:98px;left:372px">
+        <div class="av sm active" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+        <div class="ring-node-label">乔布斯</div>
+      </div>
+
+      <!-- Musk 120° — dim -->
+      <div class="ring-node" style="top:282px;left:390px">
+        <div class="av sm dim" data-p="musk"><div class="av-inner p-musk"></div></div>
+        <div class="ring-node-label">马斯克</div>
+      </div>
+
+      <!-- Mao 180° — dim -->
+      <div class="ring-node" style="top:432px;left:230px">
+        <div class="av sm dim" data-p="mao"><div class="av-inner p-mao"></div></div>
+        <div class="ring-node-label">毛泽东</div>
+      </div>
+
+      <!-- Munger 240° — dim -->
+      <div class="ring-node" style="top:282px;left:70px">
+        <div class="av sm dim" data-p="munger"><div class="av-inner p-munger"></div></div>
+        <div class="ring-node-label">芒格</div>
+      </div>
+
+      <!-- Karpathy 300° — dim -->
+      <div class="ring-node" style="top:98px;left:88px">
+        <div class="av sm dim" data-p="karpathy"><div class="av-inner p-karpathy"></div></div>
+        <div class="ring-node-label">Karpathy</div>
+      </div>
+    </div>
+    <div class="scene-label">老子发言中 · 乔布斯激活 · 其余暗淡</div>
+  </div>
+
+  <!-- Commentary + panel -->
+  <div style="max-width:265px;margin-top:24px">
+    <div style="padding:16px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px">设计逻辑</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.9">
+        印章以<strong style="color:#e34234">朱砂红</strong>为底色统一基调，<br>
+        25人静止时如一排整齐印章——<br>
+        沉默、等待、蓄势。<br><br>
+        开口时，各自的<em>身份色</em>从边框渗出，<br>像印章盖下的瞬间，<br>
+        留下<strong style="color:#1a1a1a">专属的印记</strong>。
+      </div>
+    </div>
+
+    <div class="panel-light">
+      <div class="panel-step-tag">发言 · 老子</div>
+      <div class="panel-title" style="color:#146840">老子</div>
+      <div class="panel-body">
+        致虚极，守静笃。<br>
+        你的问题不在于少做什么，<br>
+        而在于停下来，听见那个<br>
+        已经知道答案的声音。
+      </div>
+      <button class="panel-btn">完整发言 ↗</button>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ④ 尺寸系统 -->
+<div class="section">
+  <div class="sec-title">④ 尺寸系统 · 五种场景</div>
+  <div class="state-row" style="align-items:center">
+    <div class="state-col">
+      <div class="av xl speaking" data-p="mao"><div class="av-inner p-mao"></div></div>
+      <div class="state-label">120px<br>详情/主角</div>
+    </div>
+    <div class="state-col">
+      <div class="av lg active" data-p="zhang"><div class="av-inner p-zhang"></div></div>
+      <div class="state-label">72px<br>调色板</div>
+    </div>
+    <div class="state-col">
+      <div class="av md active" data-p="feynman"><div class="av-inner p-feynman"></div></div>
+      <div class="state-label">48px<br>环形节点</div>
+    </div>
+    <div class="state-col">
+      <div class="av sm active" data-p="laozi"><div class="av-inner p-laozi"></div></div>
+      <div class="state-label">36px<br>列表座位</div>
+    </div>
+    <div class="state-col">
+      <div class="av xs" data-p="socrates"><div class="av-inner p-socrates"></div></div>
+      <div class="state-label">28px<br>角标辅助</div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑤ 深色 vs 浅色 对照 -->
+<div class="section">
+  <div class="sec-title">⑤ 深色写实 vs 浅色印章 · 两套系统的哲学</div>
+  <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap">
+
+    <!-- Dark reference -->
+    <div style="background:#0a0a0a;padding:24px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div style="font-size:8px;color:rgba(255,255,255,.3);letter-spacing:2px">深色 · 写实人像</div>
+      <div style="display:flex;gap:18px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:56px;height:56px;border-radius:50%;background:#1a0a0a;
+            border:2px solid #FF3B3B;
+            box-shadow:0 0 18px rgba(255,59,59,.5);
+            display:flex;align-items:center;justify-content:center;
+            font-size:9px;color:rgba(255,255,255,.25)">写实</div>
+          <div style="font-size:7px;color:rgba(255,255,255,.3)">毛泽东</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:56px;height:56px;border-radius:50%;background:#0a0a1a;
+            border:2px solid #B0B0FF;
+            box-shadow:0 0 18px rgba(176,176,255,.5);
+            display:flex;align-items:center;justify-content:center;
+            font-size:9px;color:rgba(255,255,255,.25)">写实</div>
+          <div style="font-size:7px;color:rgba(255,255,255,.3)">乔布斯</div>
+        </div>
+      </div>
+      <div style="font-size:8px;color:rgba(255,255,255,.18);text-align:center;line-height:1.6">
+        圆形 · 彩色光晕发散<br>现代 · 科技 · 全球
+      </div>
+    </div>
+
+    <div style="font-size:24px;color:rgba(0,0,0,.18)">⇄</div>
+
+    <!-- Light seal -->
+    <div style="background:#f4f3ef;padding:24px;border-radius:14px;border:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px">浅色 · 印章篆刻</div>
+      <div style="display:flex;gap:18px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="av md active" data-p="mao"><div class="av-inner p-mao"></div></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.4)">毛泽东</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="av md speaking" data-p="jobs"><div class="av-inner p-jobs"></div></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.4)">乔布斯</div>
+        </div>
+      </div>
+      <div style="font-size:8px;color:rgba(0,0,0,.25);text-align:center;line-height:1.6">
+        方形印章 · 彩色边框<br>东方 · 人文 · 中国
+      </div>
+    </div>
+
+    <!-- Rationale -->
+    <div style="max-width:230px">
+      <div style="font-size:10px;color:rgba(0,0,0,.5);line-height:1.9">
+        <strong style="color:#1a1a1a;display:block;margin-bottom:6px">一个产品，两套身份</strong>
+        深色 = 现代科技感<br>圆形象征"全球公民"身份<br><br>
+        浅色 = 东方美学<br>印章方形含"盖章·认证"之意<br><br>
+        <em style="color:rgba(0,0,0,.35)">两套共用同一25色身份系统，<br>切换时有认知连续性。</em>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

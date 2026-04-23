@@ -1,0 +1,3500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>参谋 · Roundtable v9</title>
+  <style>
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 参谋 · Roundtable v9 - CSS Framework
+ * 纯黑白极简视觉系统 (Pure B&W Minimalism)
+ * Based on v7 Visual Language - Jobs Aesthetic
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 1. 设计系统变量 / Design Tokens
+ * ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* 核心颜色系统 - 纯黑白 */
+  --c-100: #ffffff;                              /* 纯白 - 主文字、高亮 */
+  --c-85: rgba(255, 255, 255, 0.85);             /* 强调文字 */
+  --c-55: rgba(255, 255, 255, 0.55);             /* 次级文字 */
+  --c-28: rgba(255, 255, 255, 0.28);             /* 弱文字、标签 */
+  --c-15: rgba(255, 255, 255, 0.15);             /* 边框、分隔线 */
+  --c-06: rgba(255, 255, 255, 0.06);             /* 微妙背景 */
+  
+  /* 背景层次 */
+  --bg: #000000;                                 /* 主背景 - 纯黑 */
+  --bg-elevated: rgba(6, 6, 6, 0.97);            /* 面板背景 */
+  --bg-subtle: rgba(255, 255, 255, 0.03);        /* 卡片背景 */
+  --bg-hover: rgba(255, 255, 255, 0.05);         /* 悬停背景 */
+  --bg-active: rgba(255, 255, 255, 0.08);        /* 激活背景 */
+  
+  /* 边框层级 */
+  --border-weak: rgba(255, 255, 255, 0.07);      /* 弱边框 */
+  --border-medium: rgba(255, 255, 255, 0.15);    /* 中边框 */
+  --border-strong: rgba(255, 255, 255, 0.25);    /* 强边框 */
+  --border-glow: rgba(255, 255, 255, 0.35);      /* 发光边框 */
+  
+  /* 轨道环特殊颜色 */
+  --orb-primary: rgba(255, 255, 255, 0.22);      /* 主轨道环 */
+  --orb-secondary: rgba(255, 255, 255, 0.08);    /* 次轨道环 */
+  --orb-tertiary: rgba(255, 255, 255, 0.06);     /* 三级轨道环 */
+  
+  /* 阴影与发光 */
+  --glow-soft: 0 0 20px rgba(255, 255, 255, 0.08);
+  --glow-medium: 0 0 28px rgba(255, 255, 255, 0.12);
+  --glow-strong: 0 0 40px rgba(255, 255, 255, 0.22);
+  --glow-pulse: 0 0 32px rgba(255, 255, 255, 0.5), 0 0 70px rgba(255, 255, 255, 0.25);
+  
+  /* 布局尺寸 */
+  --panel-width: 280px;                          /* 右面板宽度 */
+  --ring-size: 540px;                            /* 星环容器尺寸 */
+  --orb-1-size: 424px;                           /* 主轨道环 */
+  --orb-2-size: 480px;                           /* 次轨道环 */
+  --orb-3-size: 368px;                           /* 内轨道环 */
+  --host-av-size: 64px;                          /* 主持人头像 */
+  --node-av-size: 42px;                          /* 节点头像 */
+  --seat-host-size: 54px;                        /* 圆桌主持人 */
+  --seat-adv-size: 38px;                         /* 圆桌顾问 */
+  
+  /* 字体系统 */
+  --font-base: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'SF Mono', Monaco, monospace;
+  
+  /* 字重 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  
+  /* 字号层级 */
+  --text-xs: 7px;                                /* 微标签 */
+  --text-sm: 8px;                                /* 小标签 */
+  --text-base: 9px;                              /* 基础小字 */
+  --text-md: 10px;                               /* 正文小 */
+  --text-lg: 11px;                               /* 正文 */
+  --text-xl: 12px;                               /* 标题小 */
+  --text-2xl: 14px;                              /* 标题中 */
+  --text-3xl: 18px;                              /* 标题大 */
+  --text-hero: 22px;                             /* 大厅Logo */
+  
+  /* 间距系统 */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+  
+  /* 圆角 */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-full: 50%;
+  
+  /* 过渡动画 */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.35s ease;
+  
+  /* Z-Index 层级 */
+  --z-base: 1;
+  --z-orbit: 10;
+  --z-node: 15;
+  --z-bubble: 30;
+  --z-staff: 25;
+  --z-tracker: 50;
+  --z-toggle: 60;
+  --z-nav-trigger: 90;
+  --z-nav: 100;
+  
+  /* 辅助 */
+  --muted: rgba(255, 255, 255, 0.4);             /* 灰色文字替代 */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 2. 基础重置与全局样式 / Base Reset & Global
+ * ═══════════════════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: var(--font-base);
+  color: var(--c-85);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 3. 布局系统 / Layout System
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 主容器 - 全屏Flex布局 */
+#main {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 场景面板 - 左侧主视觉区 */
+#scene-pane {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: 
+    radial-gradient(ellipse 70% 60% at 50% 42%, rgba(255, 255, 255, 0.025) 0%, var(--bg) 65%);
+}
+
+/* 点阵背景纹理 */
+#scene-pane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--c-06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.4;
+}
+
+/* 右侧面板 - 280px固定宽度 */
+#text-pane {
+  width: var(--panel-width);
+  flex-shrink: 0;
+  border-left: 1px solid var(--border-medium);
+  background: var(--bg-elevated);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 4. Ring 星环布局 / Ring Layout
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#ring-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 星环容器 */
+.ring-wrap {
+  position: relative;
+  width: var(--ring-size);
+  height: var(--ring-size);
+}
+
+/* 同心轨道环 */
+.orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--orb-primary);
+  z-index: var(--z-orbit);
+}
+
+.orb-1 {
+  width: var(--orb-1-size);
+  height: var(--orb-1-size);
+}
+
+.orb-2 {
+  width: var(--orb-2-size);
+  height: var(--orb-2-size);
+  border-color: var(--orb-secondary);
+}
+
+.orb-3 {
+  width: var(--orb-3-size);
+  height: var(--orb-3-size);
+  border-color: var(--orb-tertiary);
+}
+
+/* 中心发光效果 */
+.ring-center-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: var(--z-base);
+}
+
+/* 主持人 - 中心位置 */
+.ring-host {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  z-index: 20;
+}
+
+.ring-host-av {
+  width: var(--host-av-size);
+  height: var(--host-av-size);
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: rgba(14, 14, 14, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.1), 0 0 60px rgba(255, 255, 255, 0.04);
+  transition: all var(--transition-base);
+}
+
+.ring-host:hover .ring-host-av {
+  box-shadow: var(--glow-strong);
+  transform: scale(1.05);
+}
+
+.ring-host-label {
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 2px;
+}
+
+/* 星环节点 - 12个位置由JS计算 */
+.rn {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  z-index: var(--z-node);
+  transform: translate(-50%, -50%);
+  transition: transform var(--transition-base);
+}
+
+.rn:hover {
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.rn-av {
+  width: var(--node-av-size);
+  height: var(--node-av-size);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-medium);
+  background: rgba(10, 10, 10, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  position: relative;
+  transition: all var(--transition-base);
+  backdrop-filter: blur(4px);
+}
+
+.rn-label {
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  transition: color var(--transition-base);
+  text-align: center;
+}
+
+/* 节点状态 */
+.rn.dim .rn-av {
+  opacity: 0.15;
+}
+
+.rn.active .rn-av {
+  border-color: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.14);
+}
+
+.rn.active .rn-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.rn.speaking .rn-av {
+  border-color: var(--c-100);
+  animation: wSpeak 1.6s ease-in-out infinite;
+}
+
+.rn.speaking .rn-av::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.rn.speaking .rn-label {
+  color: var(--c-100);
+}
+
+.rn.done .rn-av {
+  border-color: rgba(255, 255, 255, 0.25);
+  opacity: 0.6;
+}
+
+.rn.done .rn-label {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rn.waiting .rn-av {
+  opacity: 0.08;
+}
+
+.rn.waiting .rn-label {
+  opacity: 0.2;
+}
+
+/* 辩论状态 */
+.rn.pro .rn-av {
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.45), 0 0 50px rgba(255, 255, 255, 0.18) !important;
+  opacity: 1 !important;
+}
+
+.rn.pro .rn-label {
+  color: var(--c-100) !important;
+}
+
+.rn.con .rn-av {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.12) !important;
+  opacity: 0.7 !important;
+}
+
+.rn.con .rn-label {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 5. Table 圆桌布局 / Table Layout
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#table-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 3D透视容器 */
+.tbl-area {
+  position: relative;
+  width: 560px;
+  height: 420px;
+  perspective: 1100px;
+}
+
+/* 圆桌表面 - 42度等轴投影 */
+.tbl-surface {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -46%) rotateX(42deg);
+  width: 340px;
+  height: 185px;
+  border-radius: var(--radius-full);
+  background: 
+    radial-gradient(ellipse at 45% 38%, #161616 0%, #0d0d0d 50%, #080808 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 70px rgba(255, 255, 255, 0.08),
+    0 36px 90px rgba(0, 0, 0, 0.98),
+    inset 0 0 40px rgba(255, 255, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  z-index: 10;
+}
+
+/* 圆桌轨道环 */
+.tbl-ring {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -46%) rotateX(42deg);
+  width: 382px;
+  height: 208px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 9;
+}
+
+.tbl-ring2 {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -46%) rotateX(42deg);
+  width: 310px;
+  height: 168px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--orb-tertiary);
+  z-index: 8;
+}
+
+/* 议题显示 */
+.tbl-topic {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.tbl-topic-l {
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.22);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-1);
+}
+
+.tbl-topic-t {
+  font-size: var(--text-xl);
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: var(--fw-normal);
+  max-width: 160px;
+  line-height: 1.4;
+}
+
+/* 座位 */
+.seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  z-index: var(--z-node);
+  transform: translate(-50%, -50%);
+  transition: transform var(--transition-base);
+}
+
+.seat:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+}
+
+.seat-av {
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-medium);
+  background: rgba(10, 10, 10, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all var(--transition-base);
+  backdrop-filter: blur(4px);
+}
+
+.seat-label {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  transition: color var(--transition-base);
+  text-align: center;
+}
+
+/* 主持人座位 */
+.seat-host .seat-av {
+  width: var(--seat-host-size);
+  height: var(--seat-host-size);
+  font-size: 22px;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+}
+
+.seat-host .seat-label {
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1px;
+}
+
+.seat-host:hover {
+  transform: translate(-50%, -50%) scale(1.06) !important;
+}
+
+/* 顾问座位 */
+.seat-adv .seat-av {
+  width: var(--seat-adv-size);
+  height: var(--seat-adv-size);
+  font-size: 16px;
+}
+
+/* 座位状态 - 复用Ring状态 */
+.seat.dim .seat-av {
+  opacity: 0.15;
+}
+
+.seat.active .seat-av {
+  border-color: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.14);
+}
+
+.seat.active .seat-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.seat.speaking .seat-av {
+  border-color: var(--c-100);
+  animation: wSpeak 1.6s ease-in-out infinite;
+}
+
+.seat.speaking .seat-av::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.seat.speaking .seat-label {
+  color: var(--c-100);
+}
+
+.seat.done .seat-av {
+  border-color: rgba(255, 255, 255, 0.22);
+  opacity: 0.6;
+}
+
+.seat.done .seat-label {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.seat.waiting .seat-av {
+  opacity: 0.08;
+}
+
+.seat.waiting .seat-label {
+  opacity: 0.2;
+}
+
+.seat.pro .seat-av {
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.45), 0 0 50px rgba(255, 255, 255, 0.18) !important;
+  opacity: 1 !important;
+}
+
+.seat.pro .seat-label {
+  color: var(--c-100) !important;
+}
+
+.seat.con .seat-av {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.12) !important;
+  opacity: 0.7 !important;
+}
+
+.seat.con .seat-label {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 6. 场景装饰元素 / Scene Decorations
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 左下角工作人员 - 球童风格 */
+#corner-staff {
+  position: absolute;
+  bottom: 22px;
+  left: 18px;
+  z-index: var(--z-staff);
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.staff-fig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  opacity: 0.5;
+  transition: opacity var(--transition-base);
+  cursor: pointer;
+}
+
+.staff-fig:hover {
+  opacity: 0.85;
+}
+
+.staff-av {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 10, 10, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.staff-label {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* 维度追踪器 - 右上角 */
+#dim-tracker {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  z-index: var(--z-tracker);
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) 11px;
+  backdrop-filter: blur(10px);
+  min-width: 136px;
+  display: none; /* 默认隐藏，s5+显示 */
+}
+
+.dt-title {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 2px;
+  margin-bottom: var(--space-3);
+  text-transform: uppercase;
+}
+
+.dt-bub {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: var(--space-1) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dt-bub:first-of-type {
+  border-top: none;
+}
+
+.dt-bub.sel {
+  color: var(--c-100);
+}
+
+.dt-bub.done {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.dt-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.dt-bub.sel .dt-dot {
+  background: var(--c-100);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.6);
+}
+
+.dt-bub.done .dt-dot {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* 布局切换器 */
+#lt {
+  position: absolute;
+  top: 13px;
+  left: 14px;
+  z-index: var(--z-toggle);
+  display: flex;
+  gap: var(--space-1);
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+  backdrop-filter: blur(10px);
+}
+
+.lt-btn {
+  padding: var(--space-1) 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: var(--text-md);
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.lt-btn.on {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--c-100);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 7. 气泡系统 / Speech Bubbles
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.sbub {
+  position: absolute;
+  z-index: var(--z-bubble);
+  pointer-events: none;
+  padding: var(--space-2) 9px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 165px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 8, 8, 0.9);
+  backdrop-filter: blur(6px);
+  animation: bIn 0.3s ease-out;
+}
+
+.sbub.clickable {
+  pointer-events: auto;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.sbub.clickable:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--c-100);
+}
+
+@keyframes bIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sbub-name {
+  font-size: 7.5px;
+  font-weight: var(--fw-bold);
+  margin-bottom: 2px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.5px;
+}
+
+.sbub-hint {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.25);
+  margin-top: var(--space-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 8. 右面板结构 / Right Panel Structure
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 面板头部 */
+#pane-header {
+  padding: 10px 13px var(--space-3);
+  border-bottom: 1px solid var(--border-weak);
+  flex-shrink: 0;
+}
+
+.pane-brand {
+  font-size: var(--text-lg);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.pstrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pnode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.pnode.done {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pnode.now {
+  color: var(--c-100);
+}
+
+.pdot {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.pnode.done .pdot {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.pnode.now .pdot {
+  background: var(--c-100);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.pline {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  min-width: 3px;
+}
+
+/* 模式栏 */
+#mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) 13px;
+  border-bottom: 1px solid var(--border-weak);
+  flex-shrink: 0;
+  min-height: 28px;
+}
+
+#mode-label {
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.5px;
+}
+
+#mode-back {
+  font-size: 8.5px;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  padding: var(--space-1) 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  display: none; /* 非根模式显示 */
+}
+
+#mode-back:hover {
+  color: var(--c-100);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 面板视图容器 */
+.panel-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+/* 面板底部 */
+#pane-footer {
+  padding: 9px 12px;
+  border-top: 1px solid var(--border-weak);
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  display: none; /* 默认隐藏 */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 9. 视图模式 - Lobby / View: Lobby
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.lobby-hero {
+  padding: 18px 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: var(--space-6);
+  text-align: center;
+}
+
+.lobby-logo {
+  font-size: var(--text-hero);
+  font-weight: var(--fw-bold);
+  color: var(--c-100);
+  letter-spacing: 5px;
+  margin-bottom: var(--space-1);
+}
+
+.lobby-tagline {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 2px;
+}
+
+.lobby-sec {
+  margin-bottom: var(--space-6);
+}
+
+.lobby-sec-hdr {
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.lobby-sec-hdr::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Session 列表项 */
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: var(--space-3) 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.session-item:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.session-item.active-sess {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sess-bullet {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.session-item:hover .sess-bullet {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sess-title {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 155px;
+}
+
+.sess-meta {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.3px;
+}
+
+.sess-bar {
+  width: 34px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sess-bar-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 1px;
+}
+
+/* 人格网格 */
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.persona-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 7px var(--space-1);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.persona-chip:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.persona-chip-av {
+  font-size: 17px;
+}
+
+.persona-chip-name {
+  font-size: 6.5px;
+  color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Lobby 按钮 */
+.lobby-btn {
+  width: 100%;
+  padding: 9px 11px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10.5px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.lobby-btn:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--c-100);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.lobby-btn.primary {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--c-100);
+  font-weight: var(--fw-medium);
+}
+
+.lobby-btn.primary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.lobby-btn-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.lobby-btn-sub {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 10. 视图模式 - Step / View: Step
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.step-content {
+  display: none; /* JS控制显示 */
+}
+
+/* 步骤头部 */
+.sh {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 11px;
+}
+
+.snum {
+  width: 19px;
+  height: 19px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.stitle {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--c-100);
+}
+
+.ssub {
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+/* 输入框 */
+.ginput {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 9px 11px;
+  color: var(--c-85);
+  font-size: var(--text-xl);
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  transition: border-color var(--transition-fast);
+}
+
+.ginput:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ginput-sm {
+  height: 32px;
+  padding: 5px 10px;
+  resize: none;
+}
+
+/* 按钮系统 */
+.btn {
+  padding: var(--space-2) 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-lg);
+  font-weight: var(--fw-medium);
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.btn-w {
+  background: var(--c-100);
+  color: var(--bg);
+}
+
+.btn-w:hover {
+  background: #e8e8e8;
+}
+
+.btn-g {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.btn-g:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 麦克风按钮 */
+.mic {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* 聊天消息 */
+.cmsg {
+  display: flex;
+  gap: 7px;
+  margin-bottom: var(--space-3);
+  align-items: flex-start;
+}
+
+.cmsg.u {
+  flex-direction: row-reverse;
+}
+
+.cbub {
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  max-width: 86%;
+}
+
+.cbub.f {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.cbub.u {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.cav {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+  background: #0a0a0a;
+}
+
+/* 建议框 */
+.sug {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 7px;
+  padding: 10px 11px;
+  margin: 9px 0;
+}
+
+.sug-t {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  margin-bottom: var(--space-2);
+}
+
+/* 勾选框 */
+.p-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.p-check:last-child {
+  border-bottom: none;
+}
+
+.pck-box {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--c-100);
+  transition: all var(--transition-fast);
+}
+
+.p-check.sel .pck-box {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.pck-text {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+}
+
+.p-check.sel .pck-text {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Step 3 特殊组件 */
+.s3-q-block {
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.s3-adv-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+.s3-adv-av {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.s3-adv-name {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--c-100);
+}
+
+.s3-adv-badge {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.s3-question {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.s3-btns {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.s3-done-item {
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  margin-bottom: 5px;
+}
+
+.s3-done-hdr {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.28);
+  margin-bottom: 3px;
+}
+
+.s3-done-ans {
+  font-size: var(--text-md);
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+}
+
+.s3-done-ans.skip {
+  color: rgba(255, 255, 255, 0.18);
+  font-style: italic;
+}
+
+.s3-silent {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0.5;
+}
+
+.s3-silent-av {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+/* Step 4 发言卡片 */
+.ocard {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ocard.on {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ocard-n {
+  font-size: var(--text-xs);
+  margin-bottom: var(--space-1);
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.8px;
+}
+
+.ocard-t {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.55;
+}
+
+/* 打字动画 */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cur::after {
+  content: '▋';
+  animation: blink 0.85s infinite;
+  color: var(--c-100);
+}
+
+/* Step 5 维度卡片 */
+.dcard {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.dcard:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.dcard.sel {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dicon {
+  width: 17px;
+  height: 17px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.dcard.sel .dicon {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dlabel {
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: var(--space-1);
+}
+
+.dtext {
+  font-size: var(--text-md);
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.5;
+}
+
+/* Step 6 辩论消息 */
+.dbmsg {
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+}
+
+.dbmsg-n {
+  font-size: var(--text-xs);
+  margin-bottom: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.dbmsg-t {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.55;
+}
+
+.dbmsg.h {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dbmsg.j {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.dbmsg.pg {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  opacity: 0.5;
+}
+
+/* Step 7 汇总卡片 */
+.scard {
+  padding: 9px 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin-bottom: 7px;
+}
+
+.scard.c {
+  border-left-color: rgba(255, 255, 255, 0.12);
+  opacity: 0.75;
+}
+
+.st {
+  font-size: 10.5px;
+  font-weight: var(--fw-semibold);
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: var(--space-1);
+}
+
+.sb {
+  font-size: var(--text-md);
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.5;
+}
+
+/* Step 8 行动项 */
+.aitem {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.aitem:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.aitem.ck {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.achk {
+  width: 15px;
+  height: 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  transition: all var(--transition-fast);
+}
+
+.aitem.ck .achk {
+  background: var(--c-100);
+  color: var(--bg);
+  border-color: var(--c-100);
+}
+
+.at {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+}
+
+.am {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 11. 视图模式 - Profile / View: Profile
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.prof-av {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 16px auto 8px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.prof-name {
+  text-align: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--c-100);
+  margin-bottom: var(--space-1);
+}
+
+.prof-role {
+  text-align: center;
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: var(--space-6);
+  letter-spacing: 1px;
+}
+
+.prof-sec {
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.28);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: var(--space-6) 0 5px;
+}
+
+.prof-txt {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.44);
+  line-height: 1.6;
+}
+
+.prof-q {
+  border-left: 2px solid rgba(255, 255, 255, 0.18);
+  padding-left: 8px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.34);
+  line-height: 1.6;
+  font-style: italic;
+  margin: 5px 0;
+}
+
+.prof-said {
+  padding: 7px 9px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.44);
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+
+.prof-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  margin: 3px 3px 3px 0;
+  transition: all var(--transition-fast);
+}
+
+.prof-tag:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--c-100);
+}
+
+.prof-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.38);
+  margin: 2px 2px 2px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 12. 视图模式 - Speech / View: Speech
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.speech-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 var(--space-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: var(--space-6);
+}
+
+.speech-av {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  flex-shrink: 0;
+}
+
+.speech-name {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--c-100);
+  margin-bottom: var(--space-1);
+}
+
+.speech-meta {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.5px;
+}
+
+.speech-body {
+  font-size: var(--text-lg);
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.8;
+}
+
+.speech-body h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: rgba(255, 255, 255, 0.7);
+  margin: var(--space-6) 0 5px;
+}
+
+.speech-body strong {
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: var(--fw-semibold);
+}
+
+.speech-body p {
+  margin-bottom: var(--space-3);
+}
+
+.speech-body ul {
+  padding-left: 14px;
+}
+
+.speech-body li {
+  margin-bottom: var(--space-1);
+}
+
+.speech-body blockquote {
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 5px 5px 0;
+  margin: 8px 0;
+  font-size: var(--text-lg);
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 13. 视图模式 - Wiki & Status / View: Wiki & Status
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.view-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--c-100);
+  margin-bottom: 3px;
+}
+
+.view-sub {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: var(--space-6);
+  letter-spacing: 0.5px;
+}
+
+.wiki-entry {
+  padding: 8px 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 5px 5px 0;
+  margin-bottom: 8px;
+}
+
+.wiki-step {
+  font-size: 7.5px;
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 2px;
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+}
+
+.wiki-text {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+.wiki-text ul {
+  padding-left: 13px;
+}
+
+.wiki-text li {
+  margin-bottom: 3px;
+}
+
+/* Status 状态视图 */
+.status-adv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.status-adv-row:last-child {
+  border-bottom: none;
+}
+
+.status-adv-name {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-temp {
+  height: 2px;
+  width: 60px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.status-temp-fill {
+  height: 100%;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.status-note {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+.status-note strong {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 14. 导航系统 / Navigation
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 触发区域 */
+#nav-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: var(--panel-width);
+  height: 8px;
+  z-index: var(--z-nav-trigger);
+}
+
+/* 导航栏 - hover时显现 */
+#nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: var(--panel-width);
+  height: 40px;
+  background: rgba(0, 0, 0, 0.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: var(--space-1);
+  z-index: var(--z-nav);
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity var(--transition-base), transform var(--transition-base);
+  pointer-events: none;
+}
+
+#nav-zone:hover ~ #nav,
+#nav:hover {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: all !important;
+}
+
+.nbrand {
+  color: var(--c-100);
+  font-weight: var(--fw-bold);
+  font-size: 13px;
+  margin-right: 8px;
+  letter-spacing: 1px;
+}
+
+.nbtn {
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 9px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.nbtn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--c-100);
+}
+
+.nbtn.on {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--c-100);
+}
+
+.nav-info {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 15. 动画系统 / Animations
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 呼吸发光 - 发言中效果 */
+@keyframes wSpeak {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(255, 255, 255, 0.9), 0 0 70px rgba(255, 255, 255, 0.28);
+  }
+}
+
+/* 涟漪扩散 */
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* 淡入 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 上滑入 */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 缩放入 */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 16. 响应式适配 / Responsive
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 小屏幕适配 */
+@media (max-width: 1024px) {
+  :root {
+    --panel-width: 260px;
+    --ring-size: 480px;
+    --orb-1-size: 380px;
+    --orb-2-size: 430px;
+    --orb-3-size: 330px;
+  }
+  
+  .ring-wrap {
+    transform: scale(0.9);
+  }
+  
+  .tbl-area {
+    transform: scale(0.9);
+  }
+}
+
+/* 平板尺寸 */
+@media (max-width: 768px) {
+  :root {
+    --panel-width: 100%;
+  }
+  
+  #main {
+    flex-direction: column;
+  }
+  
+  #scene-pane {
+    height: 50vh;
+    flex: none;
+  }
+  
+  #text-pane {
+    width: 100%;
+    height: 50vh;
+    border-left: none;
+    border-top: 1px solid var(--border-medium);
+  }
+  
+  .ring-wrap {
+    transform: scale(0.7);
+  }
+  
+  .tbl-area {
+    transform: scale(0.7);
+  }
+  
+  #nav-zone,
+  #nav {
+    right: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 17. 工具类 / Utilities
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+/* 文本工具 */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flex 工具 */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+/* 边距工具 */
+.mt-2 {
+  margin-top: var(--space-2);
+}
+
+.mt-3 {
+  margin-top: var(--space-3);
+}
+
+.mt-4 {
+  margin-top: var(--space-4);
+}
+
+.mb-2 {
+  margin-bottom: var(--space-2);
+}
+
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+  </style>
+</head>
+<body>
+  <!-- 顶部导航触发区 -->
+  <div id="nav-zone"></div>
+  
+  <!-- 顶部导航栏 -->
+  <div id="nav">
+    <span class="nbrand">参谋</span>
+    <button class="nbtn" data-nav="lobby">大厅</button>
+    <button class="nbtn" data-nav="step">流程</button>
+    <button class="nbtn" data-nav="wiki">记录</button>
+    <span class="nav-info">Roundtable v9</span>
+  </div>
+
+  <!-- 主容器 -->
+  <div id="main">
+    <!-- 场景面板 -->
+    <div id="scene-pane">
+      <!-- 维度追踪器 -->
+      <div id="dim-tracker">
+        <div class="dt-title">冲突维度</div>
+        <div class="dt-bub sel"><span class="dt-dot"></span>内在驱动 vs 外在压力</div>
+        <div class="dt-bub"><span class="dt-dot"></span>AI教练 vs AI内容</div>
+        <div class="dt-bub"><span class="dt-dot"></span>个人痛点 vs 市场机会</div>
+        <div class="dt-bub done"><span class="dt-dot"></span>速度 vs 质量</div>
+      </div>
+      
+      <!-- 角落工作人员 -->
+      <div id="corner-staff">
+        <div class="staff-fig" data-role="secretary">
+          <div class="staff-av">📝</div>
+          <span class="staff-label">秘书</span>
+        </div>
+        <div class="staff-fig" data-role="mediator">
+          <div class="staff-av">⚖️</div>
+          <span class="staff-label">调解</span>
+        </div>
+      </div>
+      
+      <!-- 布局切换 -->
+      <div id="lt">
+        <button class="lt-btn on" data-layout="ring">星环</button>
+        <button class="lt-btn" data-layout="table">圆桌</button>
+      </div>
+      
+      <!-- Ring布局 -->
+      <div id="ring-scene">
+        <div class="ring-wrap">
+          <!-- 轨道环 -->
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+          <div class="orb orb-3"></div>
+          <div class="ring-center-glow"></div>
+          
+          <!-- 主持人 -->
+          <div class="ring-host" data-persona="host">
+            <div class="ring-host-av">👤</div>
+            <span class="ring-host-label">案主</span>
+          </div>
+          
+          <!-- 12位幕僚节点 - 由JS动态生成 -->
+        </div>
+      </div>
+      
+      <!-- Table布局 -->
+      <div id="table-scene" class="hidden">
+        <div class="tbl-area">
+          <div class="tbl-ring"></div>
+          <div class="tbl-ring2"></div>
+          <div class="tbl-surface"></div>
+          <div class="tbl-topic">
+            <div class="tbl-topic-l">议题</div>
+            <div class="tbl-topic-t">AI教育产品方向验证</div>
+          </div>
+          <!-- 座位由JS动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 气泡容器 -->
+      <div id="scene-bubbles"></div>
+    </div>
+
+    <!-- 右侧面板 -->
+    <div id="text-pane">
+      <!-- 面板头部 -->
+      <div id="pane-header">
+        <div class="pane-brand">参谋</div>
+        <div class="pstrip">
+          <div class="pnode done"><span class="pdot"></span>准备</div>
+          <div class="pline"></div>
+          <div class="pnode done"><span class="pdot"></span>界定</div>
+          <div class="pline"></div>
+          <div class="pnode done"><span class="pdot"></span>建仓</div>
+          <div class="pline"></div>
+          <div class="pnode done"><span class="pdot"></span>提炼</div>
+          <div class="pline"></div>
+          <div class="pnode now"><span class="pdot"></span>辩论</div>
+          <div class="pline"></div>
+          <div class="pnode"><span class="pdot"></span>综合</div>
+        </div>
+      </div>
+      
+      <!-- 模式栏 -->
+      <div id="mode-bar">
+        <span id="mode-label">大厅</span>
+        <button id="mode-back">← 返回</button>
+      </div>
+      
+      <!-- 面板内容区 -->
+      <div id="panel-content" class="panel-view">
+        <!-- Lobby视图 -->
+        <div id="view-lobby" class="step-content">
+          <div class="lobby-hero">
+            <div class="lobby-logo">参谋</div>
+            <div class="lobby-tagline">Roundtable v9</div>
+          </div>
+          
+          <div class="lobby-sec">
+            <div class="lobby-sec-hdr">进行中的 Session</div>
+            <div class="session-item active-sess">
+              <span class="sess-bullet">●</span>
+              <div>
+                <div class="sess-title">AI教育产品方向验证</div>
+                <div class="sess-meta">Phase 4 · 45分钟</div>
+              </div>
+              <div class="sess-bar">
+                <div class="sess-bar-fill" style="width: 55%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="lobby-sec">
+            <div class="lobby-sec-hdr">12位幕僚</div>
+            <div class="persona-grid" id="lobby-persona-grid">
+              <!-- 由JS生成 -->
+            </div>
+          </div>
+          
+          <div class="lobby-sec">
+            <div class="lobby-sec-hdr">操作</div>
+            <button class="lobby-btn primary" id="btn-new-session">
+              <span class="lobby-btn-icon">+</span>
+              开始新 Session
+            </button>
+            <button class="lobby-btn" id="btn-history">
+              <span class="lobby-btn-icon">📋</span>
+              历史记录
+              <span class="lobby-btn-sub">12</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step视图 -->
+        <div id="view-step" class="step-content">
+          <div class="sh">
+            <span class="snum">4</span>
+            <span class="stitle">逐冲突深度探讨</span>
+          </div>
+          <div class="ssub">结构化辩论 · Red Team挑战</div>
+          
+          <div class="sug" style="margin-top: 16px;">
+            <div class="sug-t">当前冲突</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.6;">
+              用户动机分歧：成人学习的主要驱动力是内在自我提升需求，还是外在职业压力/社会期望？
+            </div>
+          </div>
+          
+          <div style="margin-top: 16px;">
+            <div style="font-size: 8.5px; color: rgba(255,255,255,0.3); margin-bottom: 8px; letter-spacing: 1px;">发言记录</div>
+            <div class="dbmsg h">
+              <div class="dbmsg-n">JOBS · 正方</div>
+              <div class="dbmsg-t">真正的付费发生在"我想成为那样的人"的那一刻。AI教练的核心价值不是效率，是让用户感受到"我在变得更好"。</div>
+            </div>
+            <div class="dbmsg j">
+              <div class="dbmsg-n">MAO · 反方</div>
+              <div class="dbmsg-t">情感价值是奢侈品。在大环境压力下，"自我提升"是最先被砍掉的预算。</div>
+            </div>
+            <div class="dbmsg pg">
+              <div class="dbmsg-n">BRUCE LEE · 调和者</div>
+              <div class="dbmsg-t">两位的分歧其实不在"动机"，而在"时间尺度"。</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Profile视图 -->
+        <div id="view-profile" class="step-content">
+          <div class="prof-av" id="prof-avatar">🍎</div>
+          <div class="prof-name" id="prof-name">史蒂夫·乔布斯</div>
+          <div class="prof-role" id="prof-role">产品大师</div>
+          
+          <div class="prof-sec">哲学</div>
+          <div class="prof-txt" id="prof-philosophy">Stay Hungry, Stay Foolish</div>
+          <div class="prof-q" id="prof-quote">"你的时间有限，不要浪费在别人的生活里。"</div>
+          
+          <div class="prof-sec">专长</div>
+          <div id="prof-tags">
+            <span class="prof-tag">产品设计</span>
+            <span class="prof-tag">用户体验</span>
+            <span class="prof-tag">极简主义</span>
+          </div>
+          
+          <div class="prof-sec">本轮发言</div>
+          <div class="prof-said" id="prof-speech">真正的付费发生在"我想成为那样的人"的那一刻。</div>
+        </div>
+        
+        <!-- Speech视图 -->
+        <div id="view-speech" class="step-content">
+          <div class="speech-hdr">
+            <div class="speech-av">🍎</div>
+            <div>
+              <div class="speech-name">史蒂夫·乔布斯</div>
+              <div class="speech-meta">产品大师 · 正方立场</div>
+            </div>
+          </div>
+          <div class="speech-body">
+            <p>我见过太多人为"自我提升"付费却从不使用的产品。</p>
+            <p>真正的付费发生在<strong>"我想成为那样的人"</strong>的那一刻。</p>
+            <p>AI教练的核心价值不是效率，是让用户感受到"我在变得更好"。这是情感价值，不是功能价值。</p>
+            <blockquote>用户不知道自己想要什么，直到你把它摆在他们面前。</blockquote>
+          </div>
+        </div>
+        
+        <!-- Wiki视图 -->
+        <div id="view-wiki" class="step-content">
+          <div class="view-title">会议纪要</div>
+          <div class="view-sub">Session #001 · AI教育产品方向验证</div>
+          
+          <div class="wiki-entry">
+            <div class="wiki-step">问题界定</div>
+            <div class="wiki-text">
+              基于你的独特背景（大厂PM经验+AI技术认知），你能为一个具体的用户群体解决什么具体的学习痛苦，而且这个解决方案具有可防御性。
+            </div>
+          </div>
+          
+          <div class="wiki-entry">
+            <div class="wiki-step">核心冲突</div>
+            <div class="wiki-text">
+              <ul>
+                <li>用户动机分歧：内在驱动 vs 外在压力</li>
+                <li>产品形态分歧：AI教练 vs AI内容</li>
+                <li>市场进入分歧：个人痛点 vs 市场机会</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="wiki-entry">
+            <div class="wiki-step">行动项</div>
+            <div class="wiki-text">
+              <ul>
+                <li>访谈10个有相同学习痛苦的用户</li>
+                <li>制作最小AI反馈原型</li>
+                <li>验证付费意愿</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Status视图 -->
+        <div id="view-status" class="step-content">
+          <div class="view-title">局势图</div>
+          <div class="view-sub">各幕僚立场分布</div>
+          
+          <div style="margin-top: 16px;">
+            <div style="font-size: 8.5px; color: rgba(255,255,255,0.3); margin-bottom: 10px; letter-spacing: 1px;">内在驱动 ← → 外在压力</div>
+            <div class="status-adv-row">
+              <span class="status-adv-name">🍎 Steve Jobs</span>
+              <div class="status-temp"><div class="status-temp-fill" style="width: 15%"></div></div>
+            </div>
+            <div class="status-adv-row">
+              <span class="status-adv-name">🥋 Bruce Lee</span>
+              <div class="status-temp"><div class="status-temp-fill" style="width: 25%"></div></div>
+            </div>
+            <div class="status-adv-row">
+              <span class="status-adv-name">💻 Paul Graham</span>
+              <div class="status-temp"><div class="status-temp-fill" style="width: 75%"></div></div>
+            </div>
+            <div class="status-adv-row">
+              <span class="status-adv-name">☀️ Mao</span>
+              <div class="status-temp"><div class="status-temp-fill" style="width: 85%"></div></div>
+            </div>
+          </div>
+          
+          <div class="status-note">
+            <strong>当前阶段:</strong> Phase 4 深度辩论<br>
+            <strong>已用时:</strong> 45分钟 / 预估90分钟<br>
+            <strong>当前冲突:</strong> 用户动机分歧
+          </div>
+        </div>
+      </div>
+      
+      <!-- 面板底部 -->
+      <div id="pane-footer">
+        <button class="btn btn-g" id="btn-prev">← 上一步</button>
+        <button class="btn btn-w" id="btn-next">下一步 →</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+// ============================================================================
+// DATA LAYER - 数据层
+// ============================================================================
+
+// 12位幕僚完整档案
+const PERSONAS = [
+  {
+    id: 'jobs',
+    name: '史蒂夫·乔布斯',
+    nameEn: 'Steve Jobs',
+    avatar: '🍎',
+    role: '产品大师',
+    philosophy: 'Stay Hungry, Stay Foolish',
+    philosophyZh: '求知若饥，虚心若愚',
+    method: '人文与科技的交汇点，追求极致用户体验，化繁为简',
+    values: ['极简主义', '完美主义', '颠覆创新', '用户至上', '整合思维'],
+    quote: '你的时间有限，不要浪费在别人的生活里。不要被教条所限，不要活在别人的观念里。',
+    bio: '苹果联合创始人，皮克斯动画工作室创始人。以极简主义美学和对完美的偏执闻名，重新定义了个人电脑、音乐播放器、智能手机和平板电脑。',
+    tags: ['产品直觉', '用户中心', '整合创新', '设计思维', '极简主义'],
+    style: '直接、尖锐、追求本质',
+    redTeam: false,
+    expertise: ['产品设计', '用户体验', '品牌塑造', '技术与人文融合'],
+    debateStyle: '直指本质，不容忍平庸，用直觉判断好坏'
+  },
+  {
+    id: 'mao',
+    name: '毛泽东',
+    nameEn: 'Mao Zedong',
+    avatar: '☀️',
+    role: '战略家',
+    philosophy: '实事求是，群众路线',
+    philosophyZh: '没有调查就没有发言权',
+    method: '矛盾分析、持久战理论、集中优势兵力打歼灭战',
+    values: ['群众路线', '实事求是', '独立自主', '战略定力', '灵活机动'],
+    quote: '战略上藐视敌人，战术上重视敌人。',
+    bio: '中国共产党、中国人民解放军和中华人民共和国的主要缔造者。以深刻的社会洞察力、非凡的战略眼光著称。',
+    tags: ['战略思维', '群众动员', '矛盾分析', '持久战', '游击战'],
+    style: '宏大叙事，善于从政治和社会维度分析',
+    redTeam: true,
+    expertise: ['战略规划', '社会组织', '政治动员', '矛盾分析'],
+    debateStyle: '从全局出发，强调主要矛盾和矛盾的主要方面'
+  },
+  {
+    id: 'laozi',
+    name: '老子',
+    nameEn: 'Laozi',
+    avatar: '☯️',
+    role: '哲人',
+    philosophy: '道法自然，无为而无不为',
+    philosophyZh: '人法地，地法天，天法道，道法自然',
+    method: '顺势而为、以柔克刚、反者道之动、不争之争',
+    values: ['自然无为', '柔弱胜刚强', '知止不殆', '返璞归真', '上善若水'],
+    quote: '天下之至柔，驰骋天下之至坚。',
+    bio: '道家学派创始人，《道德经》作者。主张顺应自然规律，反对人为强求。',
+    tags: ['道家智慧', '顺势而为', '无为而治', '柔弱胜强', '自然规律'],
+    style: '辩证深邃，善用悖论启发思考',
+    redTeam: false,
+    expertise: ['哲学思辨', '自然规律', '领导力', '内在修养'],
+    debateStyle: '从相反方向思考，揭示被忽视的维度'
+  },
+  {
+    id: 'huineng',
+    name: '六祖慧能',
+    nameEn: 'Hui-neng',
+    avatar: '🪷',
+    role: '禅师',
+    philosophy: '明心见性，顿悟成佛',
+    philosophyZh: '菩提本无树，明镜亦非台',
+    method: '直指人心、见性成佛、不立文字、教外别传',
+    values: ['明心见性', '顿悟直觉', '平常心是道', '直指本质', '破除执着'],
+    quote: '不是风动，不是幡动，仁者心动。',
+    bio: '禅宗六祖，中国佛教史上最具影响力的祖师之一。不识文字却彻悟大道。',
+    tags: ['禅宗智慧', '顿悟', '直指人心', '破除执着', '内在觉醒'],
+    style: '单刀直入，打破概念执着',
+    redTeam: false,
+    expertise: ['心性修养', '直觉洞察', '破除执着', '超越二元'],
+    debateStyle: '跳出框架，用看似荒谬的话打破思维定势'
+  },
+  {
+    id: 'qian',
+    name: '钱学森',
+    nameEn: 'Qian Xuesen',
+    avatar: '🚀',
+    role: '系统科学家',
+    philosophy: '系统思维，综合集成',
+    philosophyZh: '集大成，得智慧',
+    method: '系统工程、综合集成方法、从定性到定量的综合集成',
+    values: ['系统思维', '严谨求证', '综合集成', '长远规划', '家国情怀'],
+    quote: '正确的结果，是从大量错误中得出来的。',
+    bio: '中国航天之父、导弹之父，系统工程学科的奠基人。',
+    tags: ['系统工程', '复杂系统', '严谨求证', '综合集成', '技术战略'],
+    style: '系统严谨，强调分解与集成',
+    redTeam: false,
+    expertise: ['系统工程', '复杂系统', '技术战略', '科研管理'],
+    debateStyle: '要求严密的逻辑链条和可验证的假设'
+  },
+  {
+    id: 'einstein',
+    name: '阿尔伯特·爱因斯坦',
+    nameEn: 'Albert Einstein',
+    avatar: '⚛️',
+    role: '理论物理学家',
+    philosophy: '想象力比知识更重要',
+    philosophyZh: '上帝不掷骰子',
+    method: '思想实验、追求统一理论、质疑常识、从第一原理思考',
+    values: ['好奇心', '独立思考', '追求统一', '质疑权威', '宇宙和谐'],
+    quote: '想象力比知识更重要。知识是有限的，而想象力概括着世界上的一切。',
+    bio: '20世纪最伟大的物理学家，相对论的创立者。以思想实验和直觉洞察著称。',
+    tags: ['第一原理', '思想实验', '追求统一', '直觉洞察', '打破框架'],
+    style: '从第一原理出发，质疑一切成见',
+    redTeam: false,
+    expertise: ['理论物理', '思想实验', '数学直觉', '统一理论'],
+    debateStyle: '质疑基本假设，从最根本的原理重新推导'
+  },
+  {
+    id: 'kk',
+    name: '凯文·凯利',
+    nameEn: 'Kevin Kelly',
+    avatar: '🌐',
+    role: '科技预言家',
+    philosophy: '技术是有生命的，趋势是可预测的',
+    philosophyZh: '未来已来，只是分布不均',
+    method: '趋势观察、长期视角、选择大于预测、拥抱必然',
+    values: ['长期主义', '技术乐观', '分布不均', '选择智慧', '生态思维'],
+    quote: '未来已来，只是分布不均。选择什么样的未来，比预测未来更重要。',
+    bio: '《连线》杂志联合创始人，《失控》《必然》等书作者。',
+    tags: ['技术趋势', '长期视角', '选择智慧', '生态思维', '必然趋势'],
+    style: '温和而坚定，从长期趋势中寻找信号',
+    redTeam: false,
+    expertise: ['技术趋势', '数字文化', '未来学', '生态思维'],
+    debateStyle: '看10年、20年后的趋势，从演化角度思考'
+  },
+  {
+    id: 'pg',
+    name: '保罗·格雷厄姆',
+    nameEn: 'Paul Graham',
+    avatar: '💻',
+    role: '创业导师',
+    philosophy: '做不可扩展的事，做人们想要的东西',
+    philosophyZh: '创业就是解决一个问题，然后规模化',
+    method: '快速迭代、从创始人需求出发、PMF验证、技术驱动创业',
+    values: ['快速迭代', '用户痛点', '技术驱动', '创始人直觉', '反共识'],
+    quote: '做不可扩展的事。创业初期，你要亲自做那些不能规模化的事。',
+    bio: 'Y Combinator联合创始人，硅谷最具影响力的创业导师。',
+    tags: ['创业方法论', 'PMF', '快速迭代', '技术驱动', '反共识'],
+    style: '务实直接，强调可行性和验证',
+    redTeam: true,
+    expertise: ['创业', '产品设计', '技术选型', '早期增长'],
+    debateStyle: '关注可行性和验证，质疑宏大计划'
+  },
+  {
+    id: 'bezos',
+    name: '杰夫·贝索斯',
+    nameEn: 'Jeff Bezos',
+    avatar: '📦',
+    role: '长期主义者',
+    philosophy: '专注于不变的事物，长期优先于短期',
+    philosophyZh: 'Day 1永远第一天',
+    method: '客户至上、长期思维、逆周期投资、飞轮效应、决策分类',
+    values: ['客户痴迷', '长期主义', 'Day 1', '数据驱动', '高标准'],
+    quote: '你的利润就是我的机会。',
+    bio: '亚马逊创始人，以"Day 1"心态和长期思维著称。',
+    tags: ['长期主义', '客户至上', 'Day 1', '飞轮效应', '高标准'],
+    style: '冷静理性，数据驱动，区分一型二型决策',
+    redTeam: false,
+    expertise: ['商业战略', '运营效率', '长期投资', '组织文化'],
+    debateStyle: '问"什么是不变的"，区分可逆和不可逆决策'
+  },
+  {
+    id: 'musk',
+    name: '埃隆·马斯克',
+    nameEn: 'Elon Musk',
+    avatar: '🚀',
+    role: '第一原理思考者',
+    philosophy: '用第一原理思考，不做类比',
+    philosophyZh: '第一原理',
+    method: '第一原理思维、物理极限推演、十倍改进、加速迭代',
+    values: ['第一原理', '物理思维', '十倍改进', '承担风险', '使命驱动'],
+    quote: '第一原理思维是：将事物归结为其最基本的真理，然后从这里开始向上推理。',
+    bio: '特斯拉、SpaceX、Neuralink等公司的创始人。以第一原理思维著称。',
+    tags: ['第一原理', '物理极限', '十倍改进', '风险承担', '使命驱动'],
+    style: '激进直接，从物理极限思考问题',
+    redTeam: false,
+    expertise: ['工程系统', '物理极限', '成本优化', '长期使命'],
+    debateStyle: '追问"物理上可能吗？"，挑战时间估算'
+  },
+  {
+    id: 'brucelee',
+    name: '李小龙',
+    nameEn: 'Bruce Lee',
+    avatar: '🥋',
+    role: '自我实现导师',
+    philosophy: '以无法为有法，以无限为有限',
+    philosophyZh: 'Be Water, My Friend',
+    method: '截拳道、融合各家所长、表达自我、身心合一',
+    values: ['自我表达', '持续修炼', '身心合一', '融合创新', '真诚面对'],
+    quote: '不要思考，要去感受。像水一样吧，我的朋友。',
+    bio: '武术家、哲学家、演员，截拳道创始人。',
+    tags: ['自我实现', '身心合一', '融合创新', '持续修炼', '真诚'],
+    style: '直指内心，强调真诚和自我认知',
+    redTeam: false,
+    expertise: ['自我认知', '身心修炼', '表达自我', '持续精进'],
+    debateStyle: '关注案主的内心状态和真实自我'
+  },
+  {
+    id: 'a16z',
+    name: 'a16z合伙人',
+    nameEn: 'Andreessen Horowitz',
+    avatar: '💰',
+    role: '风险投资家',
+    philosophy: '软件正在吞噬世界，伟大的公司需要时间',
+    philosophyZh: '软件正在吞噬世界',
+    method: 'PMF验证、网络效应、护城河构建、创始人-市场匹配',
+    values: ['技术信仰', '网络效应', '长期陪伴', 'PMF验证', '激进乐观'],
+    quote: '软件正在吞噬世界。每一个行业都将被软件公司重新定义。',
+    bio: 'Marc Andreessen和Ben Horowitz创立的顶级风投机构。',
+    tags: ['风险投资', 'PMF', '网络效应', '技术趋势', '长期陪伴'],
+    style: '激进乐观，看重市场规模和创始人质量',
+    redTeam: true,
+    expertise: ['风险投资', '市场分析', '商业模式', '创业评估'],
+    debateStyle: '追问市场规模、竞争壁垒、创始团队质量'
+  }
+];
+
+// 7层流程定义
+const PHASES = [
+  { id: 0, key: 'pre-session', name: '会前准备', icon: '⚙️', desc: '假设形成 + 幕僚召集' },
+  { id: 1, key: 'problem-definition', name: '问题界定', icon: '◇', desc: '双钻石·菱形1 — 发散→收敛' },
+  { id: 2, key: 'position-staking', name: '独立建仓', icon: '◇◇', desc: 'Delphi两轮独立观点' },
+  { id: 3, key: 'conflict-extraction', name: '冲突提炼', icon: '⚡', desc: '识别3-6个冲突维度' },
+  { id: 4, key: 'structured-debate', name: '逐冲突深度探讨', icon: '◈', desc: '双钻石·菱形2 — 深度发散' },
+  { id: 5, key: 'synthesis', name: '综合与收获', icon: '◆', desc: '双钻石·收敛 + 收获轮' },
+  { id: 6, key: 'capture', name: '归档与飞轮', icon: '🔄', desc: 'Session内归档 + 跨Session飞轮准备' }
+];
+
+// ============================================================================
+// FACILITATION ENGINE - 流程引擎
+// ============================================================================
+
+class EventBus {
+  constructor() {
+    this.events = new Map();
+  }
+
+  on(event, callback) {
+    if (!this.events.has(event)) {
+      this.events.set(event, new Set());
+    }
+    this.events.get(event).add(callback);
+    return () => this.off(event, callback);
+  }
+
+  once(event, callback) {
+    const wrapper = (data) => {
+      callback(data);
+      this.off(event, wrapper);
+    };
+    this.on(event, wrapper);
+  }
+
+  off(event, callback) {
+    if (this.events.has(event)) {
+      this.events.get(event).delete(callback);
+    }
+  }
+
+  emit(event, data) {
+    if (this.events.has(event)) {
+      this.events.get(event).forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`[EventBus] Error in event "${event}":`, error);
+        }
+      });
+    }
+  }
+
+  clear() {
+    this.events.clear();
+  }
+}
+
+class StateManager {
+  constructor() {
+    this.state = {
+      mode: 'lobby',
+      session: {
+        id: null,
+        status: 'idle',
+        phase: 0,
+        step: null,
+        startTime: null,
+        endTime: null,
+      },
+      selections: {
+        project: null,
+        round: null,
+        persona: null,
+        conflict: null,
+      },
+      data: {
+        personas: [],
+        rounds: [],
+        conflicts: [],
+        speeches: [],
+        wiki: '',
+        synthesis: null,
+      },
+      ui: {
+        layout: 'ring',
+        panelOpen: true,
+        dimTrackerVisible: false,
+        activeTab: 'main',
+        notifications: [],
+      }
+    };
+
+    this.eventBus = new EventBus();
+    this.history = [];
+    this.historyIndex = -1;
+    this.maxHistorySize = 50;
+    this.storageKey = 'roundtable_advisor_v9_state';
+    this.autoSave = true;
+    this._init();
+  }
+
+  _init() {
+    const saved = localStorage.getItem(this.storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        this.state = this._mergeDeep(this.state, parsed);
+      } catch (e) {
+        console.warn('[StateManager] Failed to restore state:', e);
+      }
+    }
+  }
+
+  _mergeDeep(target, source) {
+    const output = Object.assign({}, target);
+    if (this._isObject(target) && this._isObject(source)) {
+      Object.keys(source).forEach(key => {
+        if (this._isObject(source[key])) {
+          if (!(key in target)) {
+            Object.assign(output, { [key]: source[key] });
+          } else {
+            output[key] = this._mergeDeep(target[key], source[key]);
+          }
+        } else {
+          Object.assign(output, { [key]: source[key] });
+        }
+      });
+    }
+    return output;
+  }
+
+  _isObject(item) {
+    return item && typeof item === 'object' && !Array.isArray(item);
+  }
+
+  _persist() {
+    if (this.autoSave) {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+    }
+  }
+
+  get(path = null) {
+    if (!path) return JSON.parse(JSON.stringify(this.state));
+    const keys = path.split('.');
+    let result = this.state;
+    for (const key of keys) {
+      if (result === null || result === undefined) return undefined;
+      result = result[key];
+    }
+    return result;
+  }
+
+  set(path, value, options = {}) {
+    const { silent = false } = options;
+    const keys = path.split('.');
+    let target = this.state;
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!(keys[i] in target)) {
+        target[keys[i]] = {};
+      }
+      target = target[keys[i]];
+    }
+    target[keys[keys.length - 1]] = value;
+    this._persist();
+    if (!silent) {
+      this.eventBus.emit('state:change', { path, value });
+      this.eventBus.emit(`state:change:${path}`, { value });
+    }
+  }
+
+  batch(updates, options = {}) {
+    Object.entries(updates).forEach(([path, value]) => {
+      this.set(path, value, { ...options, silent: true });
+    });
+    this.eventBus.emit('state:batch', updates);
+  }
+
+  subscribe(path, callback) {
+    return this.eventBus.on(`state:change:${path}`, callback);
+  }
+
+  clearStorage() {
+    localStorage.removeItem(this.storageKey);
+  }
+}
+
+class ModeSystem {
+  constructor(stateManager) {
+    this.state = stateManager;
+    this.modeConfig = {
+      lobby: { name: '大厅', allowBack: false },
+      step: { name: '流程', allowBack: true },
+      profile: { name: '档案', allowBack: true },
+      speech: { name: '发言', allowBack: true },
+      wiki: { name: '纪要', allowBack: true },
+      status: { name: '局势', allowBack: true },
+    };
+    this.modeStack = [];
+    this.maxStackSize = 10;
+  }
+
+  get currentMode() {
+    return this.state.get('mode');
+  }
+
+  toggleMode(mode, context = {}) {
+    const { pushToStack = true, data = null } = context;
+    
+    if (!this.modeConfig[mode]) {
+      console.error(`[ModeSystem] Unknown mode: ${mode}`);
+      return false;
+    }
+    
+    const previousMode = this.currentMode;
+    if (previousMode === mode) return true;
+    
+    if (pushToStack) {
+      this.modeStack.push({ mode: previousMode, timestamp: Date.now() });
+      if (this.modeStack.length > this.maxStackSize) {
+        this.modeStack.shift();
+      }
+    }
+    
+    this.state.set('mode', mode);
+    this.state.eventBus.emit('mode:change', {
+      from: previousMode,
+      to: mode,
+      data,
+      canGoBack: this.canGoBack(),
+    });
+    return true;
+  }
+
+  goBack() {
+    if (!this.canGoBack()) return false;
+    const previous = this.modeStack.pop();
+    const currentMode = this.currentMode;
+    this.state.set('mode', previous.mode);
+    this.state.eventBus.emit('mode:back', {
+      from: currentMode,
+      to: previous.mode,
+      canGoBack: this.canGoBack(),
+    });
+    return true;
+  }
+
+  backToStep() {
+    if (this.currentMode === 'step') return true;
+    this.modeStack = [];
+    this.state.set('mode', 'step');
+    this.state.eventBus.emit('mode:change', {
+      from: this.currentMode,
+      to: 'step',
+      data: { force: true },
+      canGoBack: false,
+    });
+    return true;
+  }
+
+  canGoBack() {
+    return this.modeStack.length > 0;
+  }
+}
+
+class SessionManager {
+  constructor(stateManager) {
+    this.state = stateManager;
+    this.phases = PHASES;
+    this.autoSaveInterval = null;
+  }
+
+  get currentPhase() {
+    const phaseId = this.state.get('session.phase');
+    return this.phases.find(p => p.id === phaseId);
+  }
+
+  get currentStep() {
+    return this.state.get('session.step');
+  }
+
+  get sessionStatus() {
+    return this.state.get('session.status');
+  }
+
+  startSession(config) {
+    const { projectId, roundId = null, personaIds = [] } = config;
+    const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    this.state.batch({
+      'session.id': sessionId,
+      'session.status': 'running',
+      'session.phase': 0,
+      'session.step': 'init',
+      'session.startTime': Date.now(),
+      'session.endTime': null,
+      'selections.project': projectId,
+      'selections.round': roundId,
+      'mode': 'step',
+    }, { silent: true });
+    
+    if (personaIds.length > 0) {
+      this.state.set('selections.personas', personaIds, { silent: true });
+    }
+    
+    this._startAutoSave();
+    
+    this.state.eventBus.emit('session:start', {
+      sessionId,
+      projectId,
+      roundId,
+      phase: 0,
+      step: 'init',
+    });
+    
+    return {
+      id: sessionId,
+      projectId,
+      roundId,
+      phase: 0,
+      step: 'init',
+    };
+  }
+
+  endSession(options = {}) {
+    const { save = true } = options;
+    if (this.sessionStatus === 'idle') return null;
+    
+    const sessionId = this.state.get('session.id');
+    const endTime = Date.now();
+    
+    this._stopAutoSave();
+    
+    this.state.batch({
+      'session.status': 'completed',
+      'session.endTime': endTime,
+      'mode': 'lobby',
+    }, { silent: true });
+    
+    return { sessionId, endTime };
+  }
+
+  advancePhase() {
+    const currentPhase = this.state.get('session.phase');
+    const nextPhase = currentPhase + 1;
+    
+    if (nextPhase >= this.phases.length) return false;
+    
+    this.state.set('session.phase', nextPhase);
+    this.state.eventBus.emit('phase:advance', {
+      from: currentPhase,
+      to: nextPhase,
+      phaseName: this.phases[nextPhase].name,
+    });
+    return true;
+  }
+
+  _startAutoSave() {
+    if (this.autoSaveInterval) return;
+    this.autoSaveInterval = setInterval(() => {
+      console.log('[SessionManager] Auto-saved');
+    }, 30000);
+  }
+
+  _stopAutoSave() {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+      this.autoSaveInterval = null;
+    }
+  }
+}
+
+class UIController {
+  constructor(stateManager, modeSystem) {
+    this.state = stateManager;
+    this.mode = modeSystem;
+    this.callbacks = new Map();
+    this._initEventListeners();
+  }
+
+  _initEventListeners() {
+    this.state.eventBus.on('mode:change', (data) => {
+      this._onModeChange(data);
+    });
+  }
+
+  selectProject(projectId) {
+    this.state.batch({
+      'selections.project': projectId,
+      'selections.round': null,
+    });
+    this.state.eventBus.emit('project:select', { projectId });
+  }
+
+  selectPersona(personaId, options = {}) {
+    const { openProfile = true } = options;
+    this.state.set('selections.persona', personaId);
+    if (openProfile) {
+      this.mode.toggleMode('profile', { data: { personaId } });
+    }
+    this.state.eventBus.emit('persona:select', { personaId });
+  }
+
+  toggleLayout(layout) {
+    if (!['ring', 'table'].includes(layout)) return;
+    this.state.set('ui.layout', layout);
+    this.state.eventBus.emit('layout:change', { to: layout });
+  }
+
+  openWiki() {
+    this.mode.toggleMode('wiki');
+  }
+
+  openStatus() {
+    this.mode.toggleMode('status');
+  }
+
+  registerCallback(action, callback) {
+    this.callbacks.set(action, callback);
+  }
+
+  _onModeChange(data) {
+    console.log(`[UIController] Mode changed to ${data.to}`);
+  }
+}
+
+// ============================================================================
+// MAIN APPLICATION - 主应用
+// ============================================================================
+
+class RoundtableApp {
+  constructor() {
+    this.state = new StateManager();
+    this.mode = new ModeSystem(this.state);
+    this.session = new SessionManager(this.state);
+    this.ui = new UIController(this.state, this.mode);
+    this.isInitialized = false;
+    
+    // DOM缓存
+    this.dom = {};
+  }
+
+  async init() {
+    if (this.isInitialized) return this;
+    
+    console.log('[RoundtableApp] Initializing...');
+    
+    this._cacheDOM();
+    this._initPersonas();
+    this._bindEvents();
+    this._renderLobby();
+    
+    // 初始显示lobby
+    this._switchView('lobby');
+    
+    this.isInitialized = true;
+    this.state.eventBus.emit('app:ready', { timestamp: Date.now() });
+    console.log('[RoundtableApp] Initialized');
+    return this;
+  }
+
+  _cacheDOM() {
+    this.dom = {
+      ringScene: document.getElementById('ring-scene'),
+      tableScene: document.getElementById('table-scene'),
+      ringWrap: document.querySelector('.ring-wrap'),
+      tblArea: document.querySelector('.tbl-area'),
+      panelContent: document.getElementById('panel-content'),
+      viewLobby: document.getElementById('view-lobby'),
+      viewStep: document.getElementById('view-step'),
+      viewProfile: document.getElementById('view-profile'),
+      viewSpeech: document.getElementById('view-speech'),
+      viewWiki: document.getElementById('view-wiki'),
+      viewStatus: document.getElementById('view-status'),
+      modeLabel: document.getElementById('mode-label'),
+      modeBack: document.getElementById('mode-back'),
+      dimTracker: document.getElementById('dim-tracker'),
+      ltButtons: document.querySelectorAll('.lt-btn'),
+      navButtons: document.querySelectorAll('.nbtn'),
+      lobbyPersonaGrid: document.getElementById('lobby-persona-grid'),
+      paneFooter: document.getElementById('pane-footer'),
+    };
+  }
+
+  _initPersonas() {
+    // 生成Ring节点
+    const ringWrap = this.dom.ringWrap;
+    const radius = 212; // 轨道半径
+    
+    PERSONAS.forEach((persona, index) => {
+      const angle = (index * 30 - 90) * (Math.PI / 180);
+      const x = 50 + (radius / 540) * 50 * Math.cos(angle);
+      const y = 50 + (radius / 540) * 50 * Math.sin(angle);
+      
+      const node = document.createElement('div');
+      node.className = 'rn';
+      node.style.left = `${x}%`;
+      node.style.top = `${y}%`;
+      node.dataset.persona = persona.id;
+      
+      node.innerHTML = `
+        <div class="rn-av">${persona.avatar}</div>
+        <span class="rn-label">${persona.nameEn.split(' ')[0]}</span>
+      `;
+      
+      node.addEventListener('click', () => this._onPersonaClick(persona.id));
+      ringWrap.appendChild(node);
+    });
+
+    // 生成Table座位
+    const tblArea = this.dom.tblArea;
+    const seatCount = PERSONAS.length;
+    const tableRadius = 190;
+    
+    PERSONAS.forEach((persona, index) => {
+      const angle = (index * (360 / seatCount) - 90) * (Math.PI / 180);
+      const x = 50 + (tableRadius / 560) * 100 * Math.cos(angle);
+      const y = 46 + (tableRadius / 420) * 100 * Math.sin(angle) * 0.5;
+      
+      const seat = document.createElement('div');
+      seat.className = 'seat seat-adv';
+      seat.style.left = `${x}%`;
+      seat.style.top = `${y}%`;
+      seat.dataset.persona = persona.id;
+      
+      seat.innerHTML = `
+        <div class="seat-av">${persona.avatar}</div>
+        <span class="seat-label">${persona.nameEn.split(' ')[0]}</span>
+      `;
+      
+      seat.addEventListener('click', () => this._onPersonaClick(persona.id));
+      tblArea.appendChild(seat);
+    });
+
+    // 主持人座位
+    const hostSeat = document.createElement('div');
+    hostSeat.className = 'seat seat-host';
+    hostSeat.style.left = '50%';
+    hostSeat.style.top = '46%';
+    hostSeat.innerHTML = `
+      <div class="seat-av">👤</div>
+      <span class="seat-label">案主</span>
+    `;
+    tblArea.appendChild(hostSeat);
+  }
+
+  _bindEvents() {
+    // 布局切换
+    this.dom.ltButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layout = btn.dataset.layout;
+        this.ui.toggleLayout(layout);
+      });
+    });
+
+    // 导航按钮
+    this.dom.navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const nav = btn.dataset.nav;
+        if (nav === 'lobby') this.mode.toggleMode('lobby');
+        else if (nav === 'step') this.mode.backToStep();
+        else if (nav === 'wiki') this.ui.openWiki();
+      });
+    });
+
+    // 模式返回按钮
+    this.dom.modeBack.addEventListener('click', () => {
+      this.mode.goBack();
+    });
+
+    // 监听状态变化
+    this.state.eventBus.on('mode:change', (data) => {
+      this._switchView(data.to);
+      this._updateModeUI(data);
+    });
+
+    this.state.eventBus.on('layout:change', (data) => {
+      this._switchLayout(data.to);
+    });
+
+    // 新Session按钮
+    document.getElementById('btn-new-session')?.addEventListener('click', () => {
+      this.session.startSession({ projectId: 'proj_1' });
+      this.mode.backToStep();
+    });
+  }
+
+  _renderLobby() {
+    const grid = this.dom.lobbyPersonaGrid;
+    if (!grid) return;
+    
+    PERSONAS.forEach(persona => {
+      const chip = document.createElement('div');
+      chip.className = 'persona-chip';
+      chip.innerHTML = `
+        <span class="persona-chip-av">${persona.avatar}</span>
+        <span class="persona-chip-name">${persona.nameEn.split(' ')[0]}</span>
+      `;
+      chip.addEventListener('click', () => this._onPersonaClick(persona.id));
+      grid.appendChild(chip);
+    });
+  }
+
+  _onPersonaClick(personaId) {
+    const persona = PERSONAS.find(p => p.id === personaId);
+    if (!persona) return;
+    
+    // 更新Profile视图
+    document.getElementById('prof-avatar').textContent = persona.avatar;
+    document.getElementById('prof-name').textContent = persona.name;
+    document.getElementById('prof-role').textContent = persona.role;
+    document.getElementById('prof-philosophy').textContent = persona.philosophy;
+    document.getElementById('prof-quote').textContent = `"${persona.quote}"`;
+    
+    const tagsContainer = document.getElementById('prof-tags');
+    tagsContainer.innerHTML = persona.expertise.map(tag => 
+      `<span class="prof-tag">${tag}</span>`
+    ).join('');
+    
+    this.ui.selectPersona(personaId);
+  }
+
+  _switchView(mode) {
+    // 隐藏所有视图
+    Object.values(this.dom).forEach(el => {
+      if (el?.classList?.contains('step-content')) {
+        el.style.display = 'none';
+      }
+    });
+    
+    // 显示对应视图
+    const viewMap = {
+      lobby: this.dom.viewLobby,
+      step: this.dom.viewStep,
+      profile: this.dom.viewProfile,
+      speech: this.dom.viewSpeech,
+      wiki: this.dom.viewWiki,
+      status: this.dom.viewStatus,
+    };
+    
+    const view = viewMap[mode];
+    if (view) {
+      view.style.display = 'block';
+    }
+    
+    // 更新模式标签
+    const modeNames = {
+      lobby: '大厅',
+      step: '流程',
+      profile: '档案',
+      speech: '发言',
+      wiki: '纪要',
+      status: '局势',
+    };
+    this.dom.modeLabel.textContent = modeNames[mode] || mode;
+    
+    // 显示/隐藏返回按钮
+    this.dom.modeBack.style.display = mode === 'lobby' ? 'none' : 'block';
+    
+    // 显示/隐藏底部按钮
+    this.dom.paneFooter.style.display = mode === 'step' ? 'flex' : 'none';
+  }
+
+  _switchLayout(layout) {
+    if (layout === 'ring') {
+      this.dom.ringScene.classList.remove('hidden');
+      this.dom.tableScene.classList.add('hidden');
+    } else {
+      this.dom.ringScene.classList.add('hidden');
+      this.dom.tableScene.classList.remove('hidden');
+    }
+    
+    // 更新切换按钮状态
+    this.dom.ltButtons.forEach(btn => {
+      btn.classList.toggle('on', btn.dataset.layout === layout);
+    });
+  }
+
+  _updateModeUI(data) {
+    console.log(`[App] Switched from ${data.from} to ${data.to}`);
+  }
+}
+
+// ============================================================================
+// INITIALIZATION - 初始化
+// ============================================================================
+
+// Mock localStorage for browsers that block it
+if (typeof window !== 'undefined') {
+  try {
+    const testKey = '__test__';
+    localStorage.setItem(testKey, testKey);
+    localStorage.removeItem(testKey);
+  } catch (e) {
+    console.warn('localStorage not available, using memory fallback');
+    window.localStorage = {
+      data: new Map(),
+      getItem(key) { return this.data.get(key) || null; },
+      setItem(key, value) { this.data.set(key, value); },
+      removeItem(key) { this.data.delete(key); },
+    };
+  }
+}
+
+// 启动应用
+const app = new RoundtableApp();
+app.init();
+
+// 全局访问
+window.RoundtableApp = RoundtableApp;
+window.roundtableApp = app;
+</script>
+</body>
+</html>

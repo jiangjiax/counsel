@@ -1,0 +1,60 @@
+/* ════════════════════════════════════════════════════════
+   BASE & RESET
+════════════════════════════════════════════════════════ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  color: #f0f0f0;
+}
+
+:root {
+  --muted: #6a6a6a;
+  --primary: #fff;
+  --bg-dark: #000;
+  --bg-panel: rgba(6, 6, 6, 0.97);
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes bIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes wSpeak {
+  0%, 100% { box-shadow: 0 0 18px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.15); }
+  50% { box-shadow: 0 0 32px rgba(255,255,255,0.9), 0 0 70px rgba(255,255,255,0.28); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.cur::after {
+  content: '▋';
+  animation: blink 0.85s infinite;
+  color: #fff;
+}

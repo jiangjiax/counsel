@@ -1,0 +1,591 @@
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100vh;background:#0a0a0a;font-family:-apple-system,'PingFang SC','Hiragino Sans GB','Source Han Sans SC',sans-serif;color:#f0f0f0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+:root{--muted:#6a6a6a;--bg:#0a0a0a;--text:rgba(255,255,255,.78);--text-strong:rgba(255,255,255,.95);--text-soft:rgba(255,255,255,.55);--line:rgba(255,255,255,.1);--line-soft:rgba(255,255,255,.06);--line-strong:rgba(255,255,255,.22)}
+
+/* ══ LAYOUT ═══════════════════════════════ */
+#app{max-width:760px;margin:0 auto;padding:24px 20px 80px;min-height:100vh}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:10px;flex-wrap:wrap}
+.brand{font-size:13px;color:rgba(255,255,255,.55);letter-spacing:3px;text-transform:uppercase;font-weight:500}
+.settings-btn{background:transparent;border:1px solid var(--line);color:var(--text-soft);padding:6px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.settings-btn:hover{border-color:var(--line-strong);color:#fff}
+.settings-btn-primary{background:rgba(176,176,255,.12);border-color:rgba(176,176,255,.35);color:rgba(255,255,255,.9);font-weight:500}
+.settings-btn-primary:hover{background:rgba(176,176,255,.22);border-color:rgba(176,176,255,.6);color:#fff}
+
+/* Project continuation banner (Step 1, when user clicks "+ 新一轮追踪") */
+.project-banner{background:rgba(176,176,255,.08);border:1px solid rgba(176,176,255,.35);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.project-banner-text{flex:1;min-width:0}
+.project-banner-label{font-size:11px;color:rgba(176,176,255,.75);letter-spacing:.4px;margin-bottom:3px;font-weight:500}
+.project-banner-name{font-size:14px;color:#fff;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-banner-clear{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.project-banner-clear:hover{border-color:rgba(255,255,255,.45);color:#fff}
+
+/* Per-project "新一轮" button inside Problem Library */
+.pl-project-new{background:rgba(176,176,255,.12);border:1px solid rgba(176,176,255,.3);color:rgba(176,176,255,.95);padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s;font-weight:500}
+.pl-project-new:hover{background:rgba(176,176,255,.22);border-color:rgba(176,176,255,.55);color:#fff}
+
+/* Problem Library on Step 1 home (主页问题库) */
+.problem-library{margin-top:40px;padding-top:28px;border-top:1px solid var(--line-soft)}
+.problem-library-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.problem-library-title{font-size:15px;font-weight:600;color:var(--text-strong);letter-spacing:.3px}
+.problem-library-sub{font-size:12px;color:var(--text-soft);margin-top:3px}
+.problem-library-empty{font-size:13px;color:rgba(255,255,255,.45);padding:20px 14px;text-align:center;line-height:1.8;background:rgba(255,255,255,.015);border:1px dashed var(--line);border-radius:8px}
+.pl-project{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:9px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.pl-project:hover{border-color:rgba(255,255,255,.22)}
+.pl-project.open{border-color:rgba(176,176,255,.35);background:rgba(176,176,255,.03)}
+.pl-project-head{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;user-select:none}
+.pl-chev{font-size:11px;color:rgba(255,255,255,.4);width:12px;transition:transform .2s;flex-shrink:0}
+.pl-project.open .pl-chev{transform:rotate(90deg);color:rgba(176,176,255,.9)}
+.pl-project-name{flex:1;font-size:14px;font-weight:500;color:var(--text);line-height:1.5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-project-meta{font-size:11px;color:rgba(255,255,255,.38);display:flex;gap:8px;align-items:center;flex-shrink:0}
+.pl-project-count{background:rgba(255,255,255,.07);color:rgba(255,255,255,.65);padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:500}
+.pl-sessions{display:none;padding:0 16px 14px 40px;border-top:1px solid var(--line-soft)}
+.pl-project.open .pl-sessions{display:block}
+.pl-session{padding:12px 14px;margin-top:10px;background:rgba(255,255,255,.02);border:1px solid var(--line-soft);border-radius:7px;cursor:pointer;transition:all .2s}
+.pl-session:hover{border-color:rgba(176,176,255,.4);background:rgba(176,176,255,.05)}
+.pl-session.current{border-color:rgba(78,205,196,.5);background:rgba(78,205,196,.06)}
+.pl-session-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.pl-session-date{font-size:11px;color:rgba(255,255,255,.4);white-space:nowrap;flex-shrink:0}
+.pl-session-step{font-size:10px;padding:2px 7px;border-radius:9px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-weight:500}
+.pl-session-step.done{background:rgba(78,205,196,.12);color:rgba(78,205,196,.9)}
+.pl-session-summary{font-size:12.5px;color:rgba(255,255,255,.65);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pl-session-summary.loading{color:rgba(255,255,255,.3);font-style:italic}
+
+/* Follow-up badge (Phase 2.3) */
+#followup-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:4px;background:#ff6b6b;color:#fff;border-radius:8px;font-size:10px;font-weight:600;line-height:1}
+
+/* Follow-up item card */
+.fu-card{background:rgba(255,224,102,.06);border:1px solid rgba(255,224,102,.28);border-radius:9px;padding:14px 16px;margin-bottom:12px}
+.fu-meta{display:flex;gap:10px;align-items:baseline;margin-bottom:8px;font-size:11.5px;color:rgba(255,255,255,.5)}
+.fu-days{background:rgba(255,140,66,.18);color:rgba(255,180,120,.95);padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;letter-spacing:.3px}
+.fu-todo{font-size:14.5px;color:var(--text-strong);line-height:1.65;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line-soft)}
+.fu-status-label{font-size:12px;color:rgba(255,255,255,.68);margin-bottom:6px;font-weight:500}
+.fu-status-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fu-status-opt{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text-soft);padding:5px 11px;border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.fu-status-opt:hover{border-color:rgba(255,255,255,.35);color:#fff}
+.fu-status-opt.sel{background:rgba(176,176,255,.2);border-color:rgba(176,176,255,.6);color:#fff;font-weight:500}
+.fu-reply{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:10px 12px;color:#f5f5f5;font-size:13.5px;line-height:1.7;resize:vertical;min-height:60px;outline:none;font-family:inherit;margin-bottom:10px}
+.fu-reply:focus{border-color:rgba(176,176,255,.45)}
+.fu-reply::placeholder{color:rgba(255,255,255,.22)}
+.fu-submit{font-size:12.5px;padding:6px 14px}
+.fu-empty{font-size:13px;color:rgba(255,255,255,.5);padding:20px;text-align:center;line-height:1.8}
+.fu-card.submitted{opacity:.55;background:rgba(78,205,196,.05);border-color:rgba(78,205,196,.22)}
+.fu-card.submitted .fu-submit{display:none}
+
+/* ── Progress bar ── */
+.progress{display:flex;align-items:center;gap:0;margin-bottom:16px}
+.pdot{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.28);flex-shrink:0;transition:all .3s;cursor:pointer;font-weight:500}
+.pdot.done{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.65)}
+.pdot.now{background:rgba(255,255,255,.14);border-color:#fff;color:#fff;box-shadow:0 0 10px rgba(255,255,255,.22)}
+.pline{flex:1;height:1px;background:var(--line-soft);min-width:4px}
+
+/* ── Advisor bar ── */
+.advisor-bar{display:flex;align-items:center;gap:7px;padding:0 0 18px;flex-wrap:wrap}
+.advisor-chip{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px 5px 7px;border-radius:16px;
+  background:rgba(255,255,255,.025);border:1px solid var(--line-soft);
+  transition:all .35s;
+}
+.advisor-chip.active{border-color:var(--c);background:rgba(255,255,255,.045)}
+.advisor-chip.speaking{border-color:var(--c);box-shadow:0 0 12px var(--c-glow2);animation:chipPulse 2s ease-in-out infinite}
+@keyframes chipPulse{0%,100%{box-shadow:0 0 8px var(--c-glow2)}50%{box-shadow:0 0 16px var(--c-glow)}}
+.chip-dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex-shrink:0;opacity:.55;transition:opacity .3s}
+.advisor-chip.active .chip-dot,.advisor-chip.speaking .chip-dot{opacity:1}
+.chip-name{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:.3px;transition:color .3s;font-weight:500}
+.advisor-chip.active .chip-name{color:rgba(255,255,255,.7)}
+.advisor-chip.speaking .chip-name{color:var(--c)}
+
+/* ── Step containers ── */
+.step{display:none;animation:fadeIn .3s ease}
+.step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.snum{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.8);flex-shrink:0;font-weight:600}
+.stitle{font-size:16px;font-weight:600;color:#fff;letter-spacing:.3px}
+.ssub{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.2px}
+
+/* ── Inputs & Buttons ── */
+.ginput{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:7px;padding:12px 14px;color:#f5f5f5;font-size:14px;line-height:1.7;resize:none;outline:none;font-family:inherit;transition:border-color .2s}
+.ginput:focus{border-color:rgba(255,255,255,.32)}
+.ginput::placeholder{color:rgba(255,255,255,.22)}
+
+.btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;font-family:inherit;letter-spacing:.2px}
+.btn-w{background:#fff;color:#000}
+.btn-w:hover{background:#e8e8e8}
+.btn-w:disabled{background:rgba(255,255,255,.2);color:rgba(0,0,0,.4);cursor:not-allowed}
+.btn-g{background:transparent;border:1px solid var(--line);color:var(--text-soft)}
+.btn-g:hover{border-color:var(--line-strong);color:rgba(255,255,255,.82)}
+
+/* ── Chat bubbles (Step 2) ── */
+.cmsg{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
+.cmsg.u{flex-direction:row-reverse}
+.cbub{padding:11px 15px;border-radius:10px;font-size:14px;line-height:1.75;max-width:86%}
+.cbub.f{background:rgba(255,255,255,.055);border:1px solid var(--line);color:var(--text)}
+.cbub.u{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);color:var(--text)}
+.cav{width:30px;height:30px;border-radius:50%;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:#0a0a0a}
+/* Streaming-in-progress indicator: a soft breathing dot.
+ * Applied via `.cur` class on any element that is currently receiving
+ * stream chunks. Replaces the old typewriter cursor (▍) with a calmer
+ * meditation-like pulse — signals "AI is still thinking, relax." */
+.cur::after{
+  content:'●';
+  display:inline-block;
+  margin-left:6px;
+  vertical-align:middle;
+  font-size:.7em;
+  color:rgba(176,176,255,.65);
+  animation:streamBreathe 2.2s cubic-bezier(.4,0,.2,1) infinite;
+  text-shadow:0 0 8px rgba(176,176,255,.4);
+}
+@keyframes streamBreathe{
+  0%,100%{opacity:.25;transform:scale(.7)}
+  50%{opacity:1;transform:scale(1.05)}
+}
+
+/* ── Persona cards (S3/S4 opinions) ── */
+.ocard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:12px;transition:all .3s}
+.ocard.on{border-color:rgba(255,255,255,.22)}
+.ocard-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ocard-h .ocard-n{margin-bottom:0}
+.ocard-n{font-size:13px;font-weight:600;color:rgba(255,255,255,.72);margin-bottom:8px;letter-spacing:.4px}
+.ocard-t{font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap}
+
+/* ── Dimension cards (S5) ── */
+.dcard{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.dcard:hover{border-color:rgba(255,255,255,.22)}
+.dcard.sel{border-color:rgba(255,255,255,.38);background:rgba(255,255,255,.055)}
+.dcard .dbody{flex:1;min-width:0}
+.dicon{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:rgba(255,255,255,.32);margin-top:2px}
+.dcard.sel .dicon{border-color:#fff;color:#fff;background:rgba(255,255,255,.1)}
+.dlabel{font-size:14.5px;font-weight:600;color:rgba(255,255,255,.82);letter-spacing:.3px;margin-bottom:6px}
+.dcard.sel .dlabel{color:#fff}
+.dtext{font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;transition:max-height .25s}
+.dcard.expanded .dtext{display:block;-webkit-line-clamp:unset}
+.dtext p{margin-bottom:8px}
+.dtext p:last-child{margin-bottom:0}
+.dexpand{margin-top:8px;background:transparent;border:none;color:rgba(176,176,255,.7);font-size:12px;cursor:pointer;padding:2px 0;font-family:inherit;letter-spacing:.3px}
+.dexpand:hover{color:#fff;text-decoration:underline}
+
+/* ── Debate messages (S6) ── */
+.dbmsg{padding:14px 16px;background:rgba(255,255,255,.025);border:1px solid var(--line-soft);border-radius:8px;margin-bottom:10px}
+.dbmsg.h{border-color:var(--line);background:rgba(255,255,255,.045)}
+.dbmsg-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dbmsg-h .dbmsg-n{margin-bottom:0}
+.dbmsg-n{font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:6px;letter-spacing:.4px}
+.dbmsg-t{font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap}
+
+/* ── Dimension sections (S6 multi-dim debate) ── */
+.dim-section{border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:18px;background:rgba(255,255,255,.015);transition:border-color .3s}
+.dim-section.active{border-color:rgba(176,176,255,.45);box-shadow:0 0 0 1px rgba(176,176,255,.15),0 0 24px rgba(176,176,255,.08)}
+.dim-section.done{opacity:.92}
+.dim-header{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.dim-badge{font-size:11px;font-weight:600;color:rgba(176,176,255,.85);background:rgba(176,176,255,.1);padding:3px 9px;border-radius:10px;letter-spacing:.4px;white-space:nowrap;flex-shrink:0}
+.dim-section.done .dim-badge{color:rgba(255,255,255,.55);background:rgba(255,255,255,.07)}
+.dim-title{font-size:14.5px;font-weight:600;color:var(--text-strong);line-height:1.5;letter-spacing:.2px;flex:1;min-width:0}
+.dim-body{display:flex;flex-direction:column;gap:0}
+.dim-body .dbmsg{margin-bottom:10px}
+.dim-body .dbmsg:last-child{margin-bottom:0}
+
+/* ── Harvest cards (S8) ── */
+.scard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:14px}
+.st{font-size:13px;font-weight:600;color:rgba(255,255,255,.72);margin-bottom:12px;letter-spacing:.4px}
+.sb{font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap}
+
+/* ── Interactive To-Do list (S8) ── */
+.todo-list{display:flex;flex-direction:column;gap:10px}
+.todo-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;background:rgba(255,255,255,.025);border:1px solid var(--line-soft);border-radius:7px;cursor:pointer;transition:all .2s}
+.todo-item:hover{border-color:var(--line);background:rgba(255,255,255,.04)}
+.todo-item input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid rgba(255,255,255,.32);border-radius:4px;background:transparent;cursor:pointer;position:relative;flex-shrink:0;margin-top:2px;transition:all .2s}
+.todo-item input[type="checkbox"]:hover{border-color:rgba(255,255,255,.55)}
+.todo-item input[type="checkbox"]:checked{background:#fff;border-color:#fff}
+.todo-item input[type="checkbox"]:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);color:#000;font-size:12px;font-weight:700;line-height:1}
+.todo-text{font-size:14px;color:var(--text);line-height:1.7;flex:1}
+.todo-text strong{color:var(--text-strong);font-weight:600}
+.todo-item.done{background:rgba(255,255,255,.015);border-color:var(--line-soft);opacity:.55}
+.todo-item.done .todo-text{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3)}
+
+/* ── Client Achievement inputs (S8) ── */
+.achievement-item{margin-bottom:14px}
+.achievement-item:last-child{margin-bottom:0}
+.achievement-item label{display:block;font-size:13px;color:rgba(255,255,255,.78);margin-bottom:7px;font-weight:500;letter-spacing:.2px}
+.achievement-item textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:11px 13px;color:#f5f5f5;font-size:14px;line-height:1.75;resize:vertical;min-height:72px;outline:none;font-family:inherit;transition:border-color .2s}
+.achievement-item textarea:focus{border-color:rgba(176,176,255,.45)}
+.achievement-item textarea::placeholder{color:rgba(255,255,255,.22)}
+.achievement-hint{font-size:13px;color:rgba(255,255,255,.65);line-height:1.75;margin-bottom:14px;padding:10px 14px;background:rgba(176,176,255,.05);border-left:3px solid rgba(176,176,255,.5);border-radius:0 6px 6px 0}
+
+/* ── Reflection panel (S8 top card) ── */
+.reflection-panel{background:rgba(176,176,255,.04);border-color:rgba(176,176,255,.22)}
+.reflection-panel .st{font-size:14px;color:rgba(176,176,255,.95)}
+.reflection-panel .btn-full{margin-top:16px}
+
+/* ── Pre-Mortem card (Phase 4.4, Step 6.5 shown in Step 7 UI) ── */
+.premortem-card{background:rgba(255,140,66,.04);border-color:rgba(255,140,66,.25)}
+.premortem-card .st{color:rgba(255,180,120,.95)}
+.summary-card{background:rgba(255,255,255,.035)}
+
+/* ── Phrase-level highlight (Phase 2.13 — 2026-04-22 upgrade) ── */
+
+/* Highlighted phrase marks */
+mark.r-star{background:rgba(255,224,102,.25);color:inherit;border-bottom:2px solid rgba(255,224,102,.7);padding:1px 2px;border-radius:2px;cursor:help}
+mark.r-bang{background:rgba(255,80,80,.22);color:inherit;border-bottom:2px solid rgba(255,80,80,.75);padding:1px 2px;border-radius:2px;cursor:help}
+mark.r-note{background:rgba(176,176,255,.22);color:inherit;border-bottom:2px solid rgba(176,176,255,.8);padding:1px 2px;border-radius:2px;cursor:help}
+mark.r-star:hover,mark.r-bang:hover,mark.r-note:hover{filter:brightness(1.25)}
+
+/* Floating toolbar — appears near selection */
+#phrase-toolbar{position:absolute;z-index:200;display:none;gap:4px;padding:6px;background:rgba(18,18,26,.96);border:1px solid rgba(255,255,255,.25);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.6);backdrop-filter:blur(6px);user-select:none}
+#phrase-toolbar .pt-btn{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);padding:6px 11px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;letter-spacing:.2px}
+#phrase-toolbar .pt-btn:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}
+
+/* Inline note editor — appears below selection when 📝 clicked */
+#phrase-note-editor{position:absolute;z-index:200;display:none;width:340px;padding:14px;background:rgba(18,18,26,.98);border:1px solid rgba(176,176,255,.4);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.7);backdrop-filter:blur(6px)}
+#phrase-note-editor .pne-snippet{font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:rgba(176,176,255,.08);border-left:2px solid rgba(176,176,255,.6);border-radius:0 5px 5px 0;max-height:80px;overflow:hidden;font-style:italic}
+#phrase-note-editor .pne-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:10px 12px;color:#f5f5f5;font-size:13.5px;line-height:1.7;resize:vertical;min-height:64px;outline:none;font-family:inherit;transition:border-color .2s}
+#phrase-note-editor .pne-input:focus{border-color:rgba(176,176,255,.6)}
+#phrase-note-editor .pne-input::placeholder{color:rgba(255,255,255,.25)}
+#phrase-note-editor .pne-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+#phrase-note-editor .pne-btns .btn{padding:6px 14px;font-size:12.5px}
+
+/* Hint when hovering over markable text (subtle) */
+[data-markable]{cursor:text}
+[data-markable]::selection,[data-markable] *::selection{background:rgba(176,176,255,.35);color:#fff}
+
+/* ── Markdown rendered ── */
+.md-body{font-size:14px;color:var(--text);line-height:1.85}
+.md-body p{margin-bottom:12px}
+.md-body p:last-child{margin-bottom:0}
+.md-body h1,.md-body h2,.md-body h3,.md-body h4{font-weight:600;color:var(--text-strong);margin:18px 0 10px;letter-spacing:.2px;line-height:1.4}
+.md-body h1:first-child,.md-body h2:first-child,.md-body h3:first-child{margin-top:0}
+.md-body h1{font-size:17px}
+.md-body h2{font-size:16px}
+.md-body h3{font-size:15px}
+.md-body h4{font-size:14px}
+.md-body ul,.md-body ol{padding-left:22px;margin-bottom:12px}
+.md-body li{margin-bottom:6px;line-height:1.8}
+.md-body li>p{margin-bottom:6px}
+.md-body li:last-child{margin-bottom:0}
+.md-body strong{color:var(--text-strong);font-weight:600}
+.md-body em{color:rgba(255,255,255,.7);font-style:italic}
+.md-body blockquote{padding:10px 14px;border-left:3px solid rgba(255,255,255,.25);background:rgba(255,255,255,.04);border-radius:0 5px 5px 0;margin:12px 0;color:rgba(255,255,255,.6);font-style:italic}
+.md-body blockquote p{margin-bottom:6px}
+.md-body code{font-family:'SF Mono','Menlo','Monaco',monospace;font-size:13px;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;color:rgba(255,255,255,.85)}
+.md-body pre{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;margin-bottom:12px;line-height:1.65}
+.md-body pre code{background:none;padding:0;font-size:13px}
+.md-body hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+.md-body a{color:rgba(176,176,255,.85);text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(176,176,255,.35)}
+.md-body a:hover{color:#fff;text-decoration-color:#fff}
+.md-body table{border-collapse:collapse;margin-bottom:12px;font-size:13px;width:100%}
+.md-body th,.md-body td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+.md-body th{background:rgba(255,255,255,.05);color:var(--text-strong);font-weight:600}
+
+/* ── Loading ── */
+.loading-text{font-size:13px;color:rgba(255,255,255,.45);padding:14px 0;font-style:italic;line-height:1.7}
+
+/* ── Error ── */
+.error-msg{font-size:13px;color:rgba(255,120,120,.82);padding:12px 14px;background:rgba(255,0,0,.05);border:1px solid rgba(255,0,0,.12);border-radius:6px;margin:10px 0;line-height:1.7}
+
+/* ── Settings modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:#111;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:24px;width:100%;max-width:440px}
+.modal h3{font-size:16px;margin-bottom:16px;color:#fff;letter-spacing:.3px}
+.modal label{display:block;font-size:12px;color:rgba(255,255,255,.55);margin-bottom:6px;margin-top:14px;letter-spacing:.2px}
+.modal label:first-of-type{margin-top:0}
+.modal input,.modal select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;font-family:inherit}
+.modal input:focus,.modal select:focus{border-color:rgba(255,255,255,.32)}
+.modal-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* ── Fullwidth button ── */
+.btn-full{width:100%;margin-top:12px;padding:11px 16px;font-size:14px}
+
+/* ── Step done banner ── */
+.done-banner{text-align:center;font-size:13px;color:rgba(255,255,255,.38);padding:24px 0;margin-top:18px;letter-spacing:.5px}
+
+/* ══ PERSONA IDENTITY COLOR SYSTEM ════════════════════ */
+[data-p="mao"]     {--c:#FF3B3B;--c-glow:rgba(255,59,59,.5);--c-glow2:rgba(255,59,59,.15)}
+[data-p="pg"]      {--c:#FF8C42;--c-glow:rgba(255,140,66,.5);--c-glow2:rgba(255,140,66,.15)}
+[data-p="jobs"]    {--c:#B0B0FF;--c-glow:rgba(176,176,255,.5);--c-glow2:rgba(176,176,255,.15)}
+[data-p="brucelee"]{--c:#FFE066;--c-glow:rgba(255,224,102,.5);--c-glow2:rgba(255,224,102,.15)}
+[data-p="kk"]      {--c:#4ECDC4;--c-glow:rgba(78,205,196,.5);--c-glow2:rgba(78,205,196,.15)}
+[data-p="huineng"] {--c:#B39DDB;--c-glow:rgba(179,157,219,.5);--c-glow2:rgba(179,157,219,.15)}
+
+/* Persona avatar circle */
+.p-av{
+  width:32px;height:32px;border-radius:50%;position:relative;
+  border:1.5px solid var(--c,rgba(255,255,255,.18));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;background:#0a0a0a;
+  color:var(--c,rgba(255,255,255,.5));font-weight:600;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+}
+.p-av.speaking{
+  animation:pSpeak 1.8s ease-in-out infinite;
+  box-shadow:0 0 12px var(--c-glow),0 0 30px var(--c-glow2);
+}
+@keyframes pSpeak{
+  0%,100%{box-shadow:0 0 10px var(--c-glow),0 0 25px var(--c-glow2)}
+  50%{box-shadow:0 0 20px var(--c),0 0 45px var(--c-glow)}
+}
+.p-av.speaking::after{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:1px solid var(--c);
+  animation:pRipple 1.8s ease-out infinite;pointer-events:none;opacity:.5;
+}
+@keyframes pRipple{
+  0%{transform:scale(1);opacity:.5}
+  100%{transform:scale(1.7);opacity:0}
+}
+
+/* Colored card accents via data-p */
+.ocard[data-p]{border-left:3px solid var(--c)}
+.ocard[data-p] .ocard-n{color:var(--c)}
+.ocard[data-p].on{box-shadow:0 0 20px var(--c-glow2,transparent)}
+.dbmsg[data-p]{border-left:3px solid var(--c)}
+.dbmsg[data-p] .dbmsg-n{color:var(--c)}
+
+/* ── History session cards ── */
+.hcard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.hcard:hover{border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.055)}
+.hcard-q{font-size:13px;color:var(--text);line-height:1.65;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hcard-meta{display:flex;align-items:center;gap:10px;font-size:11px;color:rgba(255,255,255,.38)}
+.hcard-step{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;background:rgba(255,255,255,.07);font-size:10px;color:rgba(255,255,255,.5)}
+.hcard-step.done{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7)}
+.hcard-btns{display:flex;gap:8px;margin-top:8px}
+
+/* ── User Wiki modal body readability boost ── */
+#wiki-content.md-body{font-size:14.5px;line-height:1.9;color:rgba(255,255,255,.82)}
+#wiki-content.md-body h2{margin-top:22px;padding-top:14px;border-top:1px solid var(--line-soft)}
+#wiki-content.md-body h2:first-child{border-top:none;padding-top:0;margin-top:0}
+#wiki-content.md-body h3{color:rgba(176,176,255,.88);margin-top:16px}
+
+/* ── Mode toggle ── */
+.mode-toggle{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.mode-toggle input{display:none}
+.mode-label{font-size:11px;color:rgba(255,255,255,.45);padding:5px 10px;border:1px solid var(--line);border-radius:5px;transition:all .2s}
+.mode-toggle input:checked ~ .mode-label{color:rgba(255,255,255,.78);border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.07)}
+
+/* ── User mode answer inputs (Step 3) ── */
+.qa-card{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:12px}
+.qa-card[data-p]{border-left:3px solid var(--c)}
+.qa-q{font-size:14px;color:var(--text);line-height:1.75;margin-bottom:12px}
+.qa-a{width:100%;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:10px 12px;color:#f5f5f5;font-size:14px;line-height:1.7;resize:vertical;min-height:56px;outline:none;font-family:inherit;transition:border-color .2s}
+.qa-a:focus{border-color:rgba(255,255,255,.32)}
+.qa-a::placeholder{color:rgba(255,255,255,.22)}
+
+/* Host facilitator avatar */
+.host-av{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  border:1.5px solid rgba(255,255,255,.28);background:#0a0a0a;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;box-shadow:0 0 12px rgba(255,255,255,.06);
+}
+
+/* ── Scrollbar (subtle) ── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.16)}
+
+/* ── Selection ── */
+::selection{background:rgba(255,255,255,.22);color:#fff}
+
+/* ── Responsive tweaks ── */
+@media (max-width:600px){
+  #app{padding:16px 14px 60px}
+  .stitle{font-size:15px}
+  .md-body{font-size:13.5px;line-height:1.8}
+  .cbub,.ocard-t,.dbmsg-t,.sb{font-size:13.5px}
+  .ocard,.dbmsg,.scard,.qa-card{padding:14px 15px}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Roundtable v1 · Phase 6 · 2026-04-23
+   Ported from /Users/a1-6/Documents/CC/counsel/public/session.html
+   Active only when body.rt-mode is set. Linear UI untouched when absent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* When roundtable is active: hide progress/advisor/step scaffolding, let the
+   roundtable shell take the visual stage. Step content is re-mounted into
+   #rt-stage by app.js. */
+body.rt-mode { background:#000; overflow:hidden; height:100vh }
+body.rt-mode #app { padding:0; max-width:none; height:100vh; display:flex; flex-direction:column }
+body.rt-mode .topbar { flex-shrink:0; margin:0; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.06); background:rgba(0,0,0,.6); backdrop-filter:blur(12px); z-index:50 }
+body.rt-mode .brand { font-size:14px }
+body.rt-mode .progress,
+body.rt-mode .advisor-bar { display:none }
+/* Keep default .step visibility rules (.step hidden, .step.active shown) —
+   the linear rules already do the right thing inside #rt-stage. */
+
+#roundtable { position:relative; flex:1; width:100%; display:flex; color:#f0f0f0; overflow:hidden }
+
+.rt-scene-pane { flex:1; position:relative; overflow:hidden; background:radial-gradient(ellipse 70% 60% at 50% 42%,rgba(255,255,255,.025) 0%,#000 65%) }
+.rt-scene-pane::after { content:''; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px); background-size:40px 40px; opacity:.4 }
+
+.rt-side-pane { width:340px; flex-shrink:0; border-left:1px solid rgba(255,255,255,.1); background:rgba(6,6,6,.97); backdrop-filter:blur(16px); display:flex; flex-direction:column; overflow:hidden }
+
+/* Progress strip at top of sidebar */
+.rt-progress { display:flex; align-items:center; gap:4px; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.07); flex-shrink:0; overflow-x:auto }
+.rt-progress::-webkit-scrollbar { height:2px }
+.rt-pnode { display:flex; align-items:center; gap:4px; font-size:9px; color:rgba(255,255,255,.25); cursor:pointer; white-space:nowrap; transition:color .2s; flex-shrink:0 }
+.rt-pnode.done { color:rgba(255,255,255,.5) }
+.rt-pnode.now { color:#fff }
+.rt-pdot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.12); flex-shrink:0; transition:all .2s }
+.rt-pnode.done .rt-pdot { background:rgba(255,255,255,.55) }
+.rt-pnode.now .rt-pdot { background:#fff; box-shadow:0 0 6px rgba(255,255,255,.6) }
+.rt-pnode + .rt-pnode::before { content:''; width:8px; height:1px; background:rgba(255,255,255,.08); margin-right:2px }
+
+/* Layout toggle group in topbar */
+.layout-toggle-group { display:flex; gap:3px; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18); border-radius:6px; padding:3px; backdrop-filter:blur(10px) }
+.lt-btn { padding:4px 12px; border-radius:4px; border:none; font-size:10px; cursor:pointer; font-family:inherit; background:transparent; color:rgba(255,255,255,.4); transition:all .2s }
+.lt-btn.on { background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.3) }
+.lt-btn:hover { color:rgba(255,255,255,.85) }
+
+/* ─── LAYOUT A · Flat Ring ─────────────────────────────────────────────── */
+#ring-scene { position:absolute; inset:0; display:none; align-items:center; justify-content:center }
+#ring-scene.on { display:flex }
+.ring-wrap { position:relative; width:540px; height:540px }
+.orb { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; border:1px solid rgba(255,255,255,.22); pointer-events:none }
+.orb-1 { width:424px; height:424px }
+.orb-2 { width:480px; height:480px; border-color:rgba(255,255,255,.08) }
+.orb-3 { width:368px; height:368px; border-color:rgba(255,255,255,.06) }
+.ring-center-glow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.06) 0%,transparent 70%); pointer-events:none }
+.ring-host { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:5px; z-index:20 }
+.ring-host-av { width:64px; height:64px; border-radius:50%; border:1.5px solid rgba(255,255,255,.35); background:rgba(14,14,14,.95); display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 0 28px rgba(255,255,255,.1),0 0 60px rgba(255,255,255,.04); transition:all .3s; position:relative }
+.ring-host.speaking .ring-host-av { border-color:#fff; animation:wSpeak 1.6s ease-in-out infinite }
+.ring-host.speaking .ring-host-av::after { content:''; position:absolute; inset:-6px; border-radius:50%; border:1px solid rgba(255,255,255,.3); animation:ripple 1.6s ease-out infinite }
+.ring-host-label { font-size:9px; color:rgba(255,255,255,.45); letter-spacing:2px }
+.rn { position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px; z-index:15; transform:translate(-50%,-50%); transition:transform .25s; cursor:pointer }
+.rn:hover { transform:translate(-50%,-50%) scale(1.08) }
+.rn-av { width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,.1); background:rgba(10,10,10,.95); display:flex; align-items:center; justify-content:center; font-size:18px; position:relative; transition:all .3s; backdrop-filter:blur(4px) }
+.rn-label { font-size:8px; color:rgba(255,255,255,.22); white-space:nowrap; transition:color .3s; text-align:center }
+.rn.dim .rn-av { opacity:.2 }
+.rn.dim .rn-label { opacity:.35 }
+.rn.waiting .rn-av { opacity:.1 }
+.rn.waiting .rn-label { opacity:.22 }
+.rn.lit .rn-av { border-color:rgba(255,255,255,.38); box-shadow:0 0 12px rgba(255,255,255,.14) }
+.rn.lit .rn-label { color:rgba(255,255,255,.55) }
+.rn.speaking .rn-av { border-color:#fff; animation:wSpeak 1.6s ease-in-out infinite }
+.rn.speaking .rn-av::after { content:''; position:absolute; inset:-5px; border-radius:50%; border:1px solid rgba(255,255,255,.3); animation:ripple 1.6s ease-out infinite }
+.rn.speaking .rn-label { color:#fff }
+.rn.done .rn-av { border-color:rgba(255,255,255,.25); opacity:.65 }
+.rn.done .rn-label { color:rgba(255,255,255,.38) }
+
+/* Portrait-grid cropping — 5×5 grid, 6 v1 personas have fixed positions */
+.rn-av.av-grid,
+.seat-av.av-grid { background-image:url('/assets/portrait-grid.png'); background-size:500% 500%; filter:brightness(1.1) contrast(1.25) grayscale(.08) sepia(.06) }
+.p-mao      { background-position:  0%   0% }
+.p-jobs     { background-position: 25%   0% }
+.p-pg       { background-position: 25%  25% }
+.p-kk       { background-position:  0%  25% }  /* 张一鸣's slot reused; KK portrait pending v2 */
+.p-brucelee { background-position:  0%  75% }
+/* huineng has NO grid slot — emoji fallback 🪷 rendered instead via JS */
+
+@keyframes wSpeak { 0%,100% { box-shadow:0 0 18px rgba(255,255,255,.5),0 0 40px rgba(255,255,255,.15) } 50% { box-shadow:0 0 32px rgba(255,255,255,.9),0 0 70px rgba(255,255,255,.28) } }
+@keyframes ripple { 0% { transform:scale(1); opacity:.5 } 100% { transform:scale(1.85); opacity:0 } }
+
+/* ─── LAYOUT B · 42° Isometric Table ──────────────────────────────────── */
+#table-scene { position:absolute; inset:0; display:none; align-items:center; justify-content:center }
+#table-scene.on { display:flex }
+.tbl-wrap { position:relative; width:560px; height:420px }
+.tbl-surface { position:absolute; width:340px; height:188px; left:50%; top:50%; transform:translate(-50%,-50%) rotateX(42deg); border-radius:50%; background:radial-gradient(ellipse at 45% 38%,#161616 0%,#0d0d0d 55%,#080808 100%); border:1px solid rgba(255,255,255,.28); box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 70px rgba(255,255,255,.08),0 36px 90px rgba(0,0,0,.98),inset 0 0 40px rgba(255,255,255,.03),inset 0 1px 0 rgba(255,255,255,.12) }
+.tbl-surface::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:80px; border-radius:50%; background:radial-gradient(ellipse,rgba(255,255,255,.03) 0%,transparent 70%) }
+.tbl-ring { position:absolute; width:382px; height:208px; left:50%; top:50%; transform:translate(-50%,-50%) rotateX(42deg); border-radius:50%; border:1px solid rgba(255,255,255,.1) }
+.tbl-ring2 { position:absolute; width:310px; height:168px; left:50%; top:50%; transform:translate(-50%,-50%) rotateX(42deg); border-radius:50%; border:1px solid rgba(255,255,255,.06) }
+.tbl-topic { position:absolute; left:50%; top:50%; transform:translate(-50%,-46%); text-align:center; z-index:15; pointer-events:none }
+.tbl-topic-l { font-size:7.5px; color:rgba(255,255,255,.22); letter-spacing:3px; text-transform:uppercase; margin-bottom:3px }
+.tbl-topic-t { font-size:12px; color:rgba(255,255,255,.4); max-width:240px; line-height:1.4 }
+
+.seat { position:absolute; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; z-index:20; transform:translate(-50%,-50%); transition:transform .25s }
+.seat:hover { transform:translate(-50%,-50%) scale(1.1)!important }
+/* Host seat sits at the center of the table wrap (fix for TS version's implicit (0,0) default) */
+.seat.seat-host { top:50%; left:50% }
+.seat-av { border-radius:50%; border:1px solid rgba(255,255,255,.1); background:rgba(10,10,10,.95); display:flex; align-items:center; justify-content:center; position:relative; transition:all .3s; backdrop-filter:blur(4px); overflow:hidden }
+.seat-host .seat-av { width:56px; height:56px; font-size:22px; border-color:rgba(255,255,255,.3); box-shadow:0 0 20px rgba(255,255,255,.08) }
+.seat-host .seat-label { font-size:8.5px; color:rgba(255,255,255,.4); letter-spacing:1px }
+.seat-adv .seat-av { width:38px; height:38px; font-size:16px }
+.seat-label { font-size:8.5px; color:rgba(255,255,255,.2); white-space:nowrap; text-align:center; transition:color .3s }
+.seat.dim .seat-av { opacity:.2 }
+.seat.dim .seat-label { opacity:.35 }
+.seat.waiting .seat-av { opacity:.1 }
+.seat.waiting .seat-label { opacity:.2 }
+.seat.lit .seat-av { border-color:rgba(255,255,255,.38); box-shadow:0 0 12px rgba(255,255,255,.14) }
+.seat.lit .seat-label { color:rgba(255,255,255,.55) }
+.seat.speaking .seat-av { border-color:#fff; animation:wSpeak 1.6s ease-in-out infinite }
+.seat.speaking .seat-av::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1px solid rgba(255,255,255,.28); animation:ripple 1.6s ease-out infinite }
+.seat.speaking .seat-label { color:#fff }
+.seat.done .seat-av { border-color:rgba(255,255,255,.22); opacity:.6 }
+.seat.done .seat-label { color:rgba(255,255,255,.32) }
+
+/* ─── Bubble (shared by both layouts) ─────────────────────────────────── */
+.rn-bubble { position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%); background:rgba(8,8,8,.97); border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 12px; max-width:200px; min-width:120px; cursor:pointer; z-index:200; backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,.6); transition:border-color .2s,box-shadow .2s,transform .25s; pointer-events:auto; animation:bubbleRise .28s ease-out }
+.rn-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:7px solid transparent; border-top-color:rgba(255,255,255,.18) }
+.rn-bubble:hover { border-color:var(--pc,rgba(255,255,255,.4)); box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 16px var(--pc-glow,rgba(255,255,255,.12)); transform:translateX(-50%) translateY(-3px) }
+.rn-bubble.active { border-color:var(--pc,rgba(255,255,255,.55)); box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 20px var(--pc-glow,rgba(255,255,255,.2)) }
+.rn-bubble-tag { display:inline-block; font-size:7px; padding:1px 6px; border-radius:3px; background:var(--pc,#fff); color:#000; margin-bottom:5px; font-weight:600; letter-spacing:.5px }
+.rn-bubble-text { font-size:10.5px; color:rgba(255,255,255,.88); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-wrap; word-break:break-word }
+.rn-bubble-text.cur::after { content:'▋'; animation:blink .85s infinite; color:#fff }
+.rn-bubble-hint { font-size:8px; color:rgba(255,255,255,.35); margin-top:5px; text-align:center; transition:color .2s }
+.rn-bubble.active .rn-bubble-hint { color:var(--pc,rgba(255,255,255,.7)) }
+@keyframes bubbleRise { from { opacity:0; transform:translateX(-50%) scale(.88) translateY(6px) } to { opacity:1; transform:translateX(-50%) scale(1) translateY(0) } }
+@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+
+/* ─── #rt-stage — where step content mounts inside the sidebar ───────── */
+#rt-stage { flex:1; overflow-y:auto; padding:14px 16px; position:relative }
+#rt-stage .step { margin-bottom:0 }
+#rt-stage::-webkit-scrollbar { width:3px }
+#rt-stage::-webkit-scrollbar-thumb { background:rgba(255,255,255,.18) }
+
+/* Sidebar-specific: shrink step headers, fit inputs to narrower width */
+body.rt-mode #rt-stage .sh { margin-bottom:10px }
+body.rt-mode #rt-stage .stitle { font-size:13px }
+body.rt-mode #rt-stage .ssub { font-size:10px }
+body.rt-mode #rt-stage .ginput { font-size:12px }
+
+/* In rt-mode, Step 2 facilitator messages live as a bubble from the host.
+   Hide the duplicate facilitator chat messages; keep user's own replies so
+   the conversation thread is still legible in the sidebar. */
+body.rt-mode #s2-chat .cmsg:not(.u) { display:none }
+body.rt-mode #s2-chat .cmsg.u { margin-bottom:6px }
+body.rt-mode #s2-chat .cmsg.u .cbub { font-size:11px; padding:6px 9px }
+
+/* Step 3 live persona-question cards hidden in rt-mode — questions render as
+   bubbles from seats. The post-streaming answer form (.qa-card) IS shown
+   because the user needs textareas to type into. */
+body.rt-mode #s3-content > .ocard { display:none }
+body.rt-mode #s3-content .loading-text { font-size:10.5px }
+
+/* Compact .qa-card in rt-mode to fit the 340px sidebar */
+body.rt-mode .qa-card { padding:10px 12px; margin-bottom:8px }
+body.rt-mode .qa-card .ocard-h { gap:6px; margin-bottom:6px }
+body.rt-mode .qa-card .ocard-n { font-size:10px }
+body.rt-mode .qa-card .qa-q { font-size:11px; line-height:1.55; margin-bottom:7px }
+body.rt-mode .qa-card .qa-a { font-size:11px; padding:6px 8px; min-height:44px }
+
+/* Step 4 persona-opinion card list is hidden in rt-mode — full text is
+   available via bubble click → speech panel. Sidebar shows only progress + continue button. */
+body.rt-mode #s4-cards > .ocard { display:none }
+
+/* ─── #view-speech · right-side panel for bubble expansion ────────────── */
+#view-speech { position:absolute; top:0; right:0; width:0; height:100%; overflow:hidden; background:rgba(10,10,10,.98); border-left:1px solid rgba(255,255,255,.1); backdrop-filter:blur(20px); transition:width .32s cubic-bezier(.4,0,.2,1); z-index:300 }
+#view-speech.open { width:360px }
+#view-speech.slide-in { animation:slideIn .3s ease-out }
+@keyframes slideIn { from { opacity:0; transform:translateX(24px) } to { opacity:1; transform:translateX(0) } }
+.vs-inner { width:320px; padding:20px; height:100%; overflow-y:auto }
+.vs-inner::-webkit-scrollbar { width:3px }
+.vs-inner::-webkit-scrollbar-thumb { background:rgba(255,255,255,.18) }
+.vs-back { display:inline-flex; align-items:center; gap:6px; margin-bottom:16px; font-size:10px; color:rgba(255,255,255,.4); letter-spacing:1px; cursor:pointer; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); transition:all .2s }
+.vs-back:hover { color:#fff; border-color:rgba(255,255,255,.25) }
+.vs-hdr { display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:14px }
+.vs-av { width:40px; height:40px; border-radius:50%; border:1.5px solid var(--pc,rgba(255,255,255,.3)); background:rgba(255,255,255,.04); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; box-shadow:0 0 16px var(--pc-glow,rgba(255,255,255,.1)) }
+.vs-name { font-size:13px; font-weight:600; color:#fff }
+.vs-meta { font-size:9px; color:rgba(255,255,255,.35); letter-spacing:.5px; margin-top:2px }
+.vs-body { font-size:12px; color:rgba(255,255,255,.72); line-height:1.8 }
+.vs-body p { margin-bottom:8px }
+.vs-body blockquote { padding:8px 11px; background:rgba(255,255,255,.04); border-left:2px solid rgba(255,255,255,.2); border-radius:0 6px 6px 0; margin:10px 0; color:rgba(255,255,255,.55); font-style:italic }
+.vs-body strong { color:rgba(255,255,255,.92); font-weight:600 }
+.vs-body h1,.vs-body h2,.vs-body h3 { color:rgba(255,255,255,.92); margin:12px 0 6px; font-weight:600 }
+.vs-body h1 { font-size:15px } .vs-body h2 { font-size:13.5px } .vs-body h3 { font-size:12.5px }
+.vs-body code { font-family:monospace; font-size:11px; background:rgba(255,255,255,.07); padding:2px 5px; border-radius:3px }
+

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · 白天模式测试</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#f4f3ef;font-family:-apple-system,'PingFang SC',sans-serif;color:#1a1a1a;padding:24px;overflow-x:hidden}
+
+/* ── 通用排版 ── */
+h1{font-size:13px;letter-spacing:4px;color:rgba(0,0,0,.35);text-transform:uppercase;margin-bottom:4px}
+h2{font-size:11px;letter-spacing:2px;color:rgba(0,0,0,.2);text-transform:uppercase;margin-bottom:24px}
+.section{margin-bottom:44px;padding-bottom:44px;border-bottom:1px solid rgba(0,0,0,.07)}
+.sec-title{font-size:9px;color:rgba(0,0,0,.3);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.07)}
+.row{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-label{font-size:8px;color:rgba(0,0,0,.3);letter-spacing:1px;text-align:center}
+.verdict{font-size:9px;margin-top:4px;text-align:center}
+.verdict.good{color:rgba(0,140,80,.7)}
+.verdict.bad{color:rgba(180,40,40,.5)}
+.verdict.ok{color:rgba(140,100,0,.6)}
+
+/* ── AVATAR ── */
+.av{border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;
+    background:#fff;
+    border:1.5px solid rgba(0,0,0,.1);
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    transition:all .3s}
+.av img{width:100%;height:100%;object-fit:cover;display:block;filter:invert(1)}
+
+/* Sizes */
+.av.xl{width:140px;height:140px}
+.av.lg{width:72px;height:72px}
+.av.md{width:42px;height:42px}
+.av.sm{width:38px;height:38px}
+.av.xs{width:28px;height:28px}
+
+/* States — light mode */
+.av.dim img{opacity:.12}
+.av.dim{border-color:rgba(0,0,0,.06);box-shadow:none}
+
+.av.active{border-color:rgba(0,0,0,.28);box-shadow:0 0 0 2px rgba(0,0,0,.06),0 3px 12px rgba(0,0,0,.12)}
+
+@keyframes bSpeak{
+  0%,100%{box-shadow:0 0 0 3px rgba(0,0,0,.12),0 0 16px rgba(0,0,0,.18),0 4px 20px rgba(0,0,0,.12)}
+  50%{box-shadow:0 0 0 5px rgba(0,0,0,.2),0 0 30px rgba(0,0,0,.3),0 6px 30px rgba(0,0,0,.16)}
+}
+@keyframes bRipple{0%{transform:scale(1);opacity:.35}100%{transform:scale(1.8);opacity:0}}
+.av.speaking{border-color:rgba(0,0,0,.6);animation:bSpeak 1.6s ease-in-out infinite}
+.av.speaking::after{content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:1px solid rgba(0,0,0,.2);animation:bRipple 1.6s ease-out infinite;pointer-events:none}
+
+.av.pro{border-color:rgba(0,0,0,.7)!important;
+  box-shadow:0 0 0 4px rgba(0,0,0,.12),0 0 20px rgba(0,0,0,.25),0 4px 20px rgba(0,0,0,.15)!important}
+
+.av.waiting{border-color:rgba(0,0,0,.04);box-shadow:none}
+.av.waiting img{opacity:.05}
+
+/* ── EMOJI avatar (no portrait) light mode ── */
+.av-emoji{border-radius:50%;overflow:hidden;flex-shrink:0;
+    background:#fff;
+    border:1.5px solid rgba(0,0,0,.1);
+    box-shadow:0 2px 6px rgba(0,0,0,.07);
+    display:flex;align-items:center;justify-content:center;
+    transition:all .3s}
+
+/* ── RING ── */
+.ring-demo{position:relative;border-radius:50%;margin:0 auto}
+.ring-orbit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(0,0,0,.1)}
+.ring-orbit-outer{border-color:rgba(0,0,0,.05)}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
+.ring-center-av{width:60px;height:60px;border-radius:50%;background:#fff;
+  border:2px solid rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.ring-node{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%)}
+.ring-node-label{font-size:7px;color:rgba(0,0,0,.3);white-space:nowrap}
+
+/* ── ENERGY RING colors (light mode — darker/more saturated) ── */
+/* Each character's --ac is used for border + box-shadow glow */
+
+/* ── COMPARISON container ── */
+.side-by-side{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.scene-box{position:relative}
+.scene-label{font-size:8px;color:rgba(0,0,0,.28);text-align:center;margin-top:8px;letter-spacing:1px}
+
+/* ── RIGHT PANEL (light) ── */
+.panel-light{width:280px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;
+  padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.panel-step-tag{font-size:8px;letter-spacing:2px;color:rgba(0,0,0,.3);margin-bottom:6px}
+.panel-title{font-size:13px;color:#1a1a1a;font-weight:500;margin-bottom:12px;line-height:1.4}
+.panel-body{font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.8}
+.panel-input{width:100%;margin-top:14px;padding:10px 12px;
+  background:#f8f8f6;border:1px solid rgba(0,0,0,.12);border-radius:8px;
+  font-size:11px;color:#1a1a1a;resize:none;height:80px;
+  font-family:-apple-system,'PingFang SC',sans-serif;outline:none}
+.panel-input::placeholder{color:rgba(0,0,0,.3)}
+.panel-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  padding:8px 16px;background:#1a1a1a;color:#fff;border-radius:20px;
+  font-size:10px;letter-spacing:1px;cursor:pointer;border:none}
+.panel-btn-ghost{background:transparent;color:rgba(0,0,0,.45);border:1px solid rgba(0,0,0,.15)}
+
+/* ── TABLE (isometric) light ── */
+.tbl-surface-light{
+  position:absolute;top:50%;left:50%;
+  width:380px;height:220px;
+  transform:translate(-50%,-50%) rotateX(42deg);
+  background:radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.06) 0%, rgba(0,0,0,.02) 55%, transparent 100%);
+  border-radius:50%;
+  border:1.5px solid rgba(0,0,0,.12);
+  box-shadow:inset 0 -4px 20px rgba(0,0,0,.04), 0 4px 30px rgba(0,0,0,.06)
+}
+
+/* ── COLOR CHIPS ── */
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:3px 10px;border-radius:12px;font-size:8.5px;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<h1>参谋 · 白天模式（Light Mode）</h1>
+<h2>完整白底黑字视觉测试 — 与深色版对比</h2>
+
+<!-- SECTION 1: 单图对比 — Dark vs Light -->
+<div class="section">
+  <div class="sec-title">① 人像：深色 vs 浅色 — 同一张图，filter:invert(1)</div>
+  <div class="row">
+    <!-- Dark mode reference -->
+    <div class="col">
+      <div style="background:#000;padding:16px;border-radius:10px;display:flex;gap:14px;align-items:flex-end">
+        <div class="col">
+          <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(255,255,255,.5);animation:bSpeak 1.6s ease-in-out infinite;background:rgba(10,10,10,.95)">
+            <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png" style="width:100%;height:100%;object-fit:cover">
+          </div>
+          <div style="font-size:7px;color:rgba(255,255,255,.35);text-align:center;margin-top:5px">发言·深色</div>
+        </div>
+        <div class="col">
+          <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;border:1px solid rgba(255,255,255,.2);background:rgba(10,10,10,.95);opacity:.15">
+            <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png" style="width:100%;height:100%;object-fit:cover">
+          </div>
+          <div style="font-size:7px;color:rgba(255,255,255,.25);text-align:center;margin-top:5px">暗淡·深色</div>
+        </div>
+      </div>
+      <div class="col-label" style="margin-top:8px">深色版（黑底白图）</div>
+    </div>
+
+    <div style="font-size:20px;color:rgba(0,0,0,.2);align-self:center">⇄</div>
+
+    <!-- Light mode -->
+    <div class="col">
+      <div style="background:#f4f3ef;padding:16px;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:flex;gap:14px;align-items:flex-end">
+        <div class="col">
+          <div class="av lg speaking"><img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png"></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.35);text-align:center;margin-top:5px">发言·浅色</div>
+        </div>
+        <div class="col">
+          <div class="av md dim"><img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png"></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.25);text-align:center;margin-top:5px">暗淡·浅色</div>
+        </div>
+      </div>
+      <div class="col-label" style="margin-top:8px">浅色版（白底黑图）</div>
+    </div>
+
+    <!-- Mao comparison -->
+    <div style="width:1px;height:100px;background:rgba(0,0,0,.07);align-self:center"></div>
+    <div class="col">
+      <div style="background:#f4f3ef;padding:16px;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:flex;gap:14px;align-items:flex-end">
+        <div class="col">
+          <div class="av lg active"><img src="/Users/a1-6/Downloads/replicate-prediction-tkd4ba04ahrmy0cxe87ap88df8.png" style="object-position:50% 25%;filter:invert(1) brightness(2.5) contrast(3)"></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.35);text-align:center;margin-top:5px">激活·浅色</div>
+        </div>
+        <div class="col">
+          <div class="av md dim"><img src="/Users/a1-6/Downloads/replicate-prediction-tkd4ba04ahrmy0cxe87ap88df8.png" style="object-position:50% 25%;filter:invert(1) brightness(2.5) contrast(3)"></div>
+          <div style="font-size:7px;color:rgba(0,0,0,.25);text-align:center;margin-top:5px">暗淡·浅色</div>
+        </div>
+      </div>
+      <div class="col-label" style="margin-top:8px">毛泽东 — 浅色版</div>
+      <div class="verdict ok">惯用 invert+boost 处理，浅色版同样可用</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: 完整 Ring — 白天模式 -->
+<div class="section">
+  <div class="sec-title">② Ring布局 — 白天版 · 乔布斯发言中 · 能量色环</div>
+  <div class="side-by-side">
+
+  <!-- Ring A: speaking scene -->
+  <div class="scene-box">
+    <div class="ring-demo" style="width:460px;height:460px">
+      <!-- Orbits -->
+      <div class="ring-orbit" style="width:400px;height:400px"></div>
+      <div class="ring-orbit ring-orbit-outer" style="width:440px;height:440px"></div>
+
+      <!-- Center host -->
+      <div class="ring-center">
+        <div class="ring-center-av">🎙️</div>
+        <div style="font-size:7.5px;color:rgba(0,0,0,.35);letter-spacing:1px">主持人</div>
+      </div>
+
+      <!-- i=0 top: 老子 dim — 玉青能量 -->
+      <div class="ring-node" style="top:30px;left:230px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🌊</div>
+        <div class="ring-node-label">老子</div>
+      </div>
+      <!-- i=1 (30°): 六祖 dim — 金色 -->
+      <div class="ring-node" style="top:57px;left:328px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🪷</div>
+        <div class="ring-node-label">六祖</div>
+      </div>
+      <!-- i=2 (60°): Musk dim — 电蓝 -->
+      <div class="ring-node" style="top:133px;left:398px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">⚡</div>
+        <div class="ring-node-label">Musk</div>
+      </div>
+      <!-- i=3 (90°): Bezos dim -->
+      <div class="ring-node" style="top:230px;left:428px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">☁️</div>
+        <div class="ring-node-label">Bezos</div>
+      </div>
+      <!-- i=4 (120°): Einstein dim -->
+      <div class="ring-node" style="top:327px;left:398px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🔬</div>
+        <div class="ring-node-label">Einstein</div>
+      </div>
+      <!-- i=5 (150°): Bruce Lee dim — 火橙 -->
+      <div class="ring-node" style="top:403px;left:328px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.3;border-color:rgba(200,100,30,.2)">🥋</div>
+        <div class="ring-node-label">Bruce Lee</div>
+      </div>
+      <!-- i=6 (180°) JOBS SPEAKING — 冰蓝能量环 -->
+      <div class="ring-node" style="top:430px;left:230px">
+        <div class="av md speaking" style="width:48px;height:48px;border-color:rgba(60,100,200,.55);box-shadow:0 0 0 4px rgba(60,100,200,.1),0 0 20px rgba(60,100,200,.2)">
+          <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png">
+        </div>
+        <div style="font-size:7.5px;color:#1a1a1a;white-space:nowrap;font-weight:500">乔布斯</div>
+      </div>
+      <!-- i=7 (210°): a16z dim -->
+      <div class="ring-node" style="top:403px;left:132px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">💡</div>
+        <div class="ring-node-label">a16z</div>
+      </div>
+      <!-- i=8 (240°): PG dim -->
+      <div class="ring-node" style="top:327px;left:62px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🧪</div>
+        <div class="ring-node-label">PG</div>
+      </div>
+      <!-- i=9 (270°): KK dim -->
+      <div class="ring-node" style="top:230px;left:32px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🔮</div>
+        <div class="ring-node-label">KK</div>
+      </div>
+      <!-- i=10 (300°): 钱学森 dim -->
+      <div class="ring-node" style="top:133px;left:62px">
+        <div class="av-emoji" style="width:40px;height:40px;font-size:17px;opacity:.25;border-color:rgba(0,0,0,.07)">🚀</div>
+        <div class="ring-node-label">钱学森</div>
+      </div>
+      <!-- i=11 (330°): 毛泽东 ACTIVE — 朱红能量环 -->
+      <div class="ring-node" style="top:57px;left:132px">
+        <div class="av sm active" style="width:42px;height:42px;border-color:rgba(180,40,30,.4);box-shadow:0 0 0 3px rgba(180,40,30,.08),0 0 14px rgba(180,40,30,.18)">
+          <img src="/Users/a1-6/Downloads/replicate-prediction-tkd4ba04ahrmy0cxe87ap88df8.png" style="filter:invert(1) brightness(2.5) contrast(3);object-position:50% 25%">
+        </div>
+        <div style="font-size:7px;color:rgba(0,0,0,.5);white-space:nowrap">毛泽东</div>
+      </div>
+    </div>
+    <div class="scene-label">乔布斯发言 · 毛泽东激活 · 白天模式</div>
+  </div>
+
+  <!-- Right: commentary + mini panel -->
+  <div style="max-width:260px;margin-top:30px">
+    <div style="padding:14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px">白天模式感受</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.8">
+        更轻盈、更"商务"。<br>
+        能量色环在白底上对比度<strong style="color:#1a1a1a">反而更清晰</strong>——<br>
+        朱红、冰蓝、玉青不再需要发光就能区分。<br><br>
+        发言脉冲变为"黑影扩散"动画，<br>更像在纸面上敲击桌子的感觉。
+      </div>
+    </div>
+    <!-- Mini simulated panel -->
+    <div class="panel-light">
+      <div class="panel-step-tag">STEP 4 · 并行发言</div>
+      <div class="panel-title">💼 乔布斯</div>
+      <div class="panel-body">你的问题不是时机，是勇气。<br>你一直在等一个"完美的时间"，<br>但市场从不等你准备好。</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div class="panel-btn">完整发言 ↗</div>
+        <div class="panel-btn panel-btn-ghost">档案</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- SECTION 3: 辩论场景 — 白天模式 -->
+<div class="section">
+  <div class="sec-title">③ 辩论场景 — 白天版 · 乔布斯(正) vs 毛泽东(反)</div>
+  <div class="side-by-side">
+
+  <div class="scene-box">
+    <div class="ring-demo" style="width:460px;height:460px">
+      <div class="ring-orbit" style="width:380px;height:380px"></div>
+
+      <!-- Center -->
+      <div class="ring-center">
+        <div class="ring-center-av">🎙️</div>
+      </div>
+
+      <!-- Others: near invisible -->
+      <div class="ring-node" style="top:55px;left:230px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🌊</div></div>
+      <div class="ring-node" style="top:78px;left:316px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🪷</div></div>
+      <div class="ring-node" style="top:148px;left:378px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">⚡</div></div>
+      <div class="ring-node" style="top:230px;left:405px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">☁️</div></div>
+      <div class="ring-node" style="top:312px;left:378px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🔬</div></div>
+      <div class="ring-node" style="top:382px;left:316px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🥋</div></div>
+      <div class="ring-node" style="top:382px;left:144px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">💡</div></div>
+      <div class="ring-node" style="top:312px;left:82px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🧪</div></div>
+      <div class="ring-node" style="top:230px;left:55px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🔮</div></div>
+      <div class="ring-node" style="top:148px;left:82px"><div class="av-emoji" style="width:36px;height:36px;font-size:14px;opacity:.06;border-color:rgba(0,0,0,.04)">🚀</div></div>
+
+      <!-- Jobs PRO (bottom) -->
+      <div class="ring-node" style="top:415px;left:230px">
+        <div class="av pro" style="width:64px;height:64px;border-color:rgba(30,60,180,.6);box-shadow:0 0 0 5px rgba(30,60,180,.1),0 0 24px rgba(30,60,180,.22),0 4px 20px rgba(0,0,0,.12)">
+          <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png">
+        </div>
+        <div style="font-size:8px;color:#1a1a1a;font-weight:600;white-space:nowrap">乔布斯 <span style="color:rgba(30,60,180,.6);font-size:7px;font-weight:400">正方</span></div>
+      </div>
+
+      <!-- Mao CON (top-left) -->
+      <div class="ring-node" style="top:78px;left:144px">
+        <div class="av" style="width:64px;height:64px;border-color:rgba(160,35,30,.45);box-shadow:0 0 0 4px rgba(160,35,30,.08),0 0 18px rgba(160,35,30,.2)">
+          <img src="/Users/a1-6/Downloads/replicate-prediction-tkd4ba04ahrmy0cxe87ap88df8.png" style="filter:invert(1) brightness(2.5) contrast(3);object-position:50% 25%">
+        </div>
+        <div style="font-size:8px;color:rgba(0,0,0,.7);font-weight:500;white-space:nowrap">毛泽东 <span style="color:rgba(160,35,30,.55);font-size:7px;font-weight:400">反方</span></div>
+      </div>
+    </div>
+    <div class="scene-label">辩论：正反方清晰 · 其余10人隐入纸白 · 白天模式</div>
+  </div>
+
+  <!-- Commentary -->
+  <div style="max-width:260px;margin-top:40px">
+    <div style="padding:14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:12px">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px">辩论场景·白天感受</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.8">
+        白天版的"暗淡"= 淡出到白色背景中，<br>
+        而非黑夜版的"消失在黑暗里"。<br><br>
+        戏剧效果：<br>
+        黑夜版 → 黑暗中发光（电影感、紧张）<br>
+        白天版 → 纸面浮现（清醒、理性、论文感）
+      </div>
+    </div>
+    <div style="padding:12px;background:#fff;border:1px solid rgba(30,60,180,.15);border-radius:10px;box-shadow:0 2px 8px rgba(30,60,180,.06)">
+      <div style="font-size:8px;color:rgba(30,60,180,.5);letter-spacing:2px;margin-bottom:6px">正方光晕</div>
+      <div style="font-size:9px;font-family:monospace;color:rgba(0,0,0,.35);line-height:1.7">
+        border-color: rgba(30,60,180,.6)<br>
+        box-shadow: 0 0 0 5px rgba(30,60,180,.1),<br>
+        &nbsp;&nbsp;0 0 24px rgba(30,60,180,.22)
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- SECTION 4: 等轴圆桌 — 白天模式 -->
+<div class="section">
+  <div class="sec-title">④ Table布局（圆桌等轴）— 白天版</div>
+  <div class="side-by-side">
+
+  <div class="scene-box" style="width:520px;height:370px;position:relative">
+    <!-- Table surface (3D rotated) -->
+    <div style="position:absolute;top:0;left:0;width:100%;height:100%;perspective:1000px;perspective-origin:50% 42%">
+      <div class="tbl-surface-light" style="width:380px;height:220px"></div>
+      <div style="position:absolute;top:50%;left:50%;width:260px;height:150px;
+                  transform:translate(-50%,-50%) rotateX(42deg);
+                  border-radius:50%;border:1px solid rgba(0,0,0,.06)"></div>
+    </div>
+
+    <!-- Seats (2D visual positions) center=260,185, R=155, y*=cos42°≈0.743 -->
+    <!-- Top (0°): 老子 dim -->
+    <div style="position:absolute;top:70px;left:260px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">🌊</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">老子</div>
+    </div>
+    <!-- Top-right (45°): 六祖 dim -->
+    <div style="position:absolute;top:97px;left:370px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">🪷</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">六祖</div>
+    </div>
+    <!-- Right (90°): 钱学森 dim -->
+    <div style="position:absolute;top:185px;left:416px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">🚀</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">钱学森</div>
+    </div>
+    <!-- Bottom-right (135°): Bezos dim -->
+    <div style="position:absolute;top:273px;left:370px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">☁️</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">Bezos</div>
+    </div>
+    <!-- Bottom (180°) JOBS SPEAKING -->
+    <div style="position:absolute;top:300px;left:260px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av md speaking" style="width:48px;height:48px;border-color:rgba(30,60,180,.5);box-shadow:0 0 0 4px rgba(30,60,180,.1),0 0 18px rgba(30,60,180,.2)">
+        <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png">
+      </div>
+      <div style="font-size:7.5px;color:#1a1a1a;font-weight:500">乔布斯</div>
+    </div>
+    <!-- Bottom-left (225°): PG dim -->
+    <div style="position:absolute;top:273px;left:150px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">🧪</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">PG</div>
+    </div>
+    <!-- Left (270°): KK dim -->
+    <div style="position:absolute;top:185px;left:104px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av-emoji" style="width:38px;height:38px;font-size:15px;opacity:.2;border-color:rgba(0,0,0,.06)">🔮</div>
+      <div style="font-size:6.5px;color:rgba(0,0,0,.2)">KK</div>
+    </div>
+    <!-- Top-left (315°) MAO ACTIVE — 朱红 -->
+    <div style="position:absolute;top:97px;left:150px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div class="av md active" style="width:46px;height:46px;border-color:rgba(160,35,30,.45);box-shadow:0 0 0 3px rgba(160,35,30,.08),0 0 14px rgba(160,35,30,.18)">
+        <img src="/Users/a1-6/Downloads/replicate-prediction-tkd4ba04ahrmy0cxe87ap88df8.png" style="filter:invert(1) brightness(2.5) contrast(3);object-position:50% 25%">
+      </div>
+      <div style="font-size:7px;color:rgba(0,0,0,.5)">毛泽东</div>
+    </div>
+    <!-- Host center -->
+    <div style="position:absolute;top:185px;left:260px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 12px rgba(0,0,0,.1)">🎙️</div>
+    </div>
+  </div>
+  <div class="scene-label">等轴圆桌 · 白天版 · 42° 透视</div>
+
+  <!-- Side note -->
+  <div style="max-width:240px;margin-top:40px">
+    <div style="padding:14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.05)">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px">白天 Table 感受</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.5);line-height:1.8">
+        圆桌表面变成浅灰椭圆，<br>
+        像一张真实的会议室桌面。<br><br>
+        坐在底部（最近位）的 Jobs<br>
+        发言时有黑影脉冲向外扩散，<br>
+        有点像敲桌子的感觉。
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- SECTION 5: 深色 vs 浅色 — 完整Right Panel对比 -->
+<div class="section">
+  <div class="sec-title">⑤ 右面板 — 深色 vs 浅色 完整对比</div>
+  <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+
+    <!-- Dark panel reference -->
+    <div>
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px;text-align:center">深色版（参考）</div>
+      <div style="width:260px;background:#0a0a0a;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.4)">
+        <div style="font-size:7.5px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:5px">STEP 3 · 幕僚在问你</div>
+        <div style="font-size:12px;color:#fff;font-weight:500;margin-bottom:10px">💼 乔布斯</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:10px">你最害怕放弃的是什么——<br>那个东西，是 idea 本身，<br>还是你的创业者身份认同？</div>
+        <div style="height:60px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:8px 10px">
+          <div style="font-size:9.5px;color:rgba(255,255,255,.2)">输入你的回答...</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div style="padding:7px 14px;background:rgba(255,255,255,.1);border-radius:16px;font-size:9px;color:rgba(255,255,255,.6)">完整发言 ↗</div>
+          <div style="padding:7px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;font-size:9px;color:rgba(255,255,255,.4)">跳过</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="align-self:center;font-size:22px;color:rgba(0,0,0,.15)">⇄</div>
+
+    <!-- Light panel -->
+    <div>
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px;text-align:center">浅色版（本次新增）</div>
+      <div class="panel-light" style="width:260px">
+        <div class="panel-step-tag">STEP 3 · 幕僚在问你</div>
+        <div style="font-size:12px;color:#1a1a1a;font-weight:500;margin-bottom:10px">💼 乔布斯</div>
+        <div class="panel-body" style="margin-bottom:10px">你最害怕放弃的是什么——<br>那个东西，是 idea 本身，<br>还是你的创业者身份认同？</div>
+        <textarea class="panel-input" placeholder="输入你的回答..." rows="3"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div class="panel-btn">完整发言 ↗</div>
+          <div class="panel-btn panel-btn-ghost">跳过</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full UI preview: scene + panel light -->
+    <div style="width:1px;height:200px;background:rgba(0,0,0,.07);align-self:center"></div>
+    <div>
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:8px;text-align:center">完整白天UI预览（左场景 + 右面板）</div>
+      <div style="display:flex;gap:0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);width:480px;background:#f4f3ef">
+        <!-- Mini scene area -->
+        <div style="flex:1;padding:20px;display:flex;align-items:center;justify-content:center;min-height:180px">
+          <!-- Tiny ring preview -->
+          <div style="position:relative;width:140px;height:140px">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;border:1px solid rgba(0,0,0,.1)"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:#fff;border:1.5px solid rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:16px">🎙️</div>
+            <!-- 4 nodes -->
+            <div style="position:absolute;top:7px;left:70px;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.25">🌊</div>
+            <div style="position:absolute;top:70px;left:133px;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.25">⚡</div>
+            <div style="position:absolute;top:133px;left:70px;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(30,60,180,.5);box-shadow:0 0 0 3px rgba(30,60,180,.1)">
+              <img src="/Users/a1-6/Downloads/replicate-prediction-jjsxdcnhfsrmy0cxe8dvfvkz60.png" style="width:100%;height:100%;object-fit:cover;filter:invert(1)">
+            </div>
+            <div style="position:absolute;top:70px;left:7px;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid rgba(160,35,30,.3);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.4">⚔️</div>
+          </div>
+        </div>
+        <!-- Mini right panel -->
+        <div style="width:155px;padding:14px;background:#fff;border-left:1px solid rgba(0,0,0,.08)">
+          <div style="font-size:7px;color:rgba(0,0,0,.28);letter-spacing:1.5px;margin-bottom:4px">STEP 4</div>
+          <div style="font-size:10px;color:#1a1a1a;font-weight:500;margin-bottom:7px">💼 乔布斯</div>
+          <div style="font-size:9px;color:rgba(0,0,0,.5);line-height:1.6">你的问题不是时机，是勇气。市场从不等你准备好。</div>
+          <div style="margin-top:10px;padding:5px 10px;background:#1a1a1a;color:#fff;border-radius:12px;font-size:8px;display:inline-block">完整 ↗</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECTION 6: 总结对比 -->
+<div>
+  <div class="sec-title">⑥ 深色 vs 浅色 — 最终对比结论</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px">
+
+    <div style="padding:16px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+      <div style="font-size:9px;color:rgba(0,0,0,.35);letter-spacing:2px;margin-bottom:10px">🌑 深色版</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.6);line-height:1.8">
+        <span style="color:#1a1a1a;font-weight:500">电影感 · 紧张感 · 权力感</span><br>
+        幕僚发言 = 黑暗中发光<br>
+        辩论 = 黑暗中的对决<br>
+        适合：高风险决策、夜间使用<br>
+        能量色环：需要 glow 才有效
+      </div>
+    </div>
+
+    <div style="padding:16px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+      <div style="font-size:9px;color:rgba(0,0,0,.35);letter-spacing:2px;margin-bottom:10px">🌤 浅色版</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.6);line-height:1.8">
+        <span style="color:#1a1a1a;font-weight:500">商务感 · 理性 · 论文感</span><br>
+        幕僚发言 = 纸面浮现，黑影扩散<br>
+        辩论 = 清晰对峙，更像真实会议<br>
+        适合：早晨使用、展示给评委<br>
+        能量色环：无需 glow，色边本身够
+      </div>
+    </div>
+
+    <div style="grid-column:span 2;padding:14px 16px;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.08);border-radius:10px">
+      <div style="font-size:8px;color:rgba(0,0,0,.3);letter-spacing:2px;margin-bottom:6px">建议</div>
+      <div style="font-size:10.5px;color:rgba(0,0,0,.55);line-height:1.8">
+        两种模式都能工作。<strong style="color:#1a1a1a">建议在v8加入一键切换（深/浅）</strong>——
+        黑巅现场演示用深色（更震撼），对外展示/日常用浅色（更舒适）。
+        实现成本：CSS变量 <code style="font-size:9px;background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px">:root[data-theme='light']</code> 全局切换，约50行CSS覆盖核心颜色变量。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

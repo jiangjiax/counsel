@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>私董会</title>
+<link rel="stylesheet" href="/style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand" onclick="goHome()" style="cursor:pointer" title="回到主页">私 董 会</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <label class="mode-toggle" title="模拟模式：AI自动回答提问&#10;用户模式：你亲自回答每个提问">
+        <input type="checkbox" id="mode-toggle" onchange="toggleMode()">
+        <span class="mode-label" id="mode-label">模拟</span>
+      </label>
+      <button class="settings-btn" onclick="goHome()" title="回到主页（不新建问题）">🏠 首页</button>
+      <button class="settings-btn settings-btn-primary" onclick="startNewSession()" title="开始一个全新的话题（新 project）">+ 新问题</button>
+      <button class="settings-btn" id="ui-mode-btn" onclick="toggleUIMode()" title="切换 圆桌 / 列表 视图">🎭 圆桌</button>
+      <div class="layout-toggle-group" id="layout-toggle-group" style="display:none">
+        <button class="lt-btn" id="lt-A" onclick="setLayout('A')" title="Ring 星环布局">⬤ Ring</button>
+        <button class="lt-btn" id="lt-B" onclick="setLayout('B')" title="Table 圆桌视角（42°）">⬡ Table</button>
+      </div>
+      <button class="settings-btn" id="followup-btn" onclick="openFollowUps()" title="过去承诺的跟进">📅 跟进<span id="followup-badge" style="display:none"></span></button>
+      <button class="settings-btn" onclick="openUserWiki()">我的画像</button>
+      <button class="settings-btn" onclick="openHistory()">历史</button>
+      <button class="settings-btn" onclick="openSettings()">设置 ⚙</button>
+    </div>
+  </div>
+
+  <!-- Progress bar — 8 steps -->
+  <div class="progress" id="progress">
+    <div class="pdot" data-step="1">1</div><div class="pline"></div>
+    <div class="pdot" data-step="2">2</div><div class="pline"></div>
+    <div class="pdot" data-step="3">3</div><div class="pline"></div>
+    <div class="pdot" data-step="4">4</div><div class="pline"></div>
+    <div class="pdot" data-step="5">5</div><div class="pline"></div>
+    <div class="pdot" data-step="6">6</div><div class="pline"></div>
+    <div class="pdot" data-step="7">7</div><div class="pline"></div>
+    <div class="pdot" data-step="8">8</div>
+  </div>
+
+  <!-- Advisor bar -->
+  <div class="advisor-bar" id="advisor-bar">
+    <div class="advisor-chip" data-p="mao" id="chip-mao"><div class="chip-dot"></div><div class="chip-name">毛泽东</div></div>
+    <div class="advisor-chip" data-p="pg" id="chip-pg"><div class="chip-dot"></div><div class="chip-name">PG</div></div>
+    <div class="advisor-chip" data-p="jobs" id="chip-jobs"><div class="chip-dot"></div><div class="chip-name">Jobs</div></div>
+    <div class="advisor-chip" data-p="brucelee" id="chip-brucelee"><div class="chip-dot"></div><div class="chip-name">李小龙</div></div>
+    <div class="advisor-chip" data-p="kk" id="chip-kk"><div class="chip-dot"></div><div class="chip-name">KK</div></div>
+    <div class="advisor-chip" data-p="huineng" id="chip-huineng"><div class="chip-dot"></div><div class="chip-name">慧能</div></div>
+  </div>
+
+  <!-- ═══ Step 1: Input ═══ -->
+  <div class="step active" id="s1">
+    <!-- Project continuation banner: shown when user clicked "+ 新一轮追踪" on an existing project -->
+    <div id="s1-project-banner" class="project-banner" style="display:none"></div>
+    <div class="sh">
+      <div class="snum">1</div>
+      <div><div class="stitle">说出你的困境</div><div class="ssub">把你此刻真正卡住的地方讲清楚</div></div>
+    </div>
+    <textarea class="ginput" id="s1-input" rows="5" placeholder="例如：我想创业做AI产品，但不确定时机、团队和融资方向…"></textarea>
+    <button class="btn btn-w btn-full" id="s1-btn" onclick="submitInput()">提交 →</button>
+
+    <!-- Problem Library (一个 problem = 一个 project，下属多次 session) -->
+    <div id="problem-library" class="problem-library"></div>
+  </div>
+
+  <!-- ═══ Step 2: Facilitator Define ═══ -->
+  <div class="step" id="s2">
+    <div class="sh">
+      <div class="snum">2</div>
+      <div><div class="stitle">锁定议题</div><div class="ssub">主持人提炼你的核心决策点</div></div>
+    </div>
+    <div id="s2-chat"></div>
+    <div id="s2-input-area" style="display:flex;gap:6px;margin-top:8px">
+      <input class="ginput" id="s2-input" placeholder="回复主持人（或直接确认）…" style="flex:1" onkeydown="if(event.key==='Enter')sendS2()">
+      <button class="btn btn-w" onclick="sendS2()">发送</button>
+    </div>
+    <div id="s2-lock-area" style="display:none;margin-top:8px"></div>
+  </div>
+
+  <!-- ═══ Step 3: Facts Gathering ═══ -->
+  <div class="step" id="s3">
+    <div class="sh">
+      <div class="snum">3</div>
+      <div><div class="stitle">挖掘事实</div><div class="ssub">六位幕僚各自向你提问</div></div>
+    </div>
+    <div id="s3-content"></div>
+  </div>
+
+  <!-- ═══ Step 4: Persona Opinions ═══ -->
+  <div class="step" id="s4">
+    <div class="sh">
+      <div class="snum">4</div>
+      <div><div class="stitle">幕僚发言</div><div class="ssub">每位幕僚独立给出判断</div></div>
+    </div>
+    <div id="s4-cards"></div>
+  </div>
+
+  <!-- ═══ Step 5: Dimensions ═══ -->
+  <div class="step" id="s5">
+    <div class="sh">
+      <div class="snum">5</div>
+      <div><div class="stitle">拆解维度</div><div class="ssub">挑 1–3 个真正的分歧点来辩</div></div>
+    </div>
+    <div id="s5-content"></div>
+    <div id="s5-cards"></div>
+    <button class="btn btn-w btn-full" id="s5-btn" style="display:none" onclick="submitDimensions()">进入辩论 →</button>
+  </div>
+
+  <!-- ═══ Step 6: Debate ═══ -->
+  <div class="step" id="s6">
+    <div class="sh">
+      <div class="snum">6</div>
+      <div><div class="stitle">圆桌辩论</div><div class="ssub">幕僚按维度正反交锋</div></div>
+    </div>
+    <div id="s6-content"></div>
+  </div>
+
+  <!-- ═══ Step 7: Summary ═══ -->
+  <div class="step" id="s7">
+    <div class="sh">
+      <div class="snum">7</div>
+      <div><div class="stitle">秘书汇总</div><div class="ssub">事前演练 + 共识与分歧的整理</div></div>
+    </div>
+    <div id="s7-content"></div>
+  </div>
+
+  <!-- ═══ Step 8: Harvest ═══ -->
+  <div class="step" id="s8">
+    <div class="sh">
+      <div class="snum">8</div>
+      <div><div class="stitle">摘果子</div><div class="ssub">你的反思 + 幕僚评价 + 信念迭代</div></div>
+    </div>
+    <div id="s8-content"></div>
+  </div>
+
+  <!-- ═══ Phase 6 · Roundtable Shell — visible only when body.rt-mode ═══ -->
+  <div id="roundtable" hidden>
+    <!-- LEFT: Scene pane (ring or table layout) -->
+    <div class="rt-scene-pane">
+      <!-- Layout A · Flat Ring -->
+      <div id="ring-scene">
+        <div class="ring-wrap" id="rw">
+          <div class="orb orb-3"></div>
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+          <div class="ring-center-glow"></div>
+          <div class="ring-host" id="rh">
+            <div class="ring-host-av" id="rh-av">🎙️</div>
+            <div class="ring-host-label">FACILITATOR</div>
+          </div>
+          <!-- .rn persona seats injected by buildRingNodes() -->
+        </div>
+      </div>
+
+      <!-- Layout B · 42° Isometric Table -->
+      <div id="table-scene">
+        <div class="tbl-wrap" id="tw">
+          <div class="tbl-ring"></div>
+          <div class="tbl-ring2"></div>
+          <div class="tbl-surface"></div>
+          <div class="tbl-topic">
+            <div class="tbl-topic-l">TOPIC</div>
+            <div class="tbl-topic-t" id="tbl-topic-t">—</div>
+          </div>
+          <div class="seat seat-host dim" id="th-host">
+            <div class="seat-av">🎙️</div>
+            <div class="seat-label">Facilitator</div>
+          </div>
+          <!-- .seat.seat-adv persona seats injected by buildTableNodes() -->
+        </div>
+      </div>
+
+      <!-- Full-text speech panel slides in from right, overlaying scene only -->
+      <aside id="view-speech">
+        <div class="vs-inner">
+          <div class="vs-back" onclick="closeSpeechPanel()">← 返回场景</div>
+          <div class="vs-hdr">
+            <div class="vs-av" id="vs-av">🎙</div>
+            <div>
+              <div class="vs-name" id="vs-name">—</div>
+              <div class="vs-meta" id="vs-meta"></div>
+            </div>
+          </div>
+          <div class="vs-body md-body" id="vs-body"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- RIGHT: Sidebar (progress + step content/input) -->
+    <aside class="rt-side-pane">
+      <div class="rt-progress" id="rt-progress">
+        <div class="rt-pnode" data-step="1"><div class="rt-pdot"></div><span>输入</span></div>
+        <div class="rt-pnode" data-step="2"><div class="rt-pdot"></div><span>锁定</span></div>
+        <div class="rt-pnode" data-step="3"><div class="rt-pdot"></div><span>事实</span></div>
+        <div class="rt-pnode" data-step="4"><div class="rt-pdot"></div><span>发言</span></div>
+        <div class="rt-pnode" data-step="5"><div class="rt-pdot"></div><span>维度</span></div>
+        <div class="rt-pnode" data-step="6"><div class="rt-pdot"></div><span>辩论</span></div>
+        <div class="rt-pnode" data-step="7"><div class="rt-pdot"></div><span>汇总</span></div>
+        <div class="rt-pnode" data-step="8"><div class="rt-pdot"></div><span>摘果</span></div>
+      </div>
+      <!-- Step 1-8 content gets mounted here by mountRoundtableSteps() -->
+      <div id="rt-stage"></div>
+    </aside>
+  </div>
+
+</div>
+
+<!-- ═══ Settings Modal ═══ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>模型设置</h3>
+    <label>模型提供方</label>
+    <select id="set-provider" onchange="onProviderChange()">
+      <option value="deepseek">DeepSeek（推荐）</option>
+      <option value="openai">OpenAI</option>
+      <option value="kimi">Kimi（月之暗面）</option>
+      <option value="minimax">MiniMax</option>
+      <option value="ollama">Ollama（本地）</option>
+      <option value="laozhang">老张（中转）</option>
+      <option value="dmx">DMX（中转）</option>
+    </select>
+    <label>模型名称</label>
+    <input id="set-model" value="deepseek-chat" placeholder="例如 deepseek-chat">
+    <label>API 密钥</label>
+    <input id="set-apikey" type="password" placeholder="sk-...">
+    <label id="set-groupid-label" style="display:none">MiniMax 群组 ID</label>
+    <input id="set-groupid" style="display:none" placeholder="群组 ID">
+    <div class="modal-btns">
+      <button class="btn btn-g" onclick="closeSettings()">取消</button>
+      <button class="btn btn-w" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ History Panel ═══ -->
+<div class="modal-overlay" id="history-modal">
+  <div class="modal" style="max-width:520px;max-height:80vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">会话历史</h3>
+      <button class="btn btn-g" onclick="closeHistory()" style="padding:4px 10px;font-size:10px">关闭</button>
+    </div>
+    <div id="history-list" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- ═══ Follow-Ups Panel (Phase 2.3) ═══ -->
+<div class="modal-overlay" id="followup-modal">
+  <div class="modal" style="max-width:640px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div>
+        <h3 style="margin:0">📅 行动跟进</h3>
+        <div style="font-size:11px;opacity:.6;margin-top:4px">案主过去承诺了但还没回头看的行动（超过 7 天）</div>
+      </div>
+      <button class="btn btn-g" onclick="closeFollowUps()" style="padding:4px 10px;font-size:10px">关闭</button>
+    </div>
+    <div id="followup-list" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- ═══ User Wiki Panel ═══ -->
+<div class="modal-overlay" id="wiki-modal">
+  <div class="modal" style="max-width:720px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div>
+        <h3 style="margin:0">我的画像</h3>
+        <div style="font-size:11px;opacity:.6;margin-top:4px">跨项目持续累积的身份档案</div>
+      </div>
+      <button class="btn btn-g" onclick="closeUserWiki()" style="padding:4px 10px;font-size:10px">关闭</button>
+    </div>
+    <div id="wiki-content" class="md-body" style="overflow-y:auto;flex:1;padding-right:8px"></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

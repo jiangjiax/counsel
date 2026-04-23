@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参谋 · Counsel AI — App Mockup</title>
+<style>
+  :root {
+    --green: #00F3A8;
+    --green-dim: rgba(0,243,168,0.15);
+    --green-border: rgba(0,243,168,0.3);
+    --bg: #0a0a0a;
+    --card: #111;
+    --card2: #161616;
+    --text: #e8e8e8;
+    --muted: #666;
+    --danger: #ff4d4d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'PingFang SC', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* NAV BAR - step switcher */
+  .nav { display: flex; gap: 4px; padding: 8px 16px; background: #0d0d0d; border-bottom: 1px solid #1a1a1a; align-items: center; flex-shrink: 0; }
+  .nav-title { color: var(--green); font-weight: 700; font-size: 14px; margin-right: 12px; white-space: nowrap; }
+  .nav-btn { padding: 4px 10px; border: 1px solid #222; background: transparent; color: var(--muted); font-size: 11px; border-radius: 4px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .nav-btn:hover { border-color: var(--green-border); color: var(--text); }
+  .nav-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+  /* PROGRESS BAR */
+  .progress-bar { display: flex; align-items: center; padding: 6px 16px; background: #0d0d0d; border-bottom: 1px solid #1a1a1a; gap: 0; flex-shrink: 0; }
+  .prog-step { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); padding: 3px 8px; border-radius: 3px; white-space: nowrap; cursor: default; }
+  .prog-step.done { color: var(--green); }
+  .prog-step.active { color: var(--text); background: #1a1a1a; }
+  .prog-arrow { color: #333; font-size: 10px; }
+  .prog-dot { width: 5px; height: 5px; border-radius: 50%; background: #333; }
+  .prog-step.done .prog-dot { background: var(--green); }
+  .prog-step.active .prog-dot { background: var(--text); }
+
+  /* SCREENS */
+  .screen { display: none; flex: 1; overflow: hidden; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* SCROLLABLE CONTENT */
+  .scroll { flex: 1; overflow-y: auto; padding: 20px; }
+  .scroll::-webkit-scrollbar { width: 4px; }
+  .scroll::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid #1e1e1e; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .card-green { border-color: var(--green-border); background: var(--green-dim); }
+
+  /* PERSONA AVATAR */
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; border: 1px solid #2a2a2a; background: #1a1a1a; }
+  .avatar.speaking { border-color: var(--green); box-shadow: 0 0 8px rgba(0,243,168,0.4); }
+  .avatar-sm { width: 28px; height: 28px; font-size: 12px; }
+
+  /* BUTTONS */
+  .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-green:hover { background: #00d494; }
+  .btn-outline { background: transparent; border: 1px solid var(--green-border); color: var(--green); }
+  .btn-outline:hover { background: var(--green-dim); }
+  .btn-ghost { background: transparent; border: 1px solid #2a2a2a; color: var(--muted); }
+  .btn-ghost:hover { border-color: #444; color: var(--text); }
+
+  /* INPUT */
+  .input-box { width: 100%; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px; color: var(--text); font-size: 14px; resize: none; outline: none; font-family: inherit; }
+  .input-box:focus { border-color: var(--green-border); }
+
+  /* TAGS */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; border: 1px solid; }
+  .tag-green { color: var(--green); border-color: var(--green-border); background: var(--green-dim); }
+  .tag-muted { color: var(--muted); border-color: #2a2a2a; }
+  .tag-red { color: var(--danger); border-color: rgba(255,77,77,0.3); background: rgba(255,77,77,0.08); }
+
+  /* CHAT BUBBLE */
+  .bubble { padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; max-width: 80%; }
+  .bubble-left { background: var(--card2); border: 1px solid #2a2a2a; border-top-left-radius: 2px; }
+  .bubble-right { background: var(--green-dim); border: 1px solid var(--green-border); border-top-right-radius: 2px; align-self: flex-end; }
+  .chat-row { display: flex; gap: 10px; margin-bottom: 14px; align-items: flex-start; }
+  .chat-row.right { flex-direction: row-reverse; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+  /* SECTION TITLE */
+  .sec-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  p { font-size: 13px; color: #aaa; line-height: 1.6; }
+
+  /* CHECKBOX */
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #2a2a2a; border-radius: 8px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; }
+  .check-item:hover { border-color: var(--green-border); }
+  .check-item.checked { border-color: var(--green); background: var(--green-dim); }
+  .check-box { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #444; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .check-item.checked .check-box { background: var(--green); border-color: var(--green); color: #000; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid #1a1a1a; margin: 16px 0; }
+
+  /* BOTTOM ACTION BAR */
+  .action-bar { padding: 12px 20px; border-top: 1px solid #1a1a1a; display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-shrink: 0; background: #0d0d0d; }
+
+  /* VOICE BTN */
+  .voice-btn { width: 40px; height: 40px; border-radius: 50%; background: #1a1a1a; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.15s; }
+  .voice-btn:hover { border-color: var(--green-border); background: var(--green-dim); }
+  .voice-btn.recording { background: rgba(255,77,77,0.15); border-color: rgba(255,77,77,0.5); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,77,77,0.3); } 50% { box-shadow: 0 0 0 6px rgba(255,77,77,0); } }
+
+  /* STREAMING ANIMATION */
+  .streaming::after { content: '▋'; animation: blink 0.8s infinite; color: var(--green); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* PERSONA CARD (step 4) */
+  .persona-card { background: var(--card); border: 1px solid #1e1e1e; border-radius: 10px; padding: 14px; transition: border-color 0.2s; }
+  .persona-card:hover { border-color: var(--green-border); cursor: pointer; }
+  .persona-card.speaking { border-color: var(--green); }
+
+  /* DEBATE ROW */
+  .debate-side { flex: 1; }
+  .debate-layout { display: flex; gap: 12px; }
+  .faction-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* SUMMARY BLOCK */
+  .summary-block { border-left: 2px solid var(--green); padding-left: 12px; margin-bottom: 14px; }
+  .summary-block.conflict { border-color: #ff6b35; }
+  .summary-block.neutral { border-color: #666; }
+
+  /* HOME PROJECT CARD */
+  .project-card { background: var(--card); border: 1px solid #1e1e1e; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; }
+  .project-card:hover { border-color: var(--green-border); transform: translateY(-1px); }
+  .project-progress { height: 3px; background: #1e1e1e; border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .project-progress-fill { height: 100%; background: var(--green); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV: PAGE SWITCHER -->
+<div class="nav">
+  <span class="nav-title">参谋 · Mockup</span>
+  <button class="nav-btn active" onclick="show('home')">0 首页</button>
+  <button class="nav-btn" onclick="show('s1')">1 输入困惑</button>
+  <button class="nav-btn" onclick="show('s2')">2 定义问题</button>
+  <button class="nav-btn" onclick="show('s3')">3 挖事实</button>
+  <button class="nav-btn" onclick="show('s4')">4 独立发言</button>
+  <button class="nav-btn" onclick="show('s5')">5 拆维度</button>
+  <button class="nav-btn" onclick="show('s6')">6 辩论</button>
+  <button class="nav-btn" onclick="show('s7')">7 汇总</button>
+  <button class="nav-btn" onclick="show('s8')">8 摘果子</button>
+</div>
+
+<!-- PROGRESS BAR (shown in all steps except home) -->
+<div class="progress-bar" id="prog-bar" style="display:none">
+  <div class="prog-step done"><div class="prog-dot"></div>输入</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step done"><div class="prog-dot"></div>定义</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step active"><div class="prog-dot"></div>挖事实</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>发言</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>拆维度</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>辩论</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>汇总</div>
+  <div class="prog-arrow">›</div>
+  <div class="prog-step"><div class="prog-dot"></div>摘果子</div>
+</div>
+
+
+<!-- ======================== HOME ======================== -->
+<div class="screen active" id="home">
+<div class="scroll">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:var(--green)">参谋</div>
+      <div style="font-size:12px;color:var(--muted)">一个人的盲区，参谋来照亮</div>
+    </div>
+    <button class="btn btn-green" onclick="show('s1')">+ 新项目</button>
+  </div>
+
+  <div class="sec-title">进行中的项目</div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="project-card" onclick="show('s4')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <h3>要不要全职创业？</h3>
+          <p style="font-size:11px;margin-top:3px">Session 3 · 2026-04-09</p>
+        </div>
+        <span class="tag tag-green">进行中</span>
+      </div>
+      <p style="font-size:12px;margin-top:8px;color:#888">当前：Step 4 独立发言 · 12幕僚并行生成中...</p>
+      <div class="project-progress"><div class="project-progress-fill" style="width:50%"></div></div>
+    </div>
+    <div class="project-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <h3>和张总的合作要不要深入？</h3>
+          <p style="font-size:11px;margin-top:3px">Session 1 · 2026-03-28</p>
+        </div>
+        <span class="tag tag-muted">已完成</span>
+      </div>
+      <p style="font-size:12px;margin-top:8px;color:#888">7/8步完成 · 上次to-do: 约一次线下见面</p>
+      <div class="project-progress"><div class="project-progress-fill" style="width:88%"></div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">已完成的项目</div>
+  <div class="grid-2">
+    <div class="project-card" style="opacity:0.6">
+      <h3>要不要接受这个投资条款</h3>
+      <p style="font-size:11px;margin-top:3px">3 sessions · 结束于 2026-02-14</p>
+      <div class="project-progress"><div class="project-progress-fill" style="width:100%;background:#444"></div></div>
+    </div>
+    <div class="project-card" style="opacity:0.6;border:1px dashed #2a2a2a;background:transparent;display:flex;align-items:center;justify-content:center;min-height:80px">
+      <span style="color:var(--muted);font-size:13px">+ 导入历史记录</span>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding:12px;background:#0f0f0f;border-radius:8px;border:1px dashed #222;text-align:center">
+    <span style="font-size:11px;color:var(--muted)">⚡ Demo模式 — 用预设的"Michael"快速演示完整流程</span>
+    <button class="btn btn-outline" style="margin-left:12px;font-size:11px;padding:4px 10px">开始Demo</button>
+  </div>
+</div>
+</div>
+
+
+<!-- ======================== STEP 1: 输入困惑 ======================== -->
+<div class="screen" id="s1">
+<div class="scroll" style="max-width:640px;margin:0 auto">
+  <div style="text-align:center;padding:30px 0 20px">
+    <div style="font-size:32px;margin-bottom:8px">🪑</div>
+    <h2>你现在最想解决的是什么？</h2>
+    <p style="margin-top:6px">不用完美，不用逻辑清晰。直接说，越真实越好。</p>
+  </div>
+
+  <textarea class="input-box" rows="8" placeholder="例如：我在现在的公司做了3年，最近有机会出来创业，但我不确定时机对不对，我老婆也有点担心，我自己也不知道这个idea够不够大...">我在现在的公司做了3年了，手上有一个想做的产品方向，最近有朋友愿意一起创业。但我不知道现在时机对不对——市场竞争很激烈，而且我家里刚买了房，经济压力不小。我老婆支持但也担心。我自己内心是想做的，但我怕自己只是在逃避公司里的一些问题，而不是真正想创业。</textarea>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+    <div class="voice-btn" title="微信语音输入">🎙️</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:11px;color:var(--muted)">238字</span>
+      <button class="btn btn-green" onclick="show('s2')">提交，开始定义问题 →</button>
+    </div>
+  </div>
+
+  <p style="font-size:11px;color:#555;margin-top:16px;text-align:center">你的内容只存在本地，参谋不会上传你的私人决策</p>
+</div>
+</div>
+
+
+<!-- ======================== STEP 2: 定义问题 ======================== -->
+<div class="screen" id="s2">
+<div style="display:flex;flex-direction:column;height:100%">
+  <div class="scroll" style="max-width:680px;margin:0 auto;width:100%">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
+      <div class="avatar">🎙️</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--green)">主持人</div>
+        <div style="font-size:11px;color:var(--muted)">正在帮你定义可以被讨论的问题</div>
+      </div>
+    </div>
+
+    <div class="chat-row">
+      <div class="avatar">🎙️</div>
+      <div class="bubble bubble-left">你提到"怕自己只是在逃避公司里的问题"——这让我很感兴趣。<br>如果你把公司里的问题全部解决了，你还会想创业吗？</div>
+    </div>
+    <div class="chat-row right">
+      <div class="avatar" style="background:#1a2a1a;border-color:#2a4a2a">M</div>
+      <div class="bubble bubble-right">这个问题问到点上了。我想了一下——即使公司一切都好，我依然想做自己的产品。但创业的紧迫感确实是被公司环境催化出来的。</div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar">🎙️</div>
+      <div class="bubble bubble-left">明白了。那我再问你一个：你说"时机"——你担心的是市场时机，还是你个人的准备程度？还是两者都有？</div>
+    </div>
+    <div class="chat-row right">
+      <div class="avatar" style="background:#1a2a1a;border-color:#2a4a2a">M</div>
+      <div class="bubble bubble-right">诚实说，主要是个人准备程度。市场我觉得OK，但我不确定自己能扛住那个压力，尤其是有家庭了。</div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar">🎙️</div>
+      <div class="bubble bubble-left" style="border-color:var(--green-border);background:var(--green-dim)">
+        <div style="font-size:11px;color:var(--green);margin-bottom:6px">✦ 我认为我们现在可以锁定问题了</div>
+        <div style="font-weight:600;margin-bottom:10px">建议锁定以下3个讨论问题：</div>
+        <div style="font-size:13px;margin-bottom:6px">① 现在离职创业，我的个人准备程度是否足够？风险如何评估？</div>
+        <div style="font-size:13px;margin-bottom:6px">② 创业的动机是真实的愿望，还是对现状的逃避？如何判断？</div>
+        <div style="font-size:13px;margin-bottom:10px">③ 如何在家庭经济压力和个人追求之间找到平衡点？</div>
+        <div style="font-size:11px;color:var(--muted)">你可以调整这些措辞，或者说"再问一个"</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="sec-title" style="margin-bottom:8px">建议幕僚阵容（12人）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>💼</span><span>乔布斯</span><span style="color:var(--muted);font-size:10px">产品直觉</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🧪</span><span>保罗格雷厄姆</span><span style="color:var(--muted);font-size:10px">PMF</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>☁️</span><span>贝索斯</span><span style="color:var(--muted);font-size:10px">长期主义</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🚀</span><span>马斯克</span><span style="color:var(--muted);font-size:10px">第一性原理</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🌊</span><span>老子</span><span style="color:var(--muted);font-size:10px">无为</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🪷</span><span>六祖慧能</span><span style="color:var(--muted);font-size:10px">当下觉察</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>⚔️</span><span>毛泽东</span><span style="color:var(--muted);font-size:10px">矛盾分析</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🔬</span><span>钱学森</span><span style="color:var(--muted);font-size:10px">系统工程</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>📡</span><span>凯文·凯利</span><span style="color:var(--muted);font-size:10px">涌现趋势</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>💰</span><span>a16z</span><span style="color:var(--muted);font-size:10px">资本逻辑</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>🥋</span><span>李小龙</span><span style="color:var(--muted);font-size:10px">截拳道</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:5px 10px;font-size:12px">
+        <span>⚛️</span><span>爱因斯坦</span><span style="color:var(--muted);font-size:10px">思维实验</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <div class="voice-btn">🎙️</div>
+    <input class="input-box" style="flex:1;padding:8px 12px;height:36px" placeholder="再问一个 / 修改问题 / 调整幕僚...">
+    <button class="btn btn-outline">再问一个</button>
+    <button class="btn btn-green" onclick="show('s3')">锁定，进入挖事实 →</button>
+  </div>
+</div>
+</div>
+
+
+<!-- ======================== STEP 3: 挖事实 ======================== -->
+<div class="screen" id="s3">
+<div class="scroll">
+  <div style="margin-bottom:16px">
+    <h2>挖事实</h2>
+    <p>每位幕僚根据自己的视角，提出最想了解的问题。统一回答即可。</p>
+  </div>
+
+  <div class="grid-2">
+    <!-- 有问题的 -->
+    <div class="card" style="border-color:var(--green-border)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar speaking">💼</div>
+        <div><div style="font-size:13px;font-weight:600">乔布斯</div><span class="tag tag-green">有问题</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text)">在你描述的这个创业想法里，你最害怕放弃的是什么——是那个idea本身，还是"我是一个创业者"这个自我认同？</p>
+    </div>
+    <div class="card" style="border-color:var(--green-border)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar speaking">🧪</div>
+        <div><div style="font-size:13px;font-weight:600">保罗·格雷厄姆</div><span class="tag tag-green">有问题</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text)">你有没有找过10个真正可能付费的潜在用户谈过？他们说了什么？</p>
+    </div>
+    <div class="card" style="border-color:var(--green-border)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar speaking">⚔️</div>
+        <div><div style="font-size:13px;font-weight:600">毛泽东</div><span class="tag tag-green">有问题</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text)">你的朋友愿意一起创业——他的能力和你是互补的还是重叠的？他在困难时期有没有扛过事？</p>
+    </div>
+    <!-- 跳过的 -->
+    <div class="card" style="opacity:0.5">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar">🌊</div>
+        <div><div style="font-size:13px;font-weight:600">老子</div><span class="tag tag-muted">无需追问</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">前面的对话已经足够了解。我选择此刻沉默。</p>
+    </div>
+    <div class="card" style="opacity:0.5">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar">🪷</div>
+        <div><div style="font-size:13px;font-weight:600">六祖慧能</div><span class="tag tag-muted">无需追问</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">已知晓所需。</p>
+    </div>
+    <div class="card" style="border-color:var(--green-border)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="avatar speaking">☁️</div>
+        <div><div style="font-size:13px;font-weight:600">贝索斯</div><span class="tag tag-green">有问题</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text)">如果这个创业失败了，你有没有想过10年后你会怎么评价这次决定？</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;border-color:var(--green-border)">
+    <div style="font-size:12px;color:var(--green);margin-bottom:10px">✦ 统一回答区（按问题编号回答即可）</div>
+    <textarea class="input-box" rows="5" placeholder="乔布斯：我害怕放弃的是那个idea，不是身份认同...&#10;保罗格雷厄姆：谈了5个，3个说有这个痛点，2个觉得AI还不成熟...&#10;毛泽东：他做过技术，我做产品，互补的...&#10;贝索斯：10年后我会为没有尝试而后悔..."></textarea>
+  </div>
+</div>
+<div class="action-bar">
+  <div class="voice-btn">🎙️</div>
+  <span style="font-size:12px;color:var(--muted)">9/12幕僚有问题 · 3个跳过</span>
+  <button class="btn btn-green" onclick="show('s4')">提交，开始并行发言 →</button>
+</div>
+</div>
+
+
+<!-- ======================== STEP 4: 独立发言 ======================== -->
+<div class="screen" id="s4">
+<div class="scroll">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div>
+      <h2>独立发言</h2>
+      <p>12位幕僚正在并行生成意见，互不可见</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse2 1s infinite"></div>
+      <span style="font-size:12px;color:var(--green)">11/12 生成中</span>
+    </div>
+  </div>
+  <style>@keyframes pulse2{0%,100%{opacity:1}50%{opacity:0.3}}</style>
+
+  <div class="grid-3">
+    <!-- 已完成的幕僚卡 -->
+    <div class="persona-card" onclick="openPersona('jobs')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar">💼</div>
+          <div><div style="font-size:13px;font-weight:600">乔布斯</div><div style="font-size:10px;color:var(--muted)">产品直觉 · 极简主义</div></div>
+        </div>
+        <span class="tag tag-green">完成</span>
+      </div>
+      <p style="font-size:12px;color:#aaa;line-height:1.6"><b style="color:var(--text)">核心立场：</b>你问错了问题。不是"时机对不对"，是"你足不足够obsessed"。</p>
+      <p style="font-size:12px;color:#888;margin-top:6px;line-height:1.5">真正的创业者不会问时机，他们已经在路上了，只是在找同行者。你现在还在问"该不该"，说明那个产品还没有把你的灵魂抓住...</p>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">点击查看完整发言 →</div>
+    </div>
+
+    <div class="persona-card" onclick="openPersona('pg')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar">🧪</div>
+          <div><div style="font-size:13px;font-weight:600">保罗·格雷厄姆</div><div style="font-size:10px;color:var(--muted)">PMF · 真实需求</div></div>
+        </div>
+        <span class="tag tag-green">完成</span>
+      </div>
+      <p style="font-size:12px;color:#aaa;line-height:1.6"><b style="color:var(--text)">核心立场：</b>家庭压力不是阻碍创业的理由，它是筛选创业动机真实性的过滤器。</p>
+      <p style="font-size:12px;color:#888;margin-top:6px;line-height:1.5">你谈了5个潜在用户，3个有痛点。这个比例很好。但"有痛点"和"会付钱"之间还有很大的距离...</p>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">点击查看完整发言 →</div>
+    </div>
+
+    <div class="persona-card" onclick="openPersona('laozi')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar">🌊</div>
+          <div><div style="font-size:13px;font-weight:600">老子</div><div style="font-size:10px;color:var(--muted)">无为 · 水哲学</div></div>
+        </div>
+        <span class="tag tag-green">完成</span>
+      </div>
+      <p style="font-size:12px;color:#aaa;line-height:1.6"><b style="color:var(--text)">核心立场：</b>为而不争。你现在的焦虑，来自于你把"创业"当成了一个需要征服的目标。</p>
+      <p style="font-size:12px;color:#888;margin-top:6px;line-height:1.5">上善若水。水不选择时机，它顺势流淌。你的问题不是"该不该"，是"此刻的流向是什么"...</p>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">点击查看完整发言 →</div>
+    </div>
+
+    <!-- 生成中的 -->
+    <div class="persona-card" style="opacity:0.7">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar" style="border-color:var(--green)">🚀</div>
+          <div><div style="font-size:13px;font-weight:600">马斯克</div><div style="font-size:10px;color:var(--muted)">第一性原理</div></div>
+        </div>
+        <span class="tag tag-muted">生成中</span>
+      </div>
+      <p class="streaming" style="font-size:12px;color:#888">你说家庭压力——算一下具体的数字。每月必须要多少钱才能维持</p>
+    </div>
+
+    <div class="persona-card" style="opacity:0.7">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar" style="border-color:var(--green)">☁️</div>
+          <div><div style="font-size:13px;font-weight:600">贝索斯</div><div style="font-size:10px;color:var(--muted)">长期主义</div></div>
+        </div>
+        <span class="tag tag-muted">生成中</span>
+      </div>
+      <p class="streaming" style="font-size:12px;color:#888">10年后你如何看待今天的这个决定。用regret minimization</p>
+    </div>
+
+    <div class="persona-card" style="opacity:0.4">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="avatar">⚛️</div>
+          <div><div style="font-size:13px;font-weight:600">爱因斯坦</div><div style="font-size:10px;color:var(--muted)">思维实验</div></div>
+        </div>
+        <span class="tag tag-muted">等待中</span>
+      </div>
+      <p style="font-size:12px;color:#555">等待生成...</p>
+    </div>
+  </div>
+</div>
+<div class="action-bar">
+  <span style="font-size:12px;color:var(--muted)">全部完成后自动进入下一步</span>
+  <button class="btn btn-ghost">等不及，先看已完成的</button>
+  <button class="btn btn-green" onclick="show('s5')" style="opacity:0.5">11/12完成，进入拆维度 →</button>
+</div>
+</div>
+
+
+<!-- ======================== STEP 5: 拆维度 ======================== -->
+<div class="screen" id="s5">
+<div class="scroll">
+  <div style="margin-bottom:16px">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+      <div class="avatar avatar-sm">🎙️</div>
+      <span style="font-size:11px;color:var(--muted)">主持人 · 分析12份意见后提炼</span>
+    </div>
+    <h2>我发现了5个核心冲突维度</h2>
+    <p>选择你想深入讨论的（最多3个）</p>
+  </div>
+
+  <div id="dims">
+    <div class="check-item checked" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">① 动机真实性：逃避 vs 真实渴望</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">乔布斯、老子 vs 保罗格雷厄姆、毛泽东 · 高张力</div>
+        <div style="font-size:11px;color:#888;margin-top:3px">你的内心驱动力究竟是什么，这直接决定你能不能扛过低谷</div>
+      </div>
+      <span class="tag tag-red">高冲突</span>
+    </div>
+    <div class="check-item checked" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">② 时间跨度：短期存活 vs 长期正确</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">马斯克、贝索斯 vs 凯文·凯利、六祖 · 中张力</div>
+        <div style="font-size:11px;color:#888;margin-top:3px">现实的经济压力和长期的复利逻辑，如何在这两者之间找到平衡点</div>
+      </div>
+      <span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,0.3);background:rgba(255,153,51,0.08)">中冲突</span>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">③ 伴侣关系：是否需要老婆真正理解</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">六祖、老子 vs 毛泽东 · 低张力但重要</div>
+        <div style="font-size:11px;color:#888;margin-top:3px">老婆"支持但担心"——这个状态够不够，还是需要她真正理解你的逻辑</div>
+      </div>
+      <span class="tag tag-muted">低冲突</span>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">④ 合伙人风险：这个朋友值不值得</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">毛泽东、PG vs 乔布斯 · 中张力</div>
+        <div style="font-size:11px;color:#888;margin-top:3px">互补是假的互补还是真的互补，在困难时期是否能扛事</div>
+      </div>
+      <span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,0.3);background:rgba(255,153,51,0.08)">中冲突</span>
+    </div>
+    <div class="check-item checked" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">⑤ 第一性原理：这个idea本身够不够大</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">马斯克、a16z vs 老子 · 高张力</div>
+        <div style="font-size:11px;color:#888;margin-top:3px">如果idea不够大，所有的"时机"问题都是伪问题</div>
+      </div>
+      <span class="tag tag-red">高冲突</span>
+    </div>
+  </div>
+</div>
+<div class="action-bar">
+  <span style="font-size:12px;color:var(--muted)">已选3个维度</span>
+  <button class="btn btn-ghost">全选</button>
+  <button class="btn btn-green" onclick="show('s6')">开始辩论 →</button>
+</div>
+</div>
+
+
+<!-- ======================== STEP 6: 辩论 ======================== -->
+<div class="screen" id="s6">
+<div style="display:flex;flex-direction:column;height:100%">
+  <div style="padding:12px 20px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:var(--muted)">维度 ① / 3</div>
+        <div style="font-size:15px;font-weight:600">动机真实性：逃避 vs 真实渴望</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span class="tag tag-green">Round 1</span>
+        <span style="font-size:11px;color:var(--muted);padding:2px 0">Round 2 待解锁</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="debate-layout" style="margin-bottom:16px">
+      <div class="debate-side">
+        <div class="faction-label">正方 · "这是真实渴望"</div>
+        <div class="card" style="margin-bottom:8px">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div class="avatar avatar-sm speaking">💼</div>
+            <span style="font-size:12px;font-weight:600">乔布斯</span>
+          </div>
+          <p style="font-size:12px;line-height:1.6;color:#ccc">他说"即使公司一切都好，我依然想做自己的产品"——这是最重要的一句话。真正的逃避者不会说这个，因为逃避者需要外部条件来合理化。他的渴望是先于困境存在的。</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div class="avatar avatar-sm">🌊</div>
+            <span style="font-size:12px;font-weight:600">老子</span>
+          </div>
+          <p style="font-size:12px;line-height:1.6;color:#ccc">逃避与渴望，本无对立。水往低处流，不是因为逃避高处，而是它的本性如此。问题本身就是一个陷阱。</p>
+        </div>
+      </div>
+
+      <div style="width:1px;background:#1a1a1a;margin:0 8px"></div>
+
+      <div class="debate-side">
+        <div class="faction-label" style="color:#ff6b35">反方 · "需要更多验证"</div>
+        <div class="card" style="margin-bottom:8px">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div class="avatar avatar-sm">🧪</div>
+            <span style="font-size:12px;font-weight:600">保罗·格雷厄姆</span>
+          </div>
+          <p style="font-size:12px;line-height:1.6;color:#ccc">"即使公司好我依然想做"——很好。但我更关心：你有没有在周末、下班后，已经在做这件事？真实渴望不只是感觉，它会变成行动。你做了吗？</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div class="avatar avatar-sm">⚔️</div>
+            <span style="font-size:12px;font-weight:600">毛泽东</span>
+          </div>
+          <p style="font-size:12px;line-height:1.6;color:#ccc">动机真实性不是自我分析出来的，是用行动检验出来的。他在公司受困，这是客观事实。在没有排除外部因素之前，他的"渴望"是可疑的。</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:10px;background:#0f1a0f;border:1px solid var(--green-border);border-radius:8px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--green);margin-bottom:4px">✦ 主持人 · Round 1小结</div>
+      <p style="font-size:12px;color:#ccc;line-height:1.6">核心分歧在于：乔布斯认为动机的先验性已经证明其真实性；PG和毛泽东认为动机需要用行动来验证，不能只靠自我报告。这个矛盾没有被解决，正是需要案主自己回答的问题。</p>
+    </div>
+
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">你有问题要问吗？</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost" style="font-size:11px">格雷厄姆，"行动检验"具体指什么？</button>
+      <button class="btn btn-ghost" style="font-size:11px">乔布斯，如何区分obsession和执念？</button>
+      <button class="btn btn-ghost" style="font-size:11px">+ 自定义问题</button>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <div class="voice-btn">🎙️</div>
+    <input class="input-box" style="flex:1;padding:8px 12px;height:36px" placeholder="问幕僚一个问题...（微信语音输入后自动识别）">
+    <button class="btn btn-outline">发问</button>
+    <button class="btn btn-green" onclick="show('s7')">这个维度结束，进入汇总 →</button>
+  </div>
+</div>
+</div>
+
+
+<!-- ======================== STEP 7: 汇总 ======================== -->
+<div class="screen" id="s7">
+<div class="scroll">
+  <div style="margin-bottom:20px">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+      <div class="avatar avatar-sm">🎙️</div>
+      <span style="font-size:11px;color:var(--muted)">主持人 · 全程汇总</span>
+    </div>
+    <h2>本次会议汇总</h2>
+    <p>2026-04-09 · 3个维度讨论完毕 · 历时约47分钟</p>
+  </div>
+
+  <div class="summary-block">
+    <div class="sec-title">达成共识</div>
+    <p style="font-size:13px;color:var(--text)">• 你的创业渴望先于现有公司困境存在，具有一定的真实性</p>
+    <p style="font-size:13px;color:var(--text);margin-top:4px">• 家庭经济压力需要具体量化，而不是模糊恐惧</p>
+    <p style="font-size:13px;color:var(--text);margin-top:4px">• 合伙人的互补性需要在项目压力下才能真正验证</p>
+  </div>
+
+  <div class="summary-block conflict">
+    <div class="sec-title" style="color:#ff6b35">核心分歧（未解决）</div>
+    <p style="font-size:13px;color:var(--text)">• <b>乔布斯 vs PG：</b>感受到的渴望 vs 行动验证的渴望——你还没有充分行动过</p>
+    <p style="font-size:13px;color:var(--text);margin-top:4px">• <b>老子 vs 马斯克：</b>顺势无为 vs 第一性原理穿透——你的idea够不够大，争议明显</p>
+  </div>
+
+  <div class="summary-block neutral">
+    <div class="sec-title">假设验证</div>
+    <p style="font-size:13px;color:var(--text)">• ✓ 验证："时机"不是主要问题，准备度才是</p>
+    <p style="font-size:13px;color:var(--text);margin-top:4px">• ✗ 推翻："有家庭=不适合创业"——这是伪命题，被多位幕僚否定</p>
+    <p style="font-size:13px;color:var(--text);margin-top:4px">• ? 仍存疑：这个idea本身的市场规模（需要更多数据）</p>
+  </div>
+
+  <div style="background:var(--card);border-radius:10px;padding:14px;margin-top:12px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">12位幕僚 · 点击查看个人完整发言汇总</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">💼</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🧪</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🌊</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🪷</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">⚔️</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🔬</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">☁️</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🚀</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">📡</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">💰</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">🥋</div>
+      <div class="avatar" style="cursor:pointer;border-color:#2a2a2a">⚛️</div>
+    </div>
+    <div style="font-size:10px;color:#555;margin-top:8px">点击头像 → 触发该幕僚的个人汇总生成（按需，省token）</div>
+  </div>
+</div>
+<div class="action-bar">
+  <button class="btn btn-green" onclick="show('s8')">进入摘果子 →</button>
+</div>
+</div>
+
+
+<!-- ======================== STEP 8: 摘果子 ======================== -->
+<div class="screen" id="s8">
+<div class="scroll">
+  <div style="margin-bottom:20px">
+    <h2>摘果子</h2>
+    <p>幕僚对你的真实评价，以及这一轮结束后你的收获</p>
+  </div>
+
+  <div class="sec-title">幕僚评价你（Part B · 真刀真枪）</div>
+  <div style="margin-bottom:16px">
+    <div class="card" style="margin-bottom:8px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="avatar avatar-sm">💼</div>
+        <span style="font-size:12px;font-weight:600">乔布斯</span>
+      </div>
+      <p style="font-size:12px;color:#8f8;margin-bottom:4px">优点：你知道自己想要什么，这在大多数人这里是很罕见的能力。</p>
+      <p style="font-size:12px;color:#f88;margin-bottom:4px">盲区：你在用"家庭"当盾牌，保护自己不用真正去试。你真正怕的不是失败，是成功了之后要承担的重量。</p>
+      <p style="font-size:12px;color:var(--green)">建议：先做出一个真实用户愿意付钱的v0，再谈离职。</p>
+    </div>
+    <div class="card" style="margin-bottom:8px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="avatar avatar-sm">🧪</div>
+        <span style="font-size:12px;font-weight:600">保罗·格雷厄姆</span>
+      </div>
+      <p style="font-size:12px;color:#8f8;margin-bottom:4px">优点：你的自我觉察能力是创业者必需的，你知道自己在逃避这个事实本身就是一个信号。</p>
+      <p style="font-size:12px;color:#f88;margin-bottom:4px">盲区：你谈了5个客户，但你用的是"有痛点"来说服自己，不是"他们说要付钱"。</p>
+      <p style="font-size:12px;color:var(--green)">建议：本周找到2个愿意预付费的用户，如果找到了，所有问题都不是问题了。</p>
+    </div>
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="avatar avatar-sm">🌊</div>
+        <span style="font-size:12px;font-weight:600">老子</span>
+      </div>
+      <p style="font-size:12px;color:#8f8;margin-bottom:4px">优点：你的内心已经知道答案了。</p>
+      <p style="font-size:12px;color:#f88;margin-bottom:4px">盲区：你在用思考来逃避感受。</p>
+      <p style="font-size:12px;color:var(--green)">建议：今晚不要分析，去感受一下如果你决定不创业，你的身体有什么反应。</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="sec-title">你的收获（案主自述）</div>
+  <textarea class="input-box" rows="3" placeholder="这一轮你最大的收获是什么？（会自动记录到user wiki）" style="margin-bottom:12px"></textarea>
+
+  <div class="sec-title">To-Do（Secretary提取）</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:14px">☐</span>
+        <span style="font-size:13px">本周找2个愿意预付费的潜在用户</span>
+        <span class="tag tag-red" style="margin-left:auto">高优先</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:14px">☐</span>
+        <span style="font-size:13px">算清楚：每月最低生存线是多少钱（具体数字）</span>
+        <span class="tag" style="color:#ff9933;border-color:rgba(255,153,51,0.3);margin-left:auto">重要</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:14px">☐</span>
+        <span style="font-size:13px">和老婆做一次真正深入的价值观对话（不是"我需要你支持"）</span>
+        <span class="tag tag-muted" style="margin-left:auto">本月内</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:14px">☐</span>
+        <span style="font-size:13px">今晚：身体感受练习（不分析，只感受）</span>
+        <span class="tag tag-green" style="margin-left:auto">今晚</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;padding:12px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px">
+    <div style="font-size:12px;color:var(--green);margin-bottom:4px">✦ User Wiki已更新</div>
+    <p style="font-size:11px;color:#aaa">新增：用家庭作盾牌的决策模式 · 知道自己想要什么的能力 · 创业动机先于困境</p>
+  </div>
+</div>
+<div class="action-bar">
+  <span style="font-size:12px;color:var(--muted)">本次会议完成 ✓</span>
+  <button class="btn btn-ghost" onclick="show('home')">回首页</button>
+  <button class="btn btn-green">下次再来，基于本轮继续</button>
+</div>
+</div>
+
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  // update nav button
+  const map = {home:0,s1:1,s2:2,s3:3,s4:4,s5:5,s6:6,s7:7,s8:8};
+  const btns = document.querySelectorAll('.nav-btn');
+  if(map[id] !== undefined) btns[map[id]].classList.add('active');
+
+  // show/hide progress bar
+  const prog = document.getElementById('prog-bar');
+  prog.style.display = id === 'home' ? 'none' : 'flex';
+
+  // update progress bar active step
+  if(id !== 'home') {
+    const steps = document.querySelectorAll('.prog-step');
+    const activeMap = {s1:0,s2:1,s3:2,s4:3,s5:4,s6:5,s7:6,s8:7};
+    const activeIdx = activeMap[id] ?? 0;
+    steps.forEach((s,i) => {
+      s.classList.remove('done','active');
+      if(i < activeIdx) s.classList.add('done');
+      else if(i === activeIdx) s.classList.add('active');
+    });
+  }
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  const box = el.querySelector('.check-box');
+  box.textContent = el.classList.contains('checked') ? '✓' : '';
+  // count
+  const count = document.querySelectorAll('#dims .check-item.checked').length;
+  // could update a counter display here
+}
+
+function openPersona(name) {
+  // placeholder - would open a side panel
+  alert('幕僚详细发言面板（' + name + '）\n\n完整意见 + 哲学框架 + 历史观点\n\n实际产品中会从右侧滑出');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参谋 · Roundtable v8</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/scenes.css">
+    <link rel="stylesheet" href="css/steps.css">
+</head>
+<body>
+    <!-- ==================== 首页/入口 ==================== -->
+    <div id="home">
+        <header class="hheader">
+            <div class="logo">参谋</div>
+            <div class="subtitle">Roundtable Advisor</div>
+        </header>
+        
+        <div id="packages-container" class="packages-container">
+            <!-- Package列表将动态加载 -->
+        </div>
+        
+        <div class="enter-bar">
+            <button id="enter-btn" class="enter-button" onclick="enterSession()">进入圆桌</button>
+        </div>
+    </div>
+
+    <!-- ==================== 主应用 ==================== -->
+    <div id="main">
+        <!-- 场景区域 -->
+        <div id="scene-pane">
+            <!-- 维度追踪器 -->
+            <div id="dim-tracker">
+                <div class="dim-item" data-dim="market">
+                    <span class="dim-icon">📊</span>
+                    <span class="dim-label">市场</span>
+                    <span class="dim-value">--</span>
+                </div>
+                <div class="dim-item" data-dim="tech">
+                    <span class="dim-icon">🔧</span>
+                    <span class="dim-label">技术</span>
+                    <span class="dim-value">--</span>
+                </div>
+                <div class="dim-item" data-dim="team">
+                    <span class="dim-icon">👥</span>
+                    <span class="dim-label">团队</span>
+                    <span class="dim-value">--</span>
+                </div>
+                <div class="dim-item" data-dim="finance">
+                    <span class="dim-icon">💰</span>
+                    <span class="dim-label">财务</span>
+                    <span class="dim-value">--</span>
+                </div>
+            </div>
+            
+            <!-- 角落角色 -->
+            <div id="corner-staff">
+                <div class="staff recorder">
+                    <div class="staff-avatar">📝</div>
+                    <div class="staff-name">记录员</div>
+                </div>
+                <div class="staff mediator">
+                    <div class="staff-avatar">⚖️</div>
+                    <div class="staff-name">调解员</div>
+                </div>
+            </div>
+            
+            <!-- 布局切换按钮 -->
+            <button id="lt" class="layout-toggle" title="切换布局">
+                <span class="lt-icon">⟲</span>
+            </button>
+            
+            <!-- 星环布局 -->
+            <div id="ring-scene" class="scene-layout">
+                <!-- 12个角色节点 (rn1-rn12) -->
+                <div class="rn" id="rn1" data-pos="1">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn2" data-pos="2">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn3" data-pos="3">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn4" data-pos="4">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn5" data-pos="5">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn6" data-pos="6">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn7" data-pos="7">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn8" data-pos="8">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn9" data-pos="9">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn10" data-pos="10">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn11" data-pos="11">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                <div class="rn" id="rn12" data-pos="12">
+                    <div class="rn-avatar"></div>
+                    <div class="rn-name"></div>
+                </div>
+                
+                <!-- 主持人 -->
+                <div id="host">
+                    <div class="host-avatar">🎙️</div>
+                    <div class="host-name">主持人</div>
+                </div>
+            </div>
+            
+            <!-- 圆桌布局 -->
+            <div id="table-scene" class="scene-layout hidden">
+                <div class="table-center">
+                    <div class="topic-display"></div>
+                </div>
+                <div class="seat" id="seat1" data-pos="1">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat2" data-pos="2">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat3" data-pos="3">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat4" data-pos="4">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat5" data-pos="5">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat6" data-pos="6">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat7" data-pos="7">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+                <div class="seat" id="seat8" data-pos="8">
+                    <div class="seat-avatar"></div>
+                    <div class="seat-name"></div>
+                </div>
+            </div>
+            
+            <!-- 浮动容器 S3/S4 -->
+            <div id="s3-float-container" class="float-layer hidden">
+                <div class="float-content"></div>
+            </div>
+            
+            <div id="s4-scene-bubbles" class="bubble-layer hidden">
+                <!-- 场景气泡将动态生成 -->
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div id="text-pane">
+            <!-- 面板头部 -->
+            <div id="pane-header">
+                <div class="brand">
+                    <span class="brand-icon">◆</span>
+                    <span class="brand-name">参谋</span>
+                </div>
+                <div class="step-indicator">
+                    <span class="current-step">1</span>
+                    <span class="step-divider">/</span>
+                    <span class="total-steps">8</span>
+                </div>
+            </div>
+            
+            <!-- 模式标签栏 -->
+            <div id="mode-bar">
+                <button class="mode-btn active" data-mode="dialogue">对话</button>
+                <button class="mode-btn" data-mode="profile">档案</button>
+                <button class="mode-btn" data-mode="wiki">记录</button>
+                <button class="mode-btn" data-mode="status">局势</button>
+            </div>
+            
+            <!-- 对话模式 - 8个步骤内容 -->
+            <div id="view-step" class="view-container">
+                <div class="step-content" id="step-1">
+                    <div class="step-header">
+                        <h3>步骤1: 设定与目标</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-2">
+                    <div class="step-header">
+                        <h3>步骤2: 背景与信息</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-3">
+                    <div class="step-header">
+                        <h3>步骤3: 发散与探索</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-4">
+                    <div class="step-header">
+                        <h3>步骤4: 聚焦与深化</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-5">
+                    <div class="step-header">
+                        <h3>步骤5: 评估与验证</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-6">
+                    <div class="step-header">
+                        <h3>步骤6: 决策与承诺</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-7">
+                    <div class="step-header">
+                        <h3>步骤7: 执行规划</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+                <div class="step-content" id="step-8">
+                    <div class="step-header">
+                        <h3>步骤8: 总结与回顾</h3>
+                    </div>
+                    <div class="step-body">
+                        <div class="chat-area"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 档案视图 -->
+            <div id="view-profile" class="view-container hidden">
+                <div class="profile-header">
+                    <h3>角色档案</h3>
+                </div>
+                <div class="profile-body">
+                    <div class="profile-list"></div>
+                </div>
+            </div>
+            
+            <!-- 记录视图 -->
+            <div id="view-wiki" class="view-container hidden">
+                <div class="wiki-header">
+                    <h3>会议记录</h3>
+                </div>
+                <div class="wiki-body">
+                    <div class="wiki-content"></div>
+                </div>
+            </div>
+            
+            <!-- 局势视图 -->
+            <div id="view-status" class="view-container hidden">
+                <div class="status-header">
+                    <h3>局势分析</h3>
+                </div>
+                <div class="status-body">
+                    <div class="status-dimensions"></div>
+                    <div class="status-trends"></div>
+                </div>
+            </div>
+            
+            <!-- 面板底部 -->
+            <div id="pane-footer">
+                <button id="mic-btn" class="mic-button" title="语音输入">
+                    <span class="mic-icon">🎤</span>
+                </button>
+                <div class="nav-buttons">
+                    <button id="prev-btn" class="nav-btn" disabled>上一步</button>
+                    <button id="next-btn" class="nav-btn">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 顶部导航条 ==================== -->
+    <div id="nav-zone">
+        <nav id="nav">
+            <div class="nav-step active" data-step="1">
+                <span class="step-num">1</span>
+                <span class="step-name">设定</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="2">
+                <span class="step-num">2</span>
+                <span class="step-name">背景</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="3">
+                <span class="step-num">3</span>
+                <span class="step-name">发散</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="4">
+                <span class="step-num">4</span>
+                <span class="step-name">聚焦</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="5">
+                <span class="step-num">5</span>
+                <span class="step-name">评估</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="6">
+                <span class="step-num">6</span>
+                <span class="step-name">决策</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="7">
+                <span class="step-num">7</span>
+                <span class="step-name">执行</span>
+            </div>
+            <div class="nav-connector"></div>
+            <div class="nav-step" data-step="8">
+                <span class="step-num">8</span>
+                <span class="step-name">总结</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ==================== Modal弹窗 ==================== -->
+    <!-- 轮次选择弹窗 -->
+    <div id="round-modal" class="modal round-modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>选择轮次</h3>
+                <button class="modal-close" onclick="closeRoundModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="round-list">
+                <!-- Round列表由JS动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeRoundModal()">取消</button>
+                <button class="btn-confirm" onclick="confirmRound()">确认进入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建Project弹窗 -->
+    <div id="new-project-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>新建 Project</h3>
+                <button class="modal-close" onclick="closeRoundModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="new-project-form">
+                    <div class="form-group">
+                        <label for="project-name">项目名称</label>
+                        <input type="text" id="project-name" name="project-name" placeholder="输入项目名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="project-desc">项目描述</label>
+                        <textarea id="project-desc" name="project-desc" rows="3" placeholder="输入项目描述"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel">取消</button>
+                        <button type="submit" class="btn-confirm">创建</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JavaScript ==================== -->
+    <script src="js/data.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/steps.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>参谋 · 交互模式 Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#080808;font-family:-apple-system,'PingFang SC',sans-serif;color:#f0f0f0}
+
+/* ══════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════ */
+#app{display:flex;width:100%;height:100%}
+
+/* Left: doc panel */
+#doc{
+  width:220px;flex-shrink:0;
+  background:rgba(12,12,12,.98);
+  border-right:1px solid rgba(255,255,255,.07);
+  padding:20px 16px;overflow-y:auto;
+}
+#doc h2{font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:16px}
+.pattern-btn{
+  width:100%;text-align:left;padding:10px 12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;cursor:pointer;margin-bottom:8px;
+  font-family:inherit;color:rgba(255,255,255,.55);font-size:10px;line-height:1.5;
+  transition:all .2s;
+}
+.pattern-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.18)}
+.pattern-btn.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);color:#fff}
+.pattern-btn b{display:block;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.3);font-weight:400;margin-bottom:3px}
+.divider{height:1px;background:rgba(255,255,255,.05);margin:14px 0}
+.note{font-size:9px;color:rgba(255,255,255,.22);line-height:1.7;padding:0 2px}
+.note strong{color:rgba(255,255,255,.45);display:block;margin-bottom:4px}
+
+/* Center: scene */
+#scene{
+  flex:1;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse 65% 55% at 50% 44%,rgba(255,255,255,.022) 0%,#080808 68%);
+}
+
+/* Right: speech panel (slides in) */
+#speech-panel{
+  width:0;flex-shrink:0;overflow:hidden;
+  border-left:1px solid rgba(255,255,255,.08);
+  background:rgba(10,10,10,.98);
+  transition:width .32s cubic-bezier(.4,0,.2,1);
+}
+#speech-panel.open{width:260px}
+#sp-inner{width:260px;padding:18px;height:100%;overflow-y:auto}
+#sp-inner::-webkit-scrollbar{width:2px}
+#sp-inner::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
+
+/* ══════════════════════════════════════════
+   AVATAR (ring node style)
+   ══════════════════════════════════════════ */
+.av-node{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+}
+.av-circle{
+  border-radius:50%;border:1.5px solid rgba(255,255,255,.1);
+  background:#080808;overflow:hidden;position:relative;
+  transition:all .3s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+}
+.av-label{font-size:7.5px;color:rgba(255,255,255,.3);white-space:nowrap;text-align:center;transition:color .3s}
+
+/* States */
+.av-node.dim .av-circle{opacity:.25;border-color:rgba(255,255,255,.05)}
+.av-node.dim .av-label{opacity:.2}
+.av-node.active .av-circle{border-color:rgba(255,255,255,.38);box-shadow:0 0 12px rgba(255,255,255,.15)}
+.av-node.active .av-label{color:rgba(255,255,255,.6)}
+
+@keyframes wSpeak{
+  0%,100%{box-shadow:0 0 16px rgba(255,255,255,.45),0 0 36px rgba(255,255,255,.12)}
+  50%{box-shadow:0 0 28px rgba(255,255,255,.85),0 0 60px rgba(255,255,255,.25)}
+}
+@keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.9);opacity:0}}
+.av-node.speaking .av-circle{
+  border-color:#fff;
+  animation:wSpeak 1.6s ease-in-out infinite;
+}
+.av-node.speaking .av-circle::after{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.28);
+  animation:ripple 1.6s ease-out infinite;pointer-events:none;
+}
+.av-node.speaking .av-label{color:#fff;font-weight:500}
+
+/* Host center */
+#host{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(14,14,14,.95);border:1.5px solid rgba(255,255,255,.28);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 24px rgba(255,255,255,.07);z-index:5;
+}
+.ring-orbit{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;border:1px solid rgba(255,255,255,.07);
+  pointer-events:none;
+}
+
+/* ══════════════════════════════════════════
+   PATTERN A: SPEECH BUBBLE
+   ══════════════════════════════════════════ */
+@keyframes bubbleIn{
+  0%{opacity:0;transform:translateY(8px) scale(.94)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.sbub{
+  position:absolute;z-index:40;
+  padding:8px 11px;border-radius:8px;
+  font-size:10.5px;line-height:1.6;
+  color:rgba(255,255,255,.65);
+  max-width:180px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,8,8,.92);
+  backdrop-filter:blur(8px);
+  animation:bubbleIn .28s ease-out;
+  /* Tail: small triangle pointing down to avatar */
+}
+.sbub::after{
+  content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:rgba(255,255,255,.16);
+}
+.sbub::before{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:rgba(8,8,8,.92);
+  z-index:1;
+}
+.sbub-name{font-size:8px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.5px;margin-bottom:3px}
+.sbub-hint{font-size:8px;color:rgba(255,255,255,.28);margin-top:5px;border-top:1px solid rgba(255,255,255,.07);padding-top:5px}
+.sbub.clickable{cursor:pointer;pointer-events:auto;transition:border-color .15s,color .15s}
+.sbub.clickable:hover{border-color:rgba(255,255,255,.4);color:#fff}
+.sbub.clickable:hover .sbub-hint{color:rgba(255,255,255,.55)}
+
+/* ══════════════════════════════════════════
+   SPEECH PANEL (right side)
+   ══════════════════════════════════════════ */
+#sp-back{
+  display:flex;align-items:center;gap:6px;margin-bottom:16px;
+  font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;
+  cursor:pointer;padding:6px 8px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);transition:all .2s;width:fit-content;
+}
+#sp-back:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+.sp-av-row{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:12px}
+.sp-av{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.sp-name{font-size:13px;font-weight:600;color:#fff}
+.sp-meta{font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:2px}
+.sp-body{font-size:10.5px;color:rgba(255,255,255,.5);line-height:1.85}
+.sp-body p{margin-bottom:9px}
+.sp-body strong{color:rgba(255,255,255,.8);font-weight:600}
+.sp-body blockquote{
+  padding:8px 11px;background:rgba(255,255,255,.04);
+  border-left:2px solid rgba(255,255,255,.18);border-radius:0 6px 6px 0;
+  margin:10px 0;font-size:10.5px;color:rgba(255,255,255,.45);font-style:italic;
+}
+
+/* ══════════════════════════════════════════
+   PATTERN B: DIMENSION COLLECT ANIMATION
+   ══════════════════════════════════════════ */
+
+/* Corner tracker */
+#dim-tracker{
+  position:absolute;top:14px;right:14px;z-index:50;
+  background:rgba(0,0,0,.88);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;padding:10px 13px;
+  backdrop-filter:blur(12px);min-width:144px;
+  display:none;
+}
+#dim-tracker h4{font-size:8px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.dim-slot{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;color:rgba(255,255,255,.55);
+  padding:3px 0;opacity:0;transform:scale(.85);
+  transition:none;
+}
+.dim-slot.appear{opacity:1;transform:scale(1);transition:opacity .25s,transform .25s}
+.dim-slot-dot{width:6px;height:6px;border-radius:50%;background:var(--dc);flex-shrink:0}
+
+/* Flying dim bubble */
+@keyframes dimAppear{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}
+  60%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes dimFly{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.25)}
+}
+.dim-bubble{
+  position:absolute;z-index:60;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  padding:14px 24px;border-radius:28px;
+  font-size:18px;color:#fff;font-weight:600;letter-spacing:.5px;
+  background:var(--dc);
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+  pointer-events:none;white-space:nowrap;
+  animation:dimAppear .4s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.dim-bubble.fly{
+  animation:dimFly .5s cubic-bezier(.4,0,1,1) forwards;
+}
+
+/* ══════════════════════════════════════════
+   BUTTONS & UI
+   ══════════════════════════════════════════ */
+.scene-btn{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;z-index:30;
+}
+.btn{
+  padding:8px 18px;border-radius:20px;font-size:10px;letter-spacing:.5px;
+  cursor:pointer;border:none;font-family:inherit;transition:all .2s;
+}
+.btn-w{background:#fff;color:#000}
+.btn-w:hover{background:#e8e8e8}
+.btn-o{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+.btn-o:hover{border-color:rgba(255,255,255,.45);color:#fff}
+
+/* Step title */
+#step-label{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;
+  pointer-events:none;white-space:nowrap;
+}
+
+/* Annotation box */
+.anno{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:rgba(255,255,255,.3);text-align:center;line-height:1.7;
+  pointer-events:none;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── Left: Pattern Selector ── -->
+<div id="doc">
+  <h2>交互模式</h2>
+
+  <button class="pattern-btn active" onclick="loadPattern('A')">
+    <b>PATTERN A · 来自 v6/v7</b>
+    头像冒泡 + 右滑详情
+  </button>
+
+  <button class="pattern-btn" onclick="loadPattern('B')">
+    <b>PATTERN B · 新设计</b>
+    维度逐次冒出 → 收敛右上角
+  </button>
+
+  <div class="divider"></div>
+
+  <div class="note" id="doc-note">
+    <strong>Pattern A — 头像冒泡</strong>
+    头像发言时，文字摘要<em>悬浮于头像正上方</em>（不在右侧面板）。<br><br>
+    给用户沉浸感：看到"他在说话"。<br><br>
+    气泡右下角有提示「点击查看完整发言 ↗」。点击 → 右侧面板滑入，显示完整内容。再点面板顶部「← 返回」→ 面板收起。
+  </div>
+</div>
+
+<!-- ── Center: Scene ── -->
+<div id="scene">
+  <div id="step-label">PATTERN A · 头像发言冒泡 · 点击气泡查看完整发言</div>
+
+  <!-- Ring -->
+  <div class="ring-orbit" style="width:380px;height:380px"></div>
+  <div class="ring-orbit" style="width:420px;height:420px;border-color:rgba(255,255,255,.03)"></div>
+  <div id="host">🎙️</div>
+
+  <!-- Avatar nodes -->
+  <div class="av-node dim" id="n0" style="top:calc(50% - 190px);left:50%">
+    <div class="av-circle" style="width:44px;height:44px">🌊</div>
+    <div class="av-label">老子</div>
+  </div>
+  <div class="av-node dim" id="n1" style="top:calc(50% - 165px);left:calc(50% + 95px)">
+    <div class="av-circle" style="width:44px;height:44px">🪷</div>
+    <div class="av-label">六祖</div>
+  </div>
+  <div class="av-node dim" id="n2" style="top:calc(50% - 95px);left:calc(50% + 165px)">
+    <div class="av-circle" style="width:44px;height:44px">🚀</div>
+    <div class="av-label">钱学森</div>
+  </div>
+  <div class="av-node dim" id="n3" style="top:50%;left:calc(50% + 190px)">
+    <div class="av-circle" style="width:44px;height:44px">⚡</div>
+    <div class="av-label">马斯克</div>
+  </div>
+  <div class="av-node dim" id="n4" style="top:calc(50% + 95px);left:calc(50% + 165px)">
+    <div class="av-circle" style="width:44px;height:44px">☁️</div>
+    <div class="av-label">Bezos</div>
+  </div>
+  <div class="av-node speaking" id="n5" style="top:calc(50% + 165px);left:calc(50% + 95px)">
+    <div class="av-circle" style="width:50px;height:50px">💼</div>
+    <div class="av-label">乔布斯</div>
+  </div>
+  <div class="av-node dim" id="n6" style="top:calc(50% + 190px);left:50%">
+    <div class="av-circle" style="width:44px;height:44px">🔬</div>
+    <div class="av-label">费曼</div>
+  </div>
+  <div class="av-node active" id="n7" style="top:calc(50% + 165px);left:calc(50% - 95px)">
+    <div class="av-circle" style="width:44px;height:44px">⚔️</div>
+    <div class="av-label">毛泽东</div>
+  </div>
+  <div class="av-node dim" id="n8" style="top:calc(50% + 95px);left:calc(50% - 165px)">
+    <div class="av-circle" style="width:44px;height:44px">🧪</div>
+    <div class="av-label">PG</div>
+  </div>
+  <div class="av-node dim" id="n9" style="top:50%;left:calc(50% - 190px)">
+    <div class="av-circle" style="width:44px;height:44px">🔮</div>
+    <div class="av-label">Kevin Kelly</div>
+  </div>
+  <div class="av-node dim" id="n10" style="top:calc(50% - 95px);left:calc(50% - 165px)">
+    <div class="av-circle" style="width:44px;height:44px">🌐</div>
+    <div class="av-label">a16z</div>
+  </div>
+  <div class="av-node dim" id="n11" style="top:calc(50% - 165px);left:calc(50% - 95px)">
+    <div class="av-circle" style="width:44px;height:44px">🥋</div>
+    <div class="av-label">Bruce Lee</div>
+  </div>
+
+  <!-- Dim Tracker (Pattern B) -->
+  <div id="dim-tracker">
+    <h4>核心维度</h4>
+    <div id="ds0" class="dim-slot" style="--dc:#4ECDC4"><div class="dim-slot-dot"></div>执行力 vs 时机</div>
+    <div id="ds1" class="dim-slot" style="--dc:#FF8C42"><div class="dim-slot-dot"></div>合伙人风险</div>
+    <div id="ds2" class="dim-slot" style="--dc:#B0B0FF"><div class="dim-slot-dot"></div>动机真实性</div>
+    <div id="ds3" class="dim-slot" style="--dc:#69D99A"><div class="dim-slot-dot"></div>市场窗口</div>
+    <div id="ds4" class="dim-slot" style="--dc:#FFE066"><div class="dim-slot-dot"></div>资金储备</div>
+  </div>
+
+  <!-- Annotation -->
+  <div class="anno" id="anno">点击「触发发言」看气泡弹出效果 → 点击气泡查看完整发言</div>
+
+  <!-- Buttons -->
+  <div class="scene-btn" id="btns-A">
+    <button class="btn btn-w" onclick="triggerBubble()">触发发言气泡</button>
+    <button class="btn btn-o" onclick="clearBubbles()">清除气泡</button>
+  </div>
+  <div class="scene-btn" id="btns-B" style="display:none">
+    <button class="btn btn-w" onclick="triggerDims()">拆解维度（逐次弹出）</button>
+    <button class="btn btn-o" onclick="resetDims()">重置</button>
+  </div>
+</div>
+
+<!-- ── Right: Speech Panel ── -->
+<div id="speech-panel">
+  <div id="sp-inner">
+    <div id="sp-back" onclick="closePanel()">← 返回场景</div>
+    <div class="sp-av-row">
+      <div class="sp-av">💼</div>
+      <div>
+        <div class="sp-name">乔布斯</div>
+        <div class="sp-meta">STEP 4 · 并行发言</div>
+      </div>
+    </div>
+    <div class="sp-body">
+      <p>你的问题不是时机，是<strong>勇气</strong>。</p>
+      <p>你一直在等一个"完美的时间"——但那个时间永远不会来。市场从不等你准备好。</p>
+      <blockquote>真正的产品感，是当你害怕的时候还敢按下发布键。</blockquote>
+      <p>你现在的焦虑，本质上是在问：<strong>我值得成功吗？</strong>这不是商业问题，是心理问题。</p>
+      <p>把这个问题解决了，时机问题自然消失。因为你会发现，任何时候都是时机——只要你敢。</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+/* ══════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════ */
+let curPattern = 'A';
+let panelOpen = false;
+let bubblesShown = false;
+let dimSeqRunning = false;
+let dimCount = 0;
+
+/* ══════════════════════════════════════════
+   PATTERN SWITCHER
+   ══════════════════════════════════════════ */
+function loadPattern(p){
+  curPattern = p;
+  document.querySelectorAll('.pattern-btn').forEach((b,i)=>{
+    b.classList.toggle('active', (i===0&&p==='A')||(i===1&&p==='B'));
+  });
+
+  clearBubbles();
+  closePanel();
+  resetDims();
+
+  const noteEl = document.getElementById('doc-note');
+  const labelEl = document.getElementById('step-label');
+  const annoEl = document.getElementById('anno');
+  const btnsA = document.getElementById('btns-A');
+  const btnsB = document.getElementById('btns-B');
+
+  if(p==='A'){
+    noteEl.innerHTML = `<strong>Pattern A — 头像冒泡</strong>
+      头像发言时，文字摘要<em>悬浮于头像正上方</em>（不在右侧面板）。<br><br>
+      给用户沉浸感：看到"他在说话"。<br><br>
+      气泡右下角有提示「点击查看完整发言 ↗」。点击气泡 → 右侧面板滑入；再点气泡 → 面板滑出收起（气泡本身就是开关）。`;
+    labelEl.textContent = 'PATTERN A · 头像发言冒泡 · 点击气泡查看完整发言';
+    annoEl.textContent = '点击「触发发言」看气泡弹出效果 → 点击气泡查看完整发言';
+    btnsA.style.display = 'flex';
+    btnsB.style.display = 'none';
+    // reset to speaking scene
+    document.getElementById('n5').className = 'av-node speaking';
+    document.getElementById('n7').className = 'av-node active';
+    document.getElementById('dim-tracker').style.display = 'none';
+  } else {
+    noteEl.innerHTML = `<strong>Pattern B — 维度收敛</strong>
+      主持人拆解维度时，每个维度<em>逐次从画面中心冒出</em>（大气泡，满屏弹出感）。<br><br>
+      弹出后停顿约0.6s，然后飞向右上角维度追踪器，<em>收敛进入</em>。<br><br>
+      下一个维度再弹出……如此循环，给人沉重、逐步揭示的感觉。`;
+    labelEl.textContent = 'PATTERN B · 维度逐次冒出 · 收敛右上角';
+    annoEl.textContent = '点击「拆解维度」触发动画序列';
+    btnsA.style.display = 'none';
+    btnsB.style.display = 'flex';
+    // change scene to host speaking
+    for(let i=0;i<12;i++) document.getElementById('n'+i).className='av-node dim';
+    document.getElementById('dim-tracker').style.display = 'block';
+    // reset slots
+    for(let i=0;i<5;i++){
+      const s = document.getElementById('ds'+i);
+      s.classList.remove('appear');
+      s.style.cssText = '';
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   PATTERN A: SPEECH BUBBLE
+   ══════════════════════════════════════════ */
+const SPEECHES = [
+  {
+    nodeId:'n5',
+    name:'💼 乔布斯',
+    text:'你的问题不是时机，是勇气…',
+    speechId:'jobs',
+    // position relative to scene center
+    // Jobs is at bottom-right: top=calc(50% + 165px), left=calc(50% + 95px)
+    // Bubble goes ABOVE avatar: subtract avatar height + bubble height
+    pos: {bottom: 'calc(50% - 170px)', left: 'calc(50% + 95px)', transform:'translateX(-50%)'}
+  }
+];
+
+function triggerBubble(){
+  clearBubbles();
+  bubblesShown = true;
+
+  const s = SPEECHES[0];
+  const d = document.createElement('div');
+  d.className = 'sbub clickable dyn-b';
+  d.style.bottom = s.pos.bottom;
+  d.style.left = s.pos.left;
+  d.style.transform = s.pos.transform;
+  d.innerHTML = `
+    <div class="sbub-name">${s.name}</div>
+    你的问题不是时机，是勇气——但市场从不等你准备好。
+    <div class="sbub-hint">点击查看完整发言 ↗</div>
+  `;
+  d.onclick = () => { if(panelOpen) closePanel(); else openPanel(); };
+  document.getElementById('scene').appendChild(d);
+
+  // Also show Mao's bubble (non-clickable, just context)
+  const d2 = document.createElement('div');
+  d2.className = 'sbub dyn-b';
+  d2.style.bottom = 'calc(50% - 120px)';
+  d2.style.left = 'calc(50% - 95px)';
+  d2.style.transform = 'translateX(-50%)';
+  d2.style.animationDelay = '.18s';
+  d2.style.opacity = '0';
+  d2.style.animation = 'bubbleIn .28s ease-out .18s forwards';
+  d2.innerHTML = `<div class="sbub-name">⚔️ 毛泽东</div>合伙人才是关键变量`;
+  document.getElementById('scene').appendChild(d2);
+
+  document.getElementById('anno').textContent = '气泡浮在头像上方 → 点击「乔布斯」气泡展开详情';
+}
+
+function clearBubbles(){
+  document.querySelectorAll('.dyn-b').forEach(b=>b.remove());
+  bubblesShown = false;
+  if(curPattern==='A')
+    document.getElementById('anno').textContent = '点击「触发发言」看气泡弹出效果 → 点击气泡查看完整发言';
+}
+
+function openPanel(){
+  const panel = document.getElementById('speech-panel');
+  panel.classList.add('open');
+  panelOpen = true;
+  document.getElementById('anno').textContent = '完整发言已展开 → 点击「← 返回场景」收起面板';
+}
+
+function closePanel(){
+  const panel = document.getElementById('speech-panel');
+  panel.classList.remove('open');
+  panelOpen = false;
+  if(curPattern==='A')
+    document.getElementById('anno').textContent = bubblesShown
+      ? '气泡浮在头像上方 → 点击「乔布斯」气泡展开详情'
+      : '点击「触发发言」看气泡弹出效果 → 点击气泡查看完整发言';
+}
+
+/* ══════════════════════════════════════════
+   PATTERN B: DIMENSION COLLECT
+   ══════════════════════════════════════════ */
+const DIMS = [
+  {label:'执行力 vs 时机', color:'#4ECDC4'},
+  {label:'合伙人风险',     color:'#FF8C42'},
+  {label:'动机真实性',     color:'#B0B0FF'},
+  {label:'市场窗口',       color:'#69D99A'},
+  {label:'资金储备',       color:'#FFE066'},
+];
+
+function getTrackerPos(){
+  const tracker = document.getElementById('dim-tracker');
+  const scene = document.getElementById('scene');
+  const tr = tracker.getBoundingClientRect();
+  const sr = scene.getBoundingClientRect();
+  // center of tracker relative to scene
+  return {
+    x: tr.left + tr.width/2 - sr.left,
+    y: tr.top + tr.height/2 - sr.top,
+  };
+}
+
+function triggerDims(){
+  if(dimSeqRunning) return;
+  resetDims();
+  dimSeqRunning = true;
+  dimCount = 0;
+  document.getElementById('anno').textContent = '维度逐次弹出…';
+  spawnNextDim();
+}
+
+function spawnNextDim(){
+  if(dimCount >= DIMS.length){
+    dimSeqRunning = false;
+    document.getElementById('anno').textContent = '全部维度已收敛到右上角 ✓';
+    return;
+  }
+  const dim = DIMS[dimCount];
+  const idx = dimCount;
+  dimCount++;
+
+  // Create flying bubble at scene center
+  const scene = document.getElementById('scene');
+  const sr = scene.getBoundingClientRect();
+  const cx = sr.width / 2;
+  const cy = sr.height / 2;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'dim-bubble';
+  bubble.style.setProperty('--dc', dim.color);
+  bubble.textContent = dim.label;
+  scene.appendChild(bubble);
+
+  // After appear animation (0.4s), wait 0.5s, then fly to corner
+  setTimeout(()=>{
+    // Calculate fly target
+    const tp = getTrackerPos();
+    const tx = (tp.x - cx) + 'px';
+    const ty = (tp.y - cy) + 'px';
+    bubble.style.setProperty('--tx', tx);
+    bubble.style.setProperty('--ty', ty);
+    bubble.classList.add('fly');
+
+    // When fly done, show slot in tracker, remove bubble
+    setTimeout(()=>{
+      bubble.remove();
+      const slot = document.getElementById('ds'+idx);
+      if(slot){
+        // Set transition via inline style BEFORE adding class (avoids simultaneous transition+value-change gotcha)
+        slot.style.transition = 'opacity .3s, transform .3s';
+        void slot.offsetHeight; // force reflow so browser registers transition
+        slot.classList.add('appear');
+        // small pop overshoot
+        setTimeout(()=>{
+          slot.style.transform = 'scale(1.1)';
+          setTimeout(()=>{ slot.style.transform = ''; }, 140);
+        }, 30);
+      }
+      // Next dim after a pause
+      setTimeout(spawnNextDim, 480);
+    }, 480);
+  }, 900);
+}
+
+function resetDims(){
+  document.querySelectorAll('.dim-bubble').forEach(b=>b.remove());
+  for(let i=0;i<5;i++){
+    const s = document.getElementById('ds'+i);
+    if(s){
+      s.classList.remove('appear');
+      s.style.cssText = ''; // clear all inline styles so CSS base (.dim-slot opacity:0) takes over
+    }
+  }
+  dimSeqRunning = false;
+  dimCount = 0;
+  if(curPattern==='B')
+    document.getElementById('anno').textContent = '点击「拆解维度」触发动画序列';
+}
+
+/* Init */
+loadPattern('A');
+</script>
+</body>
+</html>
