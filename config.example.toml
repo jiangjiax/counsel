@@ -1,0 +1,20 @@
+[server]
+host = "127.0.0.1"
+port = 3000
+
+[storage]
+root = "./sessions"
+
+[model]
+default = "ollama"
+
+[model.providers.ollama]
+type = "ollama"
+base_url = "http://127.0.0.1:11434"
+model = "llama3.2"
+
+[model.providers.deepseek]
+type = "deepseek"
+base_url = "https://api.deepseek.com/v1"
+model = "deepseek-v4-flash"
+api_key = "${DEEPSEEK_API_KEY}"

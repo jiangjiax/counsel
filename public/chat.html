@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Counsel · 群聊</title>
+  <link rel="stylesheet" href="/chat.css">
+</head>
+<body>
+  <div id="ct-root">
+    <!-- Auth gate / loading splash -->
+    <div id="ct-gate" class="ct-gate">
+      <div class="ct-gate-inner">
+        <div class="ct-brand">私 董 会 · 群聊</div>
+        <div id="ct-gate-msg" class="ct-gate-msg">加载中…</div>
+        <a class="ct-gate-back" href="/">← 回主站登录</a>
+      </div>
+    </div>
+
+    <!-- Room list view -->
+    <div id="ct-list" class="ct-view" hidden>
+      <header class="ct-top">
+        <div class="ct-title">群聊</div>
+        <div class="ct-actions">
+          <button type="button" id="ct-new-btn" class="ct-btn ct-btn-primary">+ 新建群聊</button>
+          <a class="ct-back" href="/">← 主站</a>
+        </div>
+      </header>
+      <main class="ct-main">
+        <div id="ct-rooms" class="ct-rooms"></div>
+        <div id="ct-rooms-empty" class="ct-empty" hidden>
+          <div class="ct-empty-h">还没有群聊</div>
+          <div class="ct-empty-s">点 "+ 新建群聊" 拉个群跟你的幕僚自由聊聊</div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Chat room view -->
+    <div id="ct-room" class="ct-view" hidden>
+      <header class="ct-top">
+        <button type="button" id="ct-back-list" class="ct-back-btn">←</button>
+        <div class="ct-room-hdr">
+          <div id="ct-room-title" class="ct-room-title">—</div>
+          <div id="ct-room-members" class="ct-room-members"></div>
+        </div>
+        <div class="ct-actions">
+          <button type="button" id="ct-delete-room" class="ct-btn ct-btn-ghost" title="删除当前群聊">删除</button>
+        </div>
+      </header>
+      <main class="ct-chat" id="ct-chat"></main>
+      <footer class="ct-footer">
+        <button type="button" id="ct-mention-btn" class="ct-btn ct-btn-ghost ct-mention-btn" title="@ 单独点名一个幕僚">@</button>
+        <textarea id="ct-input" placeholder="跟幕僚们说点什么…（@姓名 单独点名）" rows="1"></textarea>
+        <button type="button" id="ct-send-btn" class="ct-btn ct-btn-primary">发送</button>
+      </footer>
+    </div>
+
+    <!-- Create-room modal -->
+    <div id="ct-modal" class="ct-modal" hidden>
+      <div class="ct-modal-card">
+        <div class="ct-modal-h">新建群聊</div>
+        <label class="ct-field">
+          <span>群名（可选）</span>
+          <input type="text" id="ct-new-title" placeholder="例如：随便聊聊产品方向" maxlength="60">
+        </label>
+        <div class="ct-field">
+          <span>选幕僚（至少 1 个）</span>
+          <div id="ct-persona-picker" class="ct-persona-picker"></div>
+        </div>
+        <div class="ct-modal-foot">
+          <button type="button" id="ct-modal-cancel" class="ct-btn ct-btn-ghost">取消</button>
+          <button type="button" id="ct-modal-create" class="ct-btn ct-btn-primary">创建</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- @-mention dropdown -->
+    <div id="ct-mention-pop" class="ct-mention-pop" hidden></div>
+
+    <!-- Toast -->
+    <div id="ct-toast" class="ct-toast" hidden></div>
+  </div>
+
+  <script src="/analytics.js"></script>
+  <script src="/chat.js"></script>
+</body>
+</html>

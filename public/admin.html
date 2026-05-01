@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Counsel · 管理后台</title>
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <header class="adm-top">
+    <div class="adm-brand">私董会 · 管理后台</div>
+    <div class="adm-actions">
+      <select id="adm-window" title="时间窗口">
+        <option value="1">过去 1 天</option>
+        <option value="7" selected>过去 7 天</option>
+        <option value="30">过去 30 天</option>
+        <option value="90">过去 90 天</option>
+        <option value="365">过去 1 年</option>
+      </select>
+      <button type="button" id="adm-refresh">刷新</button>
+      <a class="adm-back" href="/">← 返回主站</a>
+    </div>
+  </header>
+
+  <main class="adm-main" id="adm-main">
+
+  <!-- ─── Overview view ─────────────────────────────────────────── -->
+  <div id="view-overview">
+
+    <section class="adm-grid">
+      <div class="kpi" id="kpi-users"><div class="kpi-l">活跃用户</div><div class="kpi-v">—</div><div class="kpi-s">总注册：<span class="kpi-x">—</span></div></div>
+      <div class="kpi" id="kpi-sessions"><div class="kpi-l">会话数</div><div class="kpi-v">—</div><div class="kpi-s">累计：<span class="kpi-x">—</span></div></div>
+      <div class="kpi" id="kpi-completion"><div class="kpi-l">完成率</div><div class="kpi-v">—</div><div class="kpi-s">完成 / 开始</div></div>
+      <div class="kpi" id="kpi-feedback"><div class="kpi-l">反馈数</div><div class="kpi-v">—</div><div class="kpi-s">累计：<span class="kpi-x">—</span></div></div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">我的行为（不计入用户数据）</div>
+        <div class="adm-sub">Michael / 1136333527 单独看；e2e/smoke 测试账号已从运营用户列表和聚合指标排除</div>
+        <div id="operator-summary" class="operator-summary"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-funnel">
+        <div class="adm-h">8 步漏斗</div>
+        <div class="adm-sub">每一步进入和完成的会话数；中位耗时秒数</div>
+        <div id="funnel-chart"></div>
+      </div>
+      <div class="adm-card adm-devices">
+        <div class="adm-h">设备 / 浏览器</div>
+        <div id="device-summary"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card">
+        <div class="adm-h">最近反馈 <span class="adm-badge" id="fb-count">0</span></div>
+        <div id="fb-list" class="adm-list"></div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-h">访问 IP 与地理</div>
+        <div class="adm-sub">仅显示地区/国家；点行可在浏览器内查询详情</div>
+        <div id="geo-list" class="adm-list"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">幕僚许愿池 <span class="adm-badge" id="wish-count">0</span></div>
+        <div class="adm-sub">案主在选人模态点「🌟 许愿幕僚」留下的人名；点「✓ 已实现」会通知许愿者</div>
+        <div id="wish-list" class="adm-list"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">问题类目分布 · F5 (2026-04-26)</div>
+        <div class="adm-sub">案主问题被分到的话题类目（不存储原文，只存类目标签）</div>
+        <div id="category-chart" class="category-chart"></div>
+      </div>
+    </section>
+
+    <!-- §3.9 群聊（轻量轨）— 仅元数据 + 类目，绝无对话内容 -->
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">💬 群聊模式 · 总览</div>
+        <div class="adm-sub">轻量入口的使用情况；所有指标基于元数据事件，绝不涉及对话内容</div>
+        <div id="chat-overview" class="kpi-row"></div>
+      </div>
+    </section>
+    <section class="adm-row">
+      <div class="adm-card">
+        <div class="adm-h">群聊话题分布</div>
+        <div class="adm-sub">基于 chat_topic_categorized 事件（10 类目，复用 8 步流程的分类器）</div>
+        <div id="chat-topics-chart" class="category-chart"></div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-h">幕僚使用矩阵</div>
+        <div class="adm-sub">每位幕僚被拉群的次数 / 实际回复条数</div>
+        <div id="chat-personas-chart"></div>
+      </div>
+    </section>
+    <section class="adm-row">
+      <div class="adm-card">
+        <div class="adm-h">Retention（D1/D3/D7）</div>
+        <div class="adm-sub">建群之后多久回来再发消息（用于评估"轻量入口"的粘性）</div>
+        <div id="chat-retention-chart"></div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-h">心流时长（连续 5min 内的对话）</div>
+        <div class="adm-sub">flow = 同一 room 里间隔 < 5 分钟的连续消息序列；中位 + p95</div>
+        <div id="chat-flow-chart"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">用户列表 <span class="adm-badge" id="users-count">0</span></div>
+        <div class="adm-sub">点击用户名进入个人行为详情页</div>
+        <div id="users-table" class="users-table"></div>
+      </div>
+    </section>
+
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">最近事件流</div>
+        <div class="adm-sub">最新 200 条原始事件，方便排查埋点是否正常</div>
+        <div id="recent-events" class="adm-list adm-mono"></div>
+      </div>
+    </section>
+
+    <!-- 事故黑匣子 — Step 失败 / 卡住 / 空响应 自动落盘 -->
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">🚨 事故黑匣子 <span class="adm-badge" id="incidents-total">0</span></div>
+        <div class="adm-sub">
+          后端自动捕获：模型空响应 / 服务器侧超时 / Step 错误 / 流断开。
+          按窗口聚合，最近 7 天默认显示。
+        </div>
+        <div class="incidents-toolbar">
+          <select id="incidents-days">
+            <option value="1">过去 1 天</option>
+            <option value="7" selected>过去 7 天</option>
+            <option value="30">过去 30 天</option>
+          </select>
+          <select id="incidents-kind">
+            <option value="">全部类型</option>
+            <option value="empty_response">空响应 empty_response</option>
+            <option value="stuck_timeout">超时 stuck_timeout</option>
+            <option value="core_error">Step 错误 core_error</option>
+            <option value="stream_error">流错误 stream_error</option>
+          </select>
+          <select id="incidents-step">
+            <option value="">全部 Step</option>
+            <option value="2">Step 2 锁定</option>
+            <option value="3">Step 3 事实</option>
+            <option value="4">Step 4 意见</option>
+            <option value="5">Step 5 维度</option>
+            <option value="6">Step 6 辩论</option>
+            <option value="7">Step 7 归纳</option>
+            <option value="8">Step 8 收获</option>
+          </select>
+          <button type="button" id="incidents-refresh">刷新</button>
+        </div>
+        <div id="incidents-summary" class="incidents-summary"></div>
+        <div id="incidents-list" class="incidents-list adm-mono"></div>
+      </div>
+    </section>
+
+    <div id="adm-error" class="adm-error" style="display:none"></div>
+  </div>
+
+  <!-- ─── Per-user detail view ──────────────────────────────────── -->
+  <div id="view-user" style="display:none">
+    <a class="user-back" href="#" id="user-back">← 返回总览</a>
+    <div id="user-header" class="user-header">—</div>
+    <section class="adm-grid" id="user-kpis"></section>
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">行为时间线 <span class="adm-badge" id="user-events-count">0</span></div>
+        <div class="adm-sub">最近 200 条事件，按时间倒序</div>
+        <div id="user-events" class="adm-list adm-mono"></div>
+      </div>
+    </section>
+    <section class="adm-row">
+      <div class="adm-card adm-full">
+        <div class="adm-h">本人反馈 <span class="adm-badge" id="user-fb-count">0</span></div>
+        <div id="user-feedback" class="adm-list"></div>
+      </div>
+    </section>
+    <div id="user-error" class="adm-error" style="display:none"></div>
+  </div>
+
+  </main>
+
+  <script src="/auth.js"></script>
+  <script src="/admin.js"></script>
+</body>
+</html>

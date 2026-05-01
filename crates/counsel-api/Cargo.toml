@@ -1,0 +1,30 @@
+[package]
+name = "counsel-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+axum = { workspace = true }
+chrono = { workspace = true }
+counsel-core = { path = "../counsel-core" }
+counsel-model = { path = "../counsel-model" }
+counsel-storage = { path = "../counsel-storage" }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+sqlx = { workspace = true }
+bcrypt = { workspace = true }
+jsonwebtoken = { workspace = true }
+tempfile = { workspace = true }
+
+[dev-dependencies]
+axum-test = "15"
+tokio-test = "0.4"

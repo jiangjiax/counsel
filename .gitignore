@@ -1,0 +1,27 @@
+/target
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+*.pdb
+*.pyc
+**/__pycache__/
+
+# Runtime/private local data
+/sessions/
+/chat-rooms/
+/auth.db
+/auth.db-shm
+/auth.db-wal
+/user-wiki.md
+/execution-journal.md
+
+# Local editor/agent state
+/.claude/
+/.cursor/
+/.stfolder/
+/.stignore
+*.sync-conflict-*
+.syncthing.*
